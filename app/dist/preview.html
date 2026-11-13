@@ -1,0 +1,1742 @@
+<title>PLC Launchpad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>/* PLC Launchpad 1.0
+   Layout: one orbit hub (home) and a "flight path" for each plan. Color always means a family:
+   learn (Q1) blue · check (Q2) orange · reteach (Q3) green · stretch (Q4) gold · team purple.
+   Navy/gray are for tools that belong to no family. Circles = big ideas and status, capsules = actions,
+   speech bubbles = guidance, tinted stations = plan steps. */
+:root{
+  --sky:#E9EFF7; --paper:#FFFFFF; --ink:#14213D; --ink-soft:#4C5876; --line:#C7D2E3; --wash:#F3F6FB;
+  --learn:#2F5BEA; --check:#E8622A; --reteach:#0F9C7C; --stretch:#D99A00; --team:#8A46C9; --alert:#C2334D;
+  --on-learn:#FFFFFF; --on-check:#14213D; --on-reteach:#FFFFFF; --on-stretch:#14213D; --on-team:#FFFFFF;
+  --blend:multiply; --shadow:0 10px 30px -18px rgba(20,33,61,.45);
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Verdana","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757; --wash:#121A2F;
+  --learn:#7391FF; --check:#FF8A55; --reteach:#33D1AA; --stretch:#FFCB3D; --team:#C08BFF; --alert:#FF7C93;
+  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
+  --blend:screen; --shadow:0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757; --wash:#121A2F;
+  --learn:#7391FF; --check:#FF8A55; --reteach:#33D1AA; --stretch:#FFCB3D; --team:#C08BFF; --alert:#FF7C93;
+  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
+  --blend:screen; --shadow:0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.55;overflow-x:hidden}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,4.4vw,3.2rem);font-weight:800;letter-spacing:-.025em}
+h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:800;letter-spacing:-.015em}
+h3{font-size:1.2rem;font-weight:700}
+h4{font-size:1rem;font-weight:700}
+p{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--learn);outline-offset:3px;border-radius:12px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ico{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ico .fill{fill:currentColor;stroke:none}
+.muted{color:var(--ink-soft)}
+.small{font-size:.88rem}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.num{font-variant-numeric:tabular-nums}
+
+/* families */
+.f-learn{--c:var(--learn);--on:var(--on-learn)} .f-check{--c:var(--check);--on:var(--on-check)}
+.f-reteach{--c:var(--reteach);--on:var(--on-reteach)} .f-stretch{--c:var(--stretch);--on:var(--on-stretch)}
+.f-team{--c:var(--team);--on:var(--on-team)} .f-tool{--c:var(--ink);--on:var(--sky)}
+.tint{background:color-mix(in srgb,var(--c) 9%,var(--paper))}
+.orb{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:var(--on)}
+.orb.lg{width:64px;height:64px}.orb.lg .ico{width:30px;height:30px}
+.orb.sm{width:32px;height:32px}.orb.sm .ico{width:17px;height:17px}
+.orb.soft{background:color-mix(in srgb,var(--c) 15%,var(--paper));color:var(--c)}
+
+/* ---------- shell ---------- */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--sky)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--sky) 88%,transparent);backdrop-filter:blur(12px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.12rem;white-space:nowrap}
+.team-pill{display:flex;align-items:center;gap:8px;border:0;background:color-mix(in srgb,var(--team) 14%,var(--paper));color:var(--ink);border-radius:999px;padding:5px 14px 5px 5px;font-weight:700;font-size:.9rem;max-width:280px}
+.team-pill .orb{width:30px;height:30px}.team-pill .orb .ico{width:16px;height:16px}
+.team-pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.nav a{display:flex;align-items:center;gap:7px;text-decoration:none;font-weight:700;font-size:.9rem;padding:7px 13px 7px 8px;border-radius:999px;border:2px solid transparent;color:var(--ink)}
+.nav a .ico{width:19px;height:19px;color:var(--c)}
+.nav a:hover{border-color:var(--line)}
+.nav a[aria-current="page"]{background:var(--paper);border-color:var(--c);box-shadow:var(--shadow)}
+.status-dot{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-soft);white-space:nowrap}
+.status-dot i{width:9px;height:9px;border-radius:50%;background:var(--reteach)}
+.status-dot.saving i{background:var(--stretch)} .status-dot.error i{background:var(--alert)}
+.timer-pill{display:flex;align-items:center;gap:10px;background:var(--team);color:var(--on-team);border-radius:999px;padding:5px 6px 5px 14px;font-weight:700;font-size:.9rem;text-decoration:none}
+.timer-pill b{font-variant-numeric:tabular-nums;font-family:var(--display);font-size:1.05rem}
+.timer-pill span.go{background:var(--paper);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:.8rem}
+main{max-width:1240px;margin:0 auto;padding-block:18px 70px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-block:10px 24px}
+.page-head .lead{display:grid;gap:8px;max-width:62ch}
+.page-head p{color:var(--ink-soft);font-size:1.05rem}
+.demo-banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--paper);border:2px dashed var(--line);border-radius:999px;padding:8px 10px 8px 18px;font-size:.9rem;margin-bottom:14px}
+.demo-banner b{font-family:var(--display)}
+.demo-banner .btn{margin-left:auto}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:11px 18px;font-weight:700;text-decoration:none;font-size:.95rem;line-height:1.2;background:var(--ink);color:var(--sky);white-space:nowrap}
+.btn .ico{width:19px;height:19px}
+.btn.lead-orb{padding:7px 20px 7px 7px}
+.btn.lead-orb .orb{width:34px;height:34px}.btn.lead-orb .orb .ico{width:18px;height:18px}
+.btn.fam{background:var(--c);color:var(--on)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.soft{background:var(--wash);color:var(--ink)}
+.btn.sm{padding:7px 13px;font-size:.86rem}
+.btn.danger{background:transparent;color:var(--alert);border:2px solid color-mix(in srgb,var(--alert) 40%,var(--line))}
+.btn:disabled{opacity:.45;cursor:default}
+.icon-btn{border:0;background:transparent;width:36px;height:36px;border-radius:50%;display:inline-grid;place-items:center;color:var(--ink-soft)}
+.icon-btn:hover{background:var(--wash);color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.end{justify-content:flex-end}
+.spacer{flex:1}
+
+/* ---------- cards ---------- */
+.card{background:var(--paper);border-radius:34px;padding:22px 24px;display:grid;gap:14px;align-content:start;min-width:0}
+.card.bubble{border-radius:34px 34px 34px 8px}
+.card.tint{background:color-mix(in srgb,var(--c) 9%,var(--paper))}
+.card.station{border-radius:56px 56px 56px 14px;padding:clamp(20px,3.4vw,40px);position:relative;overflow:hidden}
+.card.station::after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-130px;top:-150px;background:var(--c);opacity:.1;pointer-events:none}
+.card-head{display:flex;gap:14px;align-items:center}
+.card-head .grow{min-width:0;flex:1;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.stack{display:grid;gap:14px;align-content:start;min-width:0}
+.empty{border:2px dashed var(--line);border-radius:30px;padding:22px;text-align:center;color:var(--ink-soft);display:grid;gap:10px;justify-items:center}
+
+/* ---------- forms ---------- */
+.field{display:grid;gap:6px;min-width:0}
+.field>label,.field>.lbl{font-weight:700;font-size:.95rem}
+.field .help{font-size:.85rem;color:var(--ink-soft)}
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=url],input[type=search],select,textarea{
+  width:100%;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:10px 14px;min-width:0}
+textarea{min-height:84px;resize:vertical;border-radius:20px;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c,var(--learn));box-shadow:0 0 0 4px color-mix(in srgb,var(--c,var(--learn)) 20%,transparent)}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.fields .wide{grid-column:1/-1}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 13px;font-weight:700;font-size:.88rem;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:var(--on,var(--sky))}
+.chip small{font-weight:400;opacity:.8}
+.privacy{display:flex;gap:8px;align-items:flex-start;font-size:.84rem;color:var(--ink-soft)}
+.privacy .ico{width:17px;height:17px;margin-top:2px}
+
+/* ---------- PLC term chip ---------- */
+.term{display:inline-flex;align-items:center;gap:8px;border:2px dashed color-mix(in srgb,var(--c,var(--ink)) 65%,var(--ink));background:transparent;border-radius:999px;padding:4px 13px 4px 5px;font-size:.86rem;font-weight:700;text-align:left}
+.term .tag{background:var(--c,var(--ink));color:var(--on,var(--sky));border-radius:999px;padding:1px 8px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.term[aria-expanded="true"]{background:var(--paper);border-style:solid}
+.def{background:var(--paper);border-radius:22px 22px 22px 6px;padding:14px 18px;display:grid;gap:10px;max-width:60ch}
+.def b{font-family:var(--display)}
+
+/* ---------- Zava ---------- */
+.zava{display:flex;gap:12px;align-items:flex-start}
+.zava .z{flex:none;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--sky);display:grid;place-items:center}
+.zava .z .ico{width:20px;height:20px}
+.zava .say{background:var(--paper);border-radius:6px 24px 24px 24px;padding:12px 16px;display:grid;gap:8px;min-width:0}
+.zava .say b{font-family:var(--display);font-size:.86rem;letter-spacing:.04em}
+.example{background:var(--wash);border-radius:16px;padding:10px 14px;font-size:.92rem}
+
+/* ---------- status token + pips ---------- */
+.tok{flex:none;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p,0)*1%),color-mix(in srgb,var(--c) 18%,var(--paper)) 0);display:grid;place-items:center}
+.tok i{width:34px;height:34px;border-radius:50%;background:var(--paper);display:grid;place-items:center;color:var(--c);font-style:normal}
+.tok.done i{background:var(--c);color:var(--on)}
+.tok .ico{width:18px;height:18px}
+.pips{display:inline-flex;gap:5px;align-items:center}
+.pips b{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--c)}
+.pips b.on{background:var(--c)}
+.pips b.half{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
+
+/* ---------- home ---------- */
+.home{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px;align-items:start}
+.welcome{background:var(--ink);color:var(--sky);border-radius:46px 46px 46px 12px;padding:24px 26px;display:grid;gap:14px;position:relative;overflow:hidden}
+.welcome::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-80px;bottom:-120px;background:var(--team);opacity:.35}
+.welcome h2{font-size:clamp(1.4rem,2.6vw,1.9rem)}
+.welcome p{color:color-mix(in srgb,var(--sky) 78%,transparent)}
+.welcome .quote{background:color-mix(in srgb,var(--sky) 10%,transparent);border-radius:16px 16px 16px 4px;padding:10px 14px;font-style:italic}
+.welcome .btn.ghost{color:var(--sky);border-color:color-mix(in srgb,var(--sky) 35%,transparent)}
+.welcome .btn.light{background:var(--sky);color:var(--ink)}
+.welcome>*{position:relative;z-index:1}
+.orbit-wrap{position:relative;display:grid;justify-items:center;gap:8px}
+.orbit{width:100%;max-width:520px;height:auto;overflow:visible}
+.orbit .ring{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round}
+.orbit text{font-family:var(--display)}
+.planet{cursor:pointer}
+.planet .face{transition:transform .3s cubic-bezier(.3,1.6,.5,1);transform-box:fill-box;transform-origin:center}
+.planet:hover .face,.planet:focus-visible .face{transform:scale(1.07)}
+.planet:focus-visible{outline:none}
+.planet:focus-visible .track{stroke:var(--ink)}
+.moon{transform-origin:260px 260px}
+.list{display:grid;gap:10px}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--wash);border-radius:999px 26px 26px 999px;padding:7px 16px 7px 7px;text-decoration:none;border:0;text-align:left;width:100%}
+.li:hover{box-shadow:0 0 0 2px var(--c,var(--line))}
+.li b{display:block;font-weight:700;overflow-wrap:anywhere}
+.li span.sub{display:block;font-size:.82rem;color:var(--ink-soft)}
+.li.todo.done b{text-decoration:line-through;opacity:.6}
+.check-circle{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--c);display:grid;place-items:center;background:transparent;color:var(--on);padding:0}
+.check-circle[aria-pressed="true"]{background:var(--c)}
+.check-circle .ico{width:16px;height:16px}
+.invite{border-radius:34px 34px 34px 8px;padding:20px 22px;display:grid;gap:12px;background:color-mix(in srgb,var(--reteach) 12%,var(--paper));border:2px solid color-mix(in srgb,var(--reteach) 45%,transparent)}
+.invite .vs{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.vs-bar{display:grid;gap:4px;min-width:0;flex:1}
+.vs-bar .bar{height:10px;border-radius:999px;background:var(--wash);overflow:hidden}
+.vs-bar .bar i{display:block;height:100%;border-radius:999px;background:var(--c)}
+.vs-bar span{font-size:.82rem;color:var(--ink-soft);display:flex;justify-content:space-between}
+
+/* ---------- plans list ---------- */
+.plan-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.plan-card{background:var(--paper);border-radius:40px 40px 40px 10px;padding:22px;display:grid;gap:12px;text-decoration:none;border:2px solid transparent}
+.plan-card:hover{border-color:var(--learn)}
+.plan-card .tag{font-size:.8rem;color:var(--ink-soft)}
+.plan-card b{font-family:var(--display);font-size:1.15rem;line-height:1.2}
+
+/* ---------- plan flight path ---------- */
+.plan-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:26px;align-items:start}
+.path{position:sticky;top:84px;background:var(--paper);border-radius:40px;padding:20px 18px;display:grid;gap:4px;max-height:calc(100vh - 110px);overflow:auto}
+.path h3{font-size:1.05rem;padding:0 6px 10px;line-height:1.25}
+.path .fam-label{display:flex;gap:8px;align-items:center;font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c);padding:10px 6px 4px}
+.path .fam-label .ico{width:17px;height:17px}
+.step-link{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;text-decoration:none;padding:5px 8px 5px 5px;border-radius:999px;position:relative}
+.step-link .tok{width:34px;height:34px}.step-link .tok i{width:24px;height:24px}.step-link .tok .ico{width:13px;height:13px}
+.step-link span{font-size:.92rem;font-weight:700;line-height:1.25}
+.step-link:hover{background:var(--wash)}
+.step-link[aria-current="step"]{background:color-mix(in srgb,var(--c) 14%,var(--paper))}
+.step-link[aria-current="step"] span{color:var(--ink)}
+.step-link.here::after{content:"Stopped here";position:absolute;right:8px;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--team);background:color-mix(in srgb,var(--team) 12%,var(--paper));padding:2px 7px;border-radius:999px}
+.st-head{display:flex;gap:18px;align-items:flex-start;position:relative;z-index:1}
+.st-head .grow{display:grid;gap:10px;min-width:0}
+.st-head h2{font-size:clamp(1.5rem,3vw,2.2rem)}
+.st-head p.what{color:var(--ink-soft);font-size:1.05rem;max-width:60ch}
+.st-body{display:grid;gap:20px;position:relative;z-index:1}
+.st-foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:1;border-top:2px dashed var(--line);padding-top:18px}
+.talk{background:var(--paper);border-radius:28px;padding:16px 18px;display:grid;gap:10px}
+.talk .card-head .orb{width:34px;height:34px}.talk .card-head .orb .ico{width:18px;height:18px}
+
+/* standards picker */
+.std-tools{display:flex;gap:10px;flex-wrap:wrap}
+.std-tools input{flex:1;min-width:200px}
+.std-list{display:grid;gap:8px;max-height:460px;overflow:auto;padding:2px}
+.std{background:var(--paper);border-radius:22px;padding:10px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;border:2px solid transparent;text-align:left}
+.std.broad{background:var(--wash)}
+.std[aria-pressed="true"]{border-color:var(--learn);background:color-mix(in srgb,var(--learn) 10%,var(--paper))}
+.std .code{font-family:var(--display);font-weight:800;color:var(--learn);font-size:.9rem;min-width:52px}
+.std .kind{display:block;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.std.child{margin-left:28px}
+.chosen{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb,var(--learn) 12%,var(--paper));border-radius:24px;padding:14px 16px}
+
+/* targets */
+.target-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start}
+.letter{width:38px;height:38px;border-radius:50%;background:var(--learn);color:var(--on-learn);display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.letter.sm{width:26px;height:26px;font-size:.8rem}
+
+/* check builder */
+.item-row{display:grid;grid-template-columns:auto minmax(0,1fr) 110px 120px auto;gap:10px;align-items:start;background:var(--paper);border-radius:24px;padding:12px}
+.item-row .n{width:32px;height:32px;border-radius:50%;background:var(--check);color:var(--on-check);display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.item-row textarea{min-height:60px}
+.goal-sentence{font-family:var(--display);font-size:clamp(1.15rem,2.2vw,1.5rem);font-weight:700;line-height:1.3;background:var(--paper);border-radius:28px 28px 28px 8px;padding:18px 22px}
+.goal-sentence mark{background:color-mix(in srgb,var(--check) 22%,transparent);color:inherit;border-radius:8px;padding:0 4px}
+
+/* scores */
+.score-wrap{overflow-x:auto;background:var(--paper);border-radius:24px;padding:6px}
+table.scores{border-collapse:separate;border-spacing:0;width:100%;min-width:520px}
+table.scores th,table.scores td{padding:6px 8px;text-align:center;font-size:.9rem}
+table.scores th{font-family:var(--display);font-size:.8rem;color:var(--ink-soft);font-weight:700;position:sticky;top:0;background:var(--paper)}
+table.scores td:first-child,table.scores th:first-child{text-align:left}
+table.scores input{width:64px;text-align:center;padding:6px;border-radius:12px}
+table.scores input.sid{width:120px;text-align:left}
+table.scores tr:nth-child(even) td{background:var(--wash)}
+.got{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.82rem;border-radius:999px;padding:2px 9px}
+.got.yes{background:color-mix(in srgb,var(--reteach) 18%,transparent);color:color-mix(in srgb,var(--reteach) 70%,var(--ink))}
+.got.no{background:color-mix(in srgb,var(--check) 16%,transparent);color:color-mix(in srgb,var(--check) 70%,var(--ink))}
+.got.wait{background:var(--wash);color:var(--ink-soft)}
+
+/* results */
+.big-ring{display:grid;place-items:center;position:relative;width:170px;height:170px;flex:none}
+.big-ring svg{position:absolute;inset:0}
+.big-ring b{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1}
+.big-ring span{font-size:.8rem;color:var(--ink-soft)}
+.bars{display:grid;gap:14px}
+.barrow{display:grid;grid-template-columns:auto minmax(0,1fr) 54px;gap:12px;align-items:center}
+.barrow .track{height:16px;border-radius:999px;background:var(--wash);position:relative;overflow:visible}
+.barrow .track i{display:block;height:100%;border-radius:999px;background:var(--c)}
+.barrow .track .goal{position:absolute;top:-5px;bottom:-5px;width:3px;border-radius:3px;background:var(--ink)}
+.barrow .lab{font-size:.86rem;color:var(--ink-soft);grid-column:2/4;margin-top:-8px}
+.locked{display:flex;gap:14px;align-items:center;background:var(--wash);border-radius:26px;padding:16px 18px}
+.teacher-dots{display:flex;gap:8px;flex-wrap:wrap}
+.tdot{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 12px 4px 4px;background:var(--wash);font-size:.86rem;font-weight:700}
+.tdot i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--ink);font-style:normal;font-size:.72rem}
+.tdot.in i{background:var(--check);color:var(--on-check)}
+.avatar{width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--team) 22%,var(--paper));color:var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:.78rem;flex:none}
+
+/* meetings */
+.meet-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.clock{display:grid;place-items:center;position:relative;width:150px;height:150px;flex:none}
+.clock svg{position:absolute;inset:0}
+.clock b{font-family:var(--display);font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.clock span{font-size:.78rem;color:var(--ink-soft);margin-top:-6px}
+.agenda-item{background:var(--paper);border-radius:28px;padding:14px 18px;display:grid;gap:10px}
+.agenda-item .card-head{gap:12px}
+.agenda-item .mins{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-soft);font-size:.86rem;white-space:nowrap}
+.attend{display:flex;gap:8px;flex-wrap:wrap}
+.attend .chip[aria-pressed="true"]{background:var(--team);border-color:var(--team);color:var(--on-team)}
+.todo-row{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px auto;gap:8px;align-items:center}
+.meeting-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--paper);border-radius:999px 28px 28px 999px;padding:8px 18px 8px 8px;text-decoration:none}
+.meeting-row .date{width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--team) 14%,var(--paper));display:grid;place-items:center;text-align:center;line-height:1;font-family:var(--display);font-weight:800;color:var(--team)}
+.meeting-row .date small{display:block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
+
+/* strategies */
+.strat{background:var(--paper);border-radius:34px 34px 34px 8px;padding:20px 22px;display:grid;gap:12px}
+.strat .who{display:flex;gap:10px;align-items:center;font-size:.88rem;color:var(--ink-soft)}
+.strat blockquote{margin:0;font-size:1.02rem;line-height:1.55}
+.strat .proof{display:inline-flex;gap:8px;align-items:center;font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--reteach) 75%,var(--ink));background:color-mix(in srgb,var(--reteach) 14%,transparent);padding:3px 11px;border-radius:999px}
+
+/* dialog */
+dialog{border:0;border-radius:36px 36px 36px 10px;padding:0;background:var(--paper);color:var(--ink);max-width:min(560px,calc(100vw - 32px));width:100%;box-shadow:0 30px 80px -30px rgba(0,0,0,.6)}
+dialog::backdrop{background:rgba(13,20,36,.55)}
+dialog form{display:grid;gap:16px;padding:26px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sky);padding:10px 18px;border-radius:999px;font-weight:700;font-size:.92rem;z-index:50;box-shadow:var(--shadow)}
+
+/* glossary */
+.words{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.word{background:var(--paper);border-radius:28px 28px 28px 8px;padding:18px 20px;display:grid;gap:10px}
+.word h3{font-size:1.1rem}
+
+@media (max-width:1020px){
+  .home,.meet-layout{grid-template-columns:minmax(0,1fr)}
+  .plan-layout{grid-template-columns:minmax(0,1fr)}
+  .path{position:static;max-height:none;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .path h3,.path .fam-label{grid-column:1/-1}
+  .step-link.here::after{display:none}
+}
+@media (max-width:720px){
+  .nav a span{display:none}
+  .nav a{padding:7px}
+  .grid2,.grid3,.fields{grid-template-columns:minmax(0,1fr)}
+  .item-row{grid-template-columns:auto minmax(0,1fr)}
+  .item-row>*:nth-child(n+3){grid-column:2}
+  .todo-row{grid-template-columns:minmax(0,1fr)}
+  .card.station{border-radius:36px 36px 36px 12px}
+  .st-head{flex-direction:column}
+  .brand span{display:none}
+  .team-pill{max-width:180px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+<div id="app"><p style="padding:40px;font-family:system-ui">Loading PLC Launchpad…</p></div>
+<script type="application/json" id="catalogs">{"engineering":{"source":"https://www.cde.ca.gov/ci/ct/sf/documents/enginearchit.pdf","publisher":"California Department of Education","title":"CTE Model Curriculum Standards: Engineering and Architecture","retrieved":"2026-11-06","standards":[{"id":"ca-cte-ea-B1.0","code":"B1.0","text":"Communicate and interpret information clearly in industry-standard visual and written formats.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.1","code":"B1.1","text":"Explain the classification and use of various components, symbols, abbreviations, and media common to technical drawings.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.2","code":"B1.2","text":"Describe the current industry standards for illustration and layout.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.3","code":"B1.3","text":"Draw flat layouts of a variety of objects by using the correct drafting tools, techniques, and media.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.4","code":"B1.4","text":"Organize and complete an assembly drawing using information collected from detailed drawings.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.5","code":"B1.5","text":"Create reports and data sheets for writing specifications.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.0","code":"B2.0","text":"Demonstrate the sketching process used in concept development.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.1","code":"B2.1","text":"Understand the process of producing proportional two- and three-dimensional sketches and designs.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.2","code":"B2.2","text":"Apply sketching techniques to a variety of architectural and engineering models.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.3","code":"B2.3","text":"Present conceptual ideas, analysis, and design concepts using freehand graphic communication techniques.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.0","code":"B3.0","text":"Identify the fundamentals of the theory, measurement, control, and applications of electrical energy, including alternating and direct currents.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.1","code":"B3.1","text":"Understand the characteristics of alternating current (AC) and how it is generated; the characteristics of the sine wave; and of AC, tuned, and resonant circuits; and the nature of the frequency spectrum.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.2","code":"B3.2","text":"Analyze relationships between voltage, current, resistance, and power related to direct current (DC) circuits.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.3","code":"B3.3","text":"Calculate, construct, measure, and interpret both AC and DC circuits.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.4","code":"B3.4","text":"Understand how electrical control and protection devices are used in electrical systems.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.5","code":"B3.5","text":"Calculate loads, currents, and circuit-operating parameters.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.6","code":"B3.6","text":"Classify and use various electrical components, symbols, abbreviations, media, and standards of electrical drawings.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.7","code":"B3.7","text":"Analyze, repair, or measure electrical and electronic systems, circuits, or components using appropriate electronic instruments.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.8","code":"B3.8","text":"Predict the effects of circuit conditions on the basis of measurements and calculations of voltage, current, resistance, and power.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.0","code":"B4.0","text":"Understand the concepts of physics that are fundamental to engineering technology.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.1","code":"B4.1","text":"Describe Newton\u2019s laws and how they affect and define the movement of objects.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.2","code":"B4.2","text":"Explain how the laws of conservation of energy and momentum provide a way to predict and describe the movement of objects.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.3","code":"B4.3","text":"Compare the effects and applications of heat transfer and thermal dynamic processes.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.4","code":"B4.4","text":"Explore the fundamentals and properties of waveforms and how waveforms may be used to carry energy.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.5","code":"B4.5","text":"Analyze how electric and magnetic phenomena are related and know common practical applications.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.0","code":"B5.0","text":"Understand how the principles of force, work, rate, power, energy, and resistance relate to mechanical, electrical, fluid, and thermal engineering systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.1","code":"B5.1","text":"Differentiate between scalars and vectors.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.2","code":"B5.2","text":"Solve problems by using the concept of vectoring to predict resultants.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.3","code":"B5.3","text":"Compare and explore the six simple machines and their applications.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.4","code":"B5.4","text":"Evaluate how energy is transferred and predict the effects of resistance in mechanical, electrical, fluid, and thermal systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.5","code":"B5.5","text":"Formulate and solve problems by using the appropriate units applied in mechanical, electrical, fluid, and thermal engineering systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.0","code":"B6.0","text":"Employ the design process to solve analysis and design problems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.1","code":"B6.1","text":"Understand the steps in the design process.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.2","code":"B6.2","text":"Determine what information and principles are relevant to a problem and its analysis.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.3","code":"B6.3","text":"Choose between alternate solutions in solving a problem and be able to justify the choices made in determining a solution.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.4","code":"B6.4","text":"Translate word problems into mathematical statements when appropriate.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.5","code":"B6.5","text":"Demonstrate the process of developing multiple details, within design constraints, into a single solution.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.6","code":"B6.6","text":"Construct a prototype from plans and test it.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.7","code":"B6.7","text":"Evaluate and redesign a prototype on the basis of collected test data.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B7.0","code":"B7.0","text":"Understand industrial engineering processes, including the use of tools and equipment, methods of measurement, and quality assurance.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.1","code":"B7.1","text":"Know the structure and processes of a quality assurance cycle.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.2","code":"B7.2","text":"Describe the major manufacturing processes.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.3","code":"B7.3","text":"Use tools, fasteners, and joining systems employed in selected engineering processes.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.4","code":"B7.4","text":"Estimate and measure the size of objects in both Standard International and United States units.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.5","code":"B7.5","text":"Apply appropriate geometric dimensioning and tolerancing (GD&T) practices.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.6","code":"B7.6","text":"Calibrate precision measurement tools and instruments to measure objects.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.0","code":"B8.0","text":"Understand fundamental control system design and develop systems that complete preprogrammed tasks.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.1","code":"B8.1","text":"Identify the elements and processes necessary to develop a controlled system that performs a task.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.2","code":"B8.2","text":"Demonstrate the use of sensors for data collection and process correction in controlled systems.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.3","code":"B8.3","text":"Perform tests, collect data, analyze relationships, and display data in a simulated or modeled system using appropriate tools and technology.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.4","code":"B8.4","text":"Program a computing device to control systems or process.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.5","code":"B8.5","text":"Use motors, solenoids, and similar devices as output mechanisms in controlled systems.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.6","code":"B8.6","text":"Assemble input, processing, and output devices to create controlled systems capable of accurately completing a preprogrammed task.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.0","code":"B9.0","text":"Understand the fundamentals of systems and market influences on products as they are developed and released to production.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.1","code":"B9.1","text":"Understand the process of product development.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.2","code":"B9.2","text":"Understand decision matrices and the use of graphic tools in illustrating the development of a product and the processes involved.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.0","code":"B10.0","text":"Design and construct a culminating project effectively using engineering technology.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.1","code":"B10.1","text":"Use methods and techniques for employing all engineering technology equipment appropriately.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.2","code":"B10.2","text":"Apply conventional engineering technology processes and procedures accurately, appropriately, and safely.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.3","code":"B10.3","text":"Apply the concepts of engineering technology to the tools, equipment, projects, and procedures of the Engineering Technology Pathway.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.0","code":"B11.0","text":"Understand the methods of creating both written and digital portfolios.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.1","code":"B11.1","text":"Develop a binder or digital portfolio representative of student work for presentation.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.2","code":"B11.2","text":"Give an effective oral presentation of a portfolio.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-C1.0","code":"C1.0","text":"Understand historical and current events related to engineering design and their effects on society.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C1.1","code":"C1.1","text":"Know historical and current events that have relevance to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C1.2","code":"C1.2","text":"Interpret the development of graphic language in relation to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.0","code":"C2.0","text":"Understand the effective use of engineering design equipment.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.1","code":"C2.1","text":"Employ engineering design equipment using the appropriate methods and techniques.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.2","code":"C2.2","text":"Apply conventional engineering design equipment procedures accurately, appropriately, and safely.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.3","code":"C2.3","text":"Apply the concepts of engineering design to the tools, equipment, projects, and procedures of the Engineering Design Pathway.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.0","code":"C3.0","text":"Understand the sketching process used in concept development.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.1","code":"C3.1","text":"Apply sketching techniques to a variety of architectural models.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.2","code":"C3.2","text":"Produce proportional two- and three-dimensional sketches and designs.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.3","code":"C3.3","text":"Present conceptual ideas, analysis, and design concepts using freehand, graphic, communication techniques.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.0","code":"C4.0","text":"Understand measurement systems as they apply to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.1","code":"C4.1","text":"Know how the various measurement systems are used in engineering drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.2","code":"C4.2","text":"Understand the degree of accuracy necessary for engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.0","code":"C5.0","text":"Use proper projection techniques to develop orthographic drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.1","code":"C5.1","text":"Understand the concepts and procedures necessary for producing drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.2","code":"C5.2","text":"Develop multiview drawings using the orthographic projection process.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.3","code":"C5.3","text":"Understand the various techniques for viewing objects.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.4","code":"C5.4","text":"Use the concepts of geometric construction in the development of design drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.5","code":"C5.5","text":"Apply pictorial drawings derived from orthographic multiview drawings and sketches.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C6.0","code":"C6.0","text":"Understand the applications and functions of sectional views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C6.1","code":"C6.1","text":"Understand the function of sectional views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C6.2","code":"C6.2","text":"Clarify hidden features of an object using a sectional view and appropriate cutting planes.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.0","code":"C7.0","text":"Understand the applications and functions of auxiliary views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.1","code":"C7.1","text":"Understand the function of auxiliary views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.2","code":"C7.2","text":"Use auxiliary views to clarify the true shape and size of an object.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.0","code":"C8.0","text":"Understand and apply proper dimensioning standards to drawings.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.1","code":"C8.1","text":"Know a variety of drafting applications and understand the proper dimensioning standards for each.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.2","code":"C8.2","text":"Apply dimension to various objects and features.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.0","code":"C9.0","text":"Understand the tolerance relationships between mating parts.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.1","code":"C9.1","text":"Understand what constitutes mating parts in engineering design.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.2","code":"C9.2","text":"Interpret geometric tolerancing symbols in a drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.3","code":"C9.3","text":"Use tolerancing in an engineering drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.0","code":"C10.0","text":"Understand the methods of applying text to a drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.1","code":"C10.1","text":"Describe the processes of lettering and/or text editing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.2","code":"C10.2","text":"Implement standard methods of title block creation and use.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.3","code":"C10.3","text":"Develop drawings using notes and specifications.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.4","code":"C10.4","text":"Plan, prepare, and interpret drawings and models through traditional drafting or computer-aided design (CAD) techniques.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.0","code":"C11.0","text":"Understand the methods of creating both written and digital portfolios.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.1","code":"C11.1","text":"Develop a binder or digital portfolio representative of completed work for presentation.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.2","code":"C11.2","text":"Give an effective oral presentation of a portfolio.","pathway":"Engineering Design","page":21}]},"history":{"title":"United States History and Geography","area":"History\u2013Social Science","level":"Grade 11","catalogId":"ca-hss-us-history-11","standards":[{"id":"ca-hss-11-1-1","code":"HSS-11.1.1","title":"Enlightenment and democratic ideas","pathway":"Founding of the nation","text":"Describe how Enlightenment thought and emerging ideas about democracy shaped the setting for the founding of the United States.","example":"Read Locke on consent and an excerpt from the Declaration of Independence. Identify one shared idea about who gives a government its authority.","source":"https://www2.cde.ca.gov/cacs/id/web/4541"},{"id":"ca-hss-11-1-2","code":"HSS-11.1.2","title":"Natural rights and the Bill of Rights","pathway":"Founding of the nation","text":"Analyze the ideas behind the American Revolution, including the founders\u2019 belief in God-given rights, and the debates over writing and ratifying the Constitution and adding the Bill of Rights.","example":"Compare a Federalist and an Anti-Federalist argument about a bill of rights. Use evidence from each to explain why the issue mattered during ratification.","source":"https://www2.cde.ca.gov/cacs/id/web/4542"}]},"algebra":{"title":"Algebra I","standards":[{"id":"math-algebra-0","code":"A-REI.3","text":"Solve linear equations and inequalities with one unknown, including equations with letter coefficients.","example":"Solve ax + 4 = 16 for x when a is nonzero.","source":"https://www2.cde.ca.gov/cacs/id/web/563","pathway":"Algebra I"},{"id":"math-algebra-1","code":"A-REI.10","text":"Interpret the graph of a two-variable equation as all ordered pairs that satisfy it.","example":"Which of (2, 5) and (3, 5) lies on y = 2x + 1?","source":"https://www2.cde.ca.gov/cacs/id/web/570","pathway":"Algebra I"}]},"integrated":{"title":"Mathematics I","standards":[{"id":"math-integrated-0","code":"A-REI.3.1","text":"Solve absolute-value equations and inequalities, graph the solutions, and interpret them in context.","example":"A part must be within 0.2 mm of 10 mm. Graph the acceptable lengths.","source":"https://www2.cde.ca.gov/cacs/id/web/727","pathway":"Mathematics I"},{"id":"math-integrated-1","code":"A-REI.12","text":"Graph linear inequalities as half-planes and identify where their solution regions overlap.","example":"Shade the region satisfying y > x and y \u2264 4. Which boundary is dashed?","source":"https://www2.cde.ca.gov/cacs/id/web/732","pathway":"Mathematics I"}]},"calculus":{"title":"Calculus","standards":[{"id":"math-calculus-0","code":"Calculus.4.2","text":"Interpret a derivative as an instantaneous rate of change and apply it in context.","example":"For a cart at position s(t) = 3t\u00b2 meters, find its velocity at 2 seconds.","source":"https://www2.cde.ca.gov/cacs/id/web/4748","pathway":"Calculus"},{"id":"math-calculus-1","code":"Calculus.5.0","text":"Explain the chain rule, justify it, and apply it to differentiate composite functions.","example":"Differentiate (3x\u00b2 + 1)\u2074 and explain the factor 6x.","source":"https://www2.cde.ca.gov/cacs/id/web/4751","pathway":"Calculus"}]},"art":{"standards":[{"code":"Prof.VA:Cr1.1","pathway":"Creating","text":"Use multiple approaches to begin creative endeavors.","source":"https://www2.cde.ca.gov/cacs/id/web/31055","id":"ca-arts-Cr1.1"},{"code":"Prof.VA:Cr1.2","pathway":"Creating","text":"Shape an artistic investigation of an aspect of present day life using a contemporary practice of art or design.","source":"https://www2.cde.ca.gov/cacs/id/web/31068","id":"ca-arts-Cr1.2"},{"code":"Prof.VA:Cr2.1","pathway":"Creating","text":"Engage in making a work of art or design without having a preconceived plan.","source":"https://www2.cde.ca.gov/cacs/id/web/31081","id":"ca-arts-Cr2.1"},{"code":"Prof.VA:Cr2.2","pathway":"Creating","text":"Explain how traditional and nontraditional materials may impact human health and the environment and demonstrate safe handling of materials, tools, and equipment.","source":"https://www2.cde.ca.gov/cacs/id/web/31094","id":"ca-arts-Cr2.2"},{"code":"Prof.VA:Cr2.3","pathway":"Creating","text":"Collaboratively develop a proposal for an installation, artwork, or space design that transforms the perception and experience of a particular place.","source":"https://www2.cde.ca.gov/cacs/id/web/31107","id":"ca-arts-Cr2.3"},{"code":"Prof.VA:Cr3","pathway":"Creating","text":"Apply relevant criteria from traditional and contemporary cultural contexts to examine, reflect on, and plan revisions for works of art and design in progress.","source":"https://www2.cde.ca.gov/cacs/id/web/31120","id":"ca-arts-Cr3"},{"code":"Prof.VA:Pr4","pathway":"Presenting","text":"Analyze, select, and curate artifacts and/or artworks for presentation and preservation.","source":"https://www2.cde.ca.gov/cacs/id/web/31133","id":"ca-arts-Pr4"},{"code":"Prof.VA:Pr5","pathway":"Presenting","text":"Analyze and evaluate the reasons and ways an exhibition is presented.","source":"https://www2.cde.ca.gov/cacs/arts?c2=3&page=3","id":"ca-arts-Pr5"},{"code":"Prof.VA:Pr6","pathway":"Presenting","text":"Analyze and describe the impact that an exhibition or collection has on personal awareness of social, cultural, or political beliefs and understandings.","source":"https://www2.cde.ca.gov/cacs/id/web/31159","id":"ca-arts-Pr6"},{"code":"Prof.VA:Re7.1","pathway":"Responding","text":"Hypothesize ways in which art influences perception and understanding of human experiences.","source":"https://www2.cde.ca.gov/cacs/id/web/31172","id":"ca-arts-Re7.1"},{"code":"Prof.VA:Re7.2","pathway":"Responding","text":"Analyze how one\u2019s understanding of the world is affected by experiencing visual imagery.","source":"https://www2.cde.ca.gov/cacs/id/web/31185","id":"ca-arts-Re7.2"},{"code":"Prof.VA:Re8","pathway":"Responding","text":"Interpret an artwork or collection of works, supported by relevant and sufficient evidence found in the work and its various contexts.","source":"https://www2.cde.ca.gov/cacs/id/web/31198","id":"ca-arts-Re8"},{"code":"Prof.VA:Re9","pathway":"Responding","text":"Establish relevant criteria in order to evaluate a work of art or collection of works.","source":"https://www2.cde.ca.gov/cacs/id/web/31211","id":"ca-arts-Re9"},{"code":"Prof.VA:Cn10","pathway":"Connecting","text":"Document the process of developing early stage ideas to fully elaborated ideas.","source":"https://www2.cde.ca.gov/cacs/id/web/31224","id":"ca-arts-Cn10"},{"code":"Prof.VA:Cn11","pathway":"Connecting","text":"Describe how knowledge of culture, traditions, and history may influence personal responses to art.","source":"https://www2.cde.ca.gov/cacs/id/web/31237","id":"ca-arts-Cn11"}]}}</script>
+<script>(function(){
+'use strict';
+/* PLC Launchpad 1.0 · core: icons, helpers, state, saving, plan steps, scores, invitations */
+
+
+/* ------------------------------------------------------------------ icons */
+const ICONS = {
+  learn: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle class="fill" cx="12" cy="12" r="1.8"/>',
+  check: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 3h6v3H9z"/><path d="m8.5 13.5 2.5 2.5 4.5-5"/>',
+  reteach: '<path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M6 21v-4h4"/>',
+  stretch: '<path d="M3 21h5v-5h5v-5h4"/><path d="M15 3h6v6"/><path d="m21 3-7 7"/>',
+  team: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14a5 5 0 0 1 5.3 5"/>',
+  standard: '<path d="M5 5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2z"/><path d="M5 20a2 2 0 0 0 2 2h12v-4"/><path d="m12 6.6 1 2.1 2.2.3-1.6 1.5.4 2.2-2-1.1-2 1.1.4-2.2L8.8 9l2.2-.3z"/>',
+  target: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="6"/><circle class="fill" cx="12" cy="12" r="2"/>',
+  goal: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/>',
+  results: '<path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V6"/><path d="M17 16V9"/>',
+  score: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 10h18M9 4v16"/><path d="m12.5 15 1.6 1.6 3.4-3.6"/>',
+  recheck: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 3h6v3H9z"/><path d="M9 14a3 3 0 1 0 1-2.2"/><path d="M9 10v2h2"/>',
+  practice: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  meeting: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><circle class="fill" cx="8" cy="15" r="1.4"/><circle class="fill" cx="12" cy="15" r="1.4"/>',
+  norms: '<path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.3 1.3L7.5 4.6M3.5 12l1.3 1.3 2.7-2.7M3.5 18l1.3 1.3 2.7-2.7"/>',
+  resource: '<path d="M20.5 11.5 12 20a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 17.5a2 2 0 0 1-3-3L15 7"/>',
+  plan: '<circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-30 12 12)"/><circle class="fill" cx="19.5" cy="6" r="1.6"/>',
+  glossary: '<path d="M4 5h16v11H10l-5 4v-4H4z"/><path d="m7.5 13 2.2-5.5 2.3 5.5M8.3 11.2h2.8"/><circle cx="15.5" cy="11.5" r="1.6"/><path d="M17.1 10v3"/>',
+  settings: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3 4v5h5"/><path d="M12 8v4.5l3 2"/>',
+  guide: '<path d="M12 3c.8 4.3 2.7 6.2 7 7-4.3.8-6.2 2.7-7 7-.8-4.3-2.7-6.2-7-7 4.3-.8 6.2-2.7 7-7z"/><path d="M19 16v4M17 18h4"/>',
+  listen: '<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/><path d="M18.2 6.5a8 8 0 0 1 0 11"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path class="fill" d="M10 8.5v7l6-3.5z"/>',
+  pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+  done: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  half: '<path d="M6 12h12"/>',
+  empty: '<circle cx="12" cy="12" r="1.5" class="fill"/>',
+  home: '<circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="12" r="8.5" stroke-dasharray="2 3.4"/><circle class="fill" cx="18" cy="6" r="1.8"/><circle class="fill" cx="6" cy="18" r="1.8"/>',
+  unit: '<path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 12h4"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle class="fill" cx="12" cy="15.5" r="1.4"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  share: '<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>',
+  paste: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 3h6v3H9z"/><path d="M9 11h6M9 15h4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  note: '<path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8.5 9h7M8.5 12.5h5"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'
+};
+const icon = (name, cls = 'ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+
+/* ---------------------------------------------------------------- helpers */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => 'x' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 11);
+const clone = o => JSON.parse(JSON.stringify(o));
+const todayISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const fmtDate = (iso, opts = { weekday: 'short', month: 'short', day: 'numeric' }) => {
+  if (!iso) return '';
+  const d = new Date(String(iso).length <= 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? '' : d.toLocaleDateString(undefined, opts);
+};
+const initials = name => String(name || '?').replace(/^(Ms|Mr|Mrs|Dr|Mx)\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+const LETTERS = 'ABCDEFGH';
+const plural = (n, one, many = one + 's') => `${n} ${n === 1 ? one : many}`;
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+function toast(text) {
+  $$('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = text;
+  document.body.append(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+/* Builds a dialog from HTML. Resolves with the submitted FormData, or null if cancelled. */
+function ask(html, { onOpen } = {}) {
+  return new Promise(resolve => {
+    const d = document.createElement('dialog');
+    d.innerHTML = `<form method="dialog">${html}</form>`;
+    document.body.append(d);
+    const form = $('form', d);
+    let result = null;
+    form.addEventListener('submit', e => { e.preventDefault(); result = new FormData(form); d.close(); });
+    $$('[data-cancel]', d).forEach(b => b.addEventListener('click', () => d.close()));
+    d.addEventListener('close', () => { d.remove(); resolve(result); });
+    d.showModal();
+    onOpen && onOpen(d);
+  });
+}
+
+/* ------------------------------------------------------------ voice (Zava) */
+const voice = {
+  pick() {
+    if (!window.speechSynthesis) return null;
+    const vs = speechSynthesis.getVoices();
+    return vs.find(v => /en(-|_)US/i.test(v.lang) && /natural|samantha|aria|jenny|google/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null;
+  },
+  say(text, onEnd) {
+    if (!window.speechSynthesis) { onEnd && setTimeout(onEnd, Math.max(3000, text.split(' ').length * 350)); return false; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = this.pick(); if (v) u.voice = v;
+    u.rate = 0.98;
+    if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
+    speechSynthesis.speak(u);
+    return true;
+  },
+  stop() { window.speechSynthesis && speechSynthesis.cancel(); }
+};
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+
+/* ---------------------------------------------------------- PLC glossary */
+/* fam, plain words Launchpad uses, PLC term, meaning, example */
+const WORDS = [
+  ['learn', 'Must-learn skill', 'Essential standard', 'One of the few skills your team agrees every student must master, no matter whose class they are in.', 'Of 22 drafting standards, the team picks "sketch an object in three views" because every later unit depends on it.'],
+  ['learn', 'Big standard · one skill inside it', 'Broad standard · specific indicator', 'The state groups skills under a big standard. You can pick the whole thing, or just one skill inside it, which is usually easier to teach and check.', 'B2.0 is the big standard on sketching. B2.1 is one skill inside it.'],
+  ['learn', '"I can" statement', 'Learning target', 'The skill rewritten in words a student understands, usually starting with "I can". Each one should be something a short check can see.', '"I can sketch the front, top and side views of a simple object."'],
+  ['learn', 'Why this skill made the cut', 'Endurance · leverage · readiness', 'Three tests for a must-learn skill: it lasts beyond this year (endurance), it is used in other subjects (leverage), and students need it for what comes next (readiness).', 'Measuring is used in math and science too, so it has leverage.'],
+  ['check', 'What counts as "got it"', 'Proficiency', 'The score the team agrees means a student has learned the skill. Decide it before you see any results.', '3 out of 4 points, or 80% of the check.'],
+  ['check', 'Team check', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
+  ['check', 'Team goal', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date. SMART stands for specific, measurable, attainable, results-oriented and time-bound.', 'By Dec 3, 80% of our students will reach "got it" on the sketching check.'],
+  ['check', 'Where students started', 'Baseline', 'How students did before the teaching, so the team can see growth.', '45% got it on the pre-check.'],
+  ['check', 'Scoring practice together', 'Calibration', 'Teachers score the same few pieces of student work, then talk until they score them the same way.', 'Everyone scores three sketches, then compares.'],
+  ['check', 'Student work', 'Evidence of learning', 'Anything students produce that shows what they know: answers, sketches, explanations, projects.', ''],
+  ['check', 'Not scored yet', 'Awaiting evidence', 'A student row with a missing score. It is left out of results until it is complete.', ''],
+  ['check', 'Hidden to protect privacy', 'Minimum group size', 'Team results stay hidden until at least 5 students from 3 teachers are scored, so no one teacher\'s class can be singled out.', ''],
+  ['check', 'Looking at results together', 'Collective inquiry', 'The team studies evidence together to find out what works, instead of guessing.', ''],
+  ['reteach', 'Reteach time', 'Intervention (Tier 2)', 'Extra small-group time, with a different approach, for students who have not learned the skill yet. It is in addition to regular class.', 'Two 20-minute sessions with paper models instead of a worksheet.'],
+  ['reteach', 'Re-check', 'Follow-up assessment', 'A second short check after reteaching, to see whether it worked.', ''],
+  ['reteach', 'What worked for us', 'Shared instructional practice', 'A teaching move a teammate shares after their students did especially well, so everyone can try it.', ''],
+  ['stretch', 'Stretch', 'Extension / enrichment', 'Going deeper with the same skill for students who already know it, at the same time others get reteaching.', 'Sketch an object with a hidden feature and explain the hidden lines.'],
+  ['team', 'Team agreements', 'Norms', 'How your team agrees to work together, like starting on time and assuming good intent. Revisit them often.', ''],
+  ['team', 'Team time', 'Collaborative team meeting', 'Your weekly time together. Launchpad keeps the agenda, notes, decisions and where you stopped.', ''],
+  ['team', 'Team lead · subject lead', 'PLC team lead · subject coordinator', 'The people who help organize a team\'s work and a subject\'s teams.', ''],
+  ['team', 'Plan for one skill', 'PLC cycle', 'One must-learn skill taken through all four questions, from choosing it to stretching the students who got it.', '']
+];
+const term = name => WORDS.find(w => w[2] === name || w[1] === name);
+
+/* A dashed "PLC term" chip that opens a short definition with a Hear it button. */
+function termChip(name, fam) {
+  const w = term(name); if (!w) return '';
+  const id = 'def-' + Math.random().toString(36).slice(2, 8);
+  return `<span class="f-${fam || w[0]}" style="display:grid;gap:8px;justify-items:start">
+    <button type="button" class="term" aria-expanded="false" aria-controls="${id}" data-act="toggleTerm"><span class="tag">PLC term</span>${esc(w[2])}</button>
+    <span class="def" id="${id}" hidden><b>${esc(w[2])}</b><span>${esc(w[3])}</span>${w[4] ? `<span class="example"><i>Example:</i> ${esc(w[4])}</span>` : ''}
+      <span class="row"><button type="button" class="btn sm" data-act="say" data-text="${esc(w[2] + '. ' + w[3] + (w[4] ? ' For example: ' + w[4] : ''))}">${icon('listen')}Hear it</button>
+      <a class="btn sm ghost" href="#words">${icon('glossary')}All PLC words</a></span></span></span>`;
+}
+
+function zava(text, example, fam = 'learn') {
+  return `<div class="zava f-${fam}"><span class="z" aria-hidden="true">${icon('guide')}</span><div class="say"><b>ZAVA · YOUR PLAN GUIDE</b><span>${text}</span>
+    ${example ? `<details><summary class="small" style="cursor:pointer;font-weight:700">Show an example</summary><div class="example" style="margin-top:8px">${example}</div></details>` : ''}
+    <span><button type="button" class="btn sm soft" data-act="say" data-text="${esc(String(text).replace(/<[^>]+>/g, ''))}">${icon('listen')}Listen</button></span></div></div>`;
+}
+
+const privacyNote = text => `<p class="privacy">${icon('lock')}<span>${text}</span></p>`;
+
+/* ------------------------------------------------------------ plan steps */
+const FAMILIES = {
+  learn: { n: 1, word: 'Learn', q: 'What must every student learn?' },
+  check: { n: 2, word: 'Check', q: 'How will we know they learned it?' },
+  reteach: { n: 3, word: 'Reteach', q: 'What if a student hasn\'t learned it yet?' },
+  stretch: { n: 4, word: 'Stretch', q: 'What if a student already knows it?' }
+};
+const STEPS = [
+  { key: 'skill', fam: 'learn', label: 'Choose the skill', icon: 'standard', minutes: 20,
+    q: 'Which skill matters most right now?', what: 'Pick one must-learn skill from your state standards. Choosing one specific skill makes the rest of the plan much easier.', term: 'Essential standard' },
+  { key: 'targets', fam: 'learn', label: 'Write "I can" statements', icon: 'target', minutes: 15,
+    q: 'What will students say they can do?', what: 'Rewrite the skill in student words. Most plans need one to three "I can" statements.', term: 'Learning target' },
+  { key: 'gotit', fam: 'learn', label: 'Decide what "got it" means', icon: 'score', minutes: 10,
+    q: 'What does "got it" look like?', what: 'Agree on the score that means a student has learned it, before anyone sees results.', term: 'Proficiency' },
+  { key: 'build', fam: 'check', label: 'Build the team check', icon: 'check', minutes: 25,
+    q: 'What will be on the team check?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
+  { key: 'goal', fam: 'check', label: 'Set the team goal', icon: 'goal', minutes: 10,
+    q: 'What is our team goal?', what: 'Say how many students will reach "got it", and by when. Launchpad writes the sentence for you.', term: 'SMART goal' },
+  { key: 'scores', fam: 'check', label: 'Enter scores', icon: 'score', minutes: 15,
+    q: 'How did your students do?', what: 'Each teacher enters their own classes. Your team only ever sees totals.', term: 'Evidence of learning' },
+  { key: 'results', fam: 'check', label: 'Look at results together', icon: 'results', minutes: 20,
+    q: 'What did the check show us?', what: 'Read the team results together, talk about them, and decide what to do next.', term: 'Collective inquiry' },
+  { key: 'reteach', fam: 'reteach', label: 'Plan reteaching', icon: 'reteach', minutes: 20,
+    q: 'How will we reteach students who don\'t have it yet?', what: 'Plan extra time and a different approach. Ideas your teammates shared show up here.', term: 'Intervention (Tier 2)' },
+  { key: 'recheck', fam: 'reteach', label: 'Re-check', icon: 'recheck', minutes: 15,
+    q: 'Did the reteaching work?', what: 'Give a short second check to the students you retaught, and enter their scores.', term: 'Follow-up assessment' },
+  { key: 'stretch', fam: 'stretch', label: 'Plan the stretch', icon: 'stretch', minutes: 15,
+    q: 'How will we stretch students who already have it?', what: 'Plan something deeper, not just more of the same, that runs while others are retaught.', term: 'Extension / enrichment' },
+  { key: 'wrap', fam: 'stretch', label: 'Did we reach our goal?', icon: 'goal', minutes: 15,
+    q: 'Did we reach our goal?', what: 'Compare results with your team goal, write down what you learned, and choose what comes next.', term: 'PLC cycle' }
+];
+const step = key => STEPS.find(s => s.key === key);
+
+/* -------------------------------------------------------------- the state */
+function blankState(name = 'Our PLC team', course = '', catalogs = ['engineering']) {
+  return { schema: 'launchpad-1', team: { name, course, grade: '', catalogs }, members: [], norms: [], plans: [], activePlanId: null,
+    meetings: [], strategies: [], invites: {}, createdAt: new Date().toISOString() };
+}
+function blankPlan() {
+  return { id: uid(), title: '', standardIds: [], why: [], targets: [], gotIt: 80, gotItNote: '',
+    check: { name: '', date: '', items: [] }, goal: { baseline: '', target: 80, date: '' },
+    scores: [], results: { notes: '', decision: '' }, reteach: { leader: '', when: '', how: '', groups: '' },
+    stretch: { activity: '', how: [], materials: '' }, wrap: { reflection: '', next: '' }, steps: {}, talk: {}, createdAt: new Date().toISOString() };
+}
+
+let S = null;              // the team workspace
+let ME = null;             // id of the teacher using this device
+const APP = { mode: 'local', status: 'saved', etag: '', wsId: '', root: '', directory: null, catalogs: {}, teamKey: 'demo', demo: false };
+
+const planById = id => S.plans.find(p => p.id === id);
+const activePlan = () => planById(S.activePlanId) || S.plans[0] || null;
+const member = id => S.members.find(m => m.id === id);
+const memberName = id => member(id)?.name || 'A teammate';
+
+/* ---------------------------------------------------------------- standards */
+function catalogStandards() {
+  const out = [];
+  for (const key of S.team.catalogs || []) {
+    const cat = APP.catalogs[key]; if (!cat) continue;
+    for (const s of cat.standards) out.push({ ...s, catalog: key, catalogTitle: cat.title || key });
+  }
+  return out;
+}
+const standardById = id => catalogStandards().find(s => s.id === id) || Object.values(APP.catalogs).flatMap(c => c.standards).find(s => s.id === id);
+const isBroad = s => /\.0$/.test(s.code || '');
+const parentCode = s => (s.code || '').replace(/\.\d+$/, '.0');
+
+/* --------------------------------------------------------- scores & results */
+const maxPoints = p => p.check.items.reduce((a, i) => a + (Number(i.points) || 0), 0);
+function rowResult(p, row) {
+  const items = p.check.items;
+  if (!items.length) return { complete: false };
+  const vals = items.map(i => row.s?.[i.id]);
+  const complete = vals.every(v => v !== '' && v != null && !isNaN(Number(v)));
+  const total = vals.reduce((a, v) => a + (Number(v) || 0), 0);
+  const max = maxPoints(p);
+  const per = {};
+  for (const t of p.targets) {
+    const its = items.filter(i => i.targetId === t.id);
+    const tmax = its.reduce((a, i) => a + (Number(i.points) || 0), 0);
+    if (!tmax) continue;
+    const tgot = its.reduce((a, i) => a + (Number(row.s?.[i.id]) || 0), 0);
+    per[t.id] = complete ? (100 * tgot) / tmax >= p.gotIt : null;
+  }
+  return { complete, total, max, got: complete && max > 0 && (100 * total) / max >= p.gotIt, per };
+}
+function stats(p, { kind = 'first', teacherId = null } = {}) {
+  const sets = p.scores.filter(s => (s.kind || 'first') === kind && (!teacherId || s.teacherId === teacherId));
+  const rows = sets.flatMap(s => s.rows.map(r => ({ ...r, teacherId: s.teacherId })));
+  const done = rows.map(r => ({ r, res: rowResult(p, r) })).filter(x => x.res.complete);
+  const teachers = new Set(done.map(x => x.r.teacherId));
+  const per = {};
+  for (const t of p.targets) {
+    const scored = done.filter(x => x.res.per[t.id] != null);
+    per[t.id] = { n: scored.length, got: scored.filter(x => x.res.per[t.id]).length };
+    per[t.id].pct = pct(per[t.id].got, per[t.id].n);
+  }
+  const got = done.filter(x => x.res.got).length;
+  return { n: done.length, waiting: rows.length - done.length, got, pct: pct(got, done.length), teachers: teachers.size, per };
+}
+const PRIVACY_MIN_STUDENTS = 5, PRIVACY_MIN_TEACHERS = 3;
+const teamUnlocked = st => st.n >= PRIVACY_MIN_STUDENTS && st.teachers >= PRIVACY_MIN_TEACHERS;
+
+/* Invitations to share: offered only to a teacher whose students beat the team on an "I can" statement. */
+function invitationsFor(teacherId) {
+  if (!teacherId) return [];
+  const out = [];
+  for (const p of S.plans) {
+    const team = stats(p); if (!teamUnlocked(team)) continue;
+    const mine = stats(p, { teacherId }); if (mine.n < 3) continue;
+    for (const t of p.targets) {
+      const key = p.id + ':' + t.id, a = mine.per[t.id], b = team.per[t.id];
+      if (!a || !b || !a.n || a.pct <= b.pct) continue;
+      const answered = S.invites[teacherId]?.[key];
+      const shared = S.strategies.some(s => s.planId === p.id && s.targetId === t.id && s.teacherId === teacherId);
+      if (shared || answered === 'never' || (answered && answered.startsWith('later:') && answered.slice(6) > new Date().toISOString())) continue;
+      out.push({ plan: p, target: t, mine: a.pct, team: b.pct, key });
+    }
+  }
+  return out;
+}
+
+/* -------------------------------------------------------- step progress */
+function stepState(p, key) {
+  if (p.steps[key]?.done) return 100;
+  const started = {
+    skill: p.standardIds.length > 0, targets: p.targets.some(t => t.text.trim()), gotit: !!p.gotItNote,
+    build: p.check.items.length > 0 || !!p.check.name, goal: !!p.goal.date, scores: p.scores.some(s => (s.kind || 'first') === 'first' && s.rows.length),
+    results: !!p.results.notes, reteach: !!(p.reteach.how || p.reteach.leader), recheck: p.scores.some(s => s.kind === 'recheck' && s.rows.length),
+    stretch: !!p.stretch.activity, wrap: !!p.wrap.reflection
+  }[key];
+  return started ? 50 : 0;
+}
+const famProgress = (p, fam) => { const ss = STEPS.filter(s => s.fam === fam); return Math.round(ss.reduce((a, s) => a + stepState(p, s.key), 0) / ss.length); };
+const nextStep = p => STEPS.find(s => stepState(p, s.key) < 100) || STEPS[STEPS.length - 1];
+const planDone = p => STEPS.every(s => stepState(p, s.key) === 100);
+function planTitle(p) {
+  const t = p.targets.find(t => t.text.trim());
+  if (p.title) return p.title;
+  if (t) return t.text;
+  const s = p.standardIds.length && standardById(p.standardIds[0]);
+  return s ? s.text : 'New plan';
+}
+const pipHTML = p => `<span class="pips" aria-label="Progress through the four questions">${Object.keys(FAMILIES).map(f => {
+  const v = famProgress(p, f); return `<b class="f-${f} ${v >= 100 ? 'on' : v > 0 ? 'half' : ''}"></b>`; }).join('')}</span>`;
+const tokHTML = (v, ic) => `<span class="tok ${v >= 100 ? 'done' : ''}" style="--p:${v}"><i>${icon(v >= 100 ? 'done' : v > 0 ? 'half' : ic || 'empty')}</i></span>`;
+
+/* ------------------------------------------------------------------ meetings */
+const runningMeeting = () => S.meetings.find(m => m.startedAt && !m.endedAt);
+const lastMeeting = () => S.meetings.filter(m => m.endedAt).sort((a, b) => (a.endedAt < b.endedAt ? 1 : -1))[0] || null;
+const openTodos = () => S.meetings.flatMap(m => (m.todos || []).map(t => ({ ...t, meetingId: m.id }))).filter(t => !t.done);
+function suggestedAgenda(p) {
+  const items = [{ id: uid(), topic: 'Check in and review our agreements', minutes: 5, kind: 'checkin', notes: '' }];
+  if (openTodos().length) items.push({ id: uid(), topic: 'Follow up on last week\'s to-dos', minutes: 5, kind: 'todos', notes: '' });
+  if (p) {
+    const remaining = STEPS.filter(s => stepState(p, s.key) < 100);
+    let left = 45 - items.reduce((a, i) => a + i.minutes, 0) - 7;
+    for (const s of remaining) {
+      if (left < 8) break;
+      const m = Math.min(s.minutes, left);
+      items.push({ id: uid(), topic: s.label, minutes: m, kind: 'step', planId: p.id, stepKey: s.key, notes: '' });
+      left -= m;
+    }
+  }
+  items.push({ id: uid(), topic: 'Wrap up: where we stopped and what\'s next', minutes: 7, kind: 'wrap', notes: '' });
+  return items;
+}
+
+/* -------------------------------------------------------------- saving */
+const bridge = window.__PLC || null;
+let saveTimer = null;
+function setStatus(s) {
+  APP.status = s;
+  const el = $('#saveStatus'); if (!el) return;
+  el.className = 'status-dot ' + (s === 'saving' ? 'saving' : s === 'error' ? 'error' : '');
+  el.querySelector('span').textContent = { saved: APP.mode === 'cloud' ? 'Saved online' : APP.demo ? 'Example team' : 'Saved in this browser', saving: 'Saving…', error: 'Not saved yet' }[s];
+}
+function save() {
+  if (APP.mode === 'local') { store.set(localKey(), S); setStatus('saved'); return; }
+  store.set('lp-pending:' + APP.wsId, S);
+  setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveCloud, 900);
+}
+const localKey = () => 'plc-launchpad-1:' + APP.teamKey;
+async function api(method, path, body, headers = {}) {
+  const res = await fetch(path, { method, headers: { 'Content-Type': 'application/json', ...headers }, body: body == null ? undefined : JSON.stringify(body) });
+  let data = {}; try { data = await res.json(); } catch (e) {}
+  return { ok: res.ok, status: res.status, data };
+}
+let saving = false, dirtyAgain = false;
+async function saveCloud() {
+  if (saving) { dirtyAgain = true; return; }
+  saving = true;
+  const snapshot = clone(S);
+  try {
+    const r = await api('PUT', '/api/demo/' + APP.wsId, { subject: APP.subject, catalogId: (S.team.catalogs || [])[0] || 'none', state: snapshot }, { 'If-Match': APP.etag });
+    if (r.status === 409) { await resolveConflict(snapshot); return; }
+    if (!r.ok) throw new Error(r.data.error || 'Save failed');
+    APP.etag = r.data.etag;
+    store.del('lp-pending:' + APP.wsId);
+    setStatus('saved');
+  } catch (e) {
+    setStatus('error');
+    toast((e && e.message) || 'Not saved yet. Launchpad will try again.');
+    clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 8000);
+  } finally {
+    saving = false;
+    if (dirtyAgain) { dirtyAgain = false; saveCloud(); }
+  }
+}
+/* Someone else saved first: keep a copy of ours in Version history, then load theirs. */
+async function resolveConflict(mine) {
+  await api('PUT', '/api/demo/' + APP.wsId + '?recovery=1', { subject: APP.subject, catalogId: (S.team.catalogs || [])[0] || 'none', state: mine });
+  const r = await api('GET', '/api/demo/' + APP.wsId);
+  if (r.ok && r.data.payload && !r.data.payload.fresh) { S = r.data.payload.state; APP.etag = r.data.etag; }
+  store.del('lp-pending:' + APP.wsId);
+  setStatus('saved');
+  render();
+  toast('A teammate saved at the same time. Their version is showing, and yours is kept in Version history.');
+}
+
+async function boot() {
+  APP.catalogs = JSON.parse($('#catalogs').textContent);
+  if (bridge) {
+    if (bridge.ready) await bridge.ready;
+    APP.mode = 'cloud';
+    const params = bridge.params || {};
+    APP.root = params.shared; APP.subject = params.course || 'engineering';
+    try {
+      const dir = await api('GET', '/api/directory/' + APP.root);
+      if (dir.ok) APP.directory = dir.data;
+      const look = await api('POST', '/api/demo/' + APP.root + '?course=' + encodeURIComponent(APP.subject));
+      if (!look.ok) throw new Error(look.data.error || 'That team could not be opened.');
+      APP.wsId = look.data.id;
+      const got = await api('GET', '/api/demo/' + APP.wsId);
+      if (!got.ok) throw new Error(got.data.error || 'That team could not be opened.');
+      const team = APP.directory?.teams.find(t => (/^[0-9a-f-]{36}$/.test(t.id) ? 'team-' + t.id : t.id) === APP.subject);
+      if (got.data.payload.fresh || got.data.payload.state?.schema !== 'launchpad-1') {
+        S = blankState(team?.name || 'Our PLC team', '', team?.catalogs?.length ? team.catalogs : [APP.subject]);
+        APP.etag = got.data.etag || '';
+        if (!got.data.payload.fresh) APP.etag = got.data.etag; // older workspace: replaced on first save, kept in history
+      } else { S = got.data.payload.state; APP.etag = got.data.etag; }
+      const pending = store.get('lp-pending:' + APP.wsId);
+      if (pending && pending.schema === 'launchpad-1' && JSON.stringify(pending) !== JSON.stringify(S)) { S = pending; save(); toast('Your unsaved changes from last time were restored.'); }
+      const email = (bridge.email || '').toLowerCase();
+      ME = S.members.find(m => (m.email || '').toLowerCase() === email)?.id || store.get('lp-me:' + APP.wsId);
+    } catch (e) {
+      document.body.innerHTML = `<main><div class="card" style="max-width:560px;margin:60px auto"><h2>This team couldn't be opened</h2><p class="muted">${esc(e.message)}</p><button class="btn" onclick="plcReload()">Try again</button></div></main>`;
+      return false;
+    }
+  } else {
+    APP.mode = 'local';
+    APP.teamKey = store.get('lp-current-team') || 'demo';
+    S = store.get(localKey());
+    if (!S || S.schema !== 'launchpad-1') { S = APP.teamKey === 'demo' ? sampleState() : blankState(); store.set(localKey(), S); }
+    APP.demo = APP.teamKey === 'demo';
+    ME = store.get('lp-me:' + APP.teamKey) || (APP.demo ? 'm1' : null);
+  }
+  return true;
+}
+function setMe(id) {
+  ME = id;
+  store.set('lp-me:' + (APP.mode === 'cloud' ? APP.wsId : APP.teamKey), id);
+}
+
+/* ------------------------------------------------------- the example team */
+function sampleState() {
+  const s = blankState('Engineering 9 · Example team', 'Introduction to Engineering Design', ['engineering']);
+  s.team.grade = 'Grade 9';
+  s.members = [
+    { id: 'm1', name: 'Ms. Alvarez', email: 'alvarez@example.org', role: 'Team lead', periods: '1, 3' },
+    { id: 'm2', name: 'Mr. Chen', email: 'chen@example.org', role: 'Teacher', periods: '2, 4' },
+    { id: 'm3', name: 'Ms. Okafor', email: 'okafor@example.org', role: 'Teacher', periods: '5' },
+    { id: 'm4', name: 'Mr. Delgado', email: 'delgado@example.org', role: 'Teacher', periods: '6' }
+  ];
+  s.norms = [
+    { id: uid(), text: 'We start and end on time.' },
+    { id: uid(), text: 'We talk about all of our students as "our" students.' },
+    { id: uid(), text: 'Data is about learning, not about judging teachers.' },
+    { id: uid(), text: 'Everyone leaves with a clear next step.' }
+  ];
+  const p = blankPlan();
+  p.standardIds = ['ca-cte-ea-B2.1'];
+  p.why = ['Needed for what comes next', 'Lasts beyond this year'];
+  p.targets = [{ id: 'tA', text: 'I can sketch the front, top and side views of a simple object.' }, { id: 'tB', text: 'I can line up the views so their sizes match.' }];
+  p.gotIt = 75; p.gotItNote = 'A student who has it draws all three views in the right places with matching sizes. Small line wobbles are fine.';
+  p.check = { name: 'Three-view sketch check', date: addDays(todayISO(), -6), items: [
+    { id: 'i1', prompt: 'Sketch the front view of the block shown.', points: 2, targetId: 'tA', guide: '2: correct shape and features · 1: shape right, features missing' },
+    { id: 'i2', prompt: 'Sketch the top view.', points: 2, targetId: 'tA', guide: '' },
+    { id: 'i3', prompt: 'Sketch the right side view.', points: 2, targetId: 'tA', guide: '' },
+    { id: 'i4', prompt: 'Draw projection lines to show the views line up.', points: 2, targetId: 'tB', guide: '2: widths and heights match across views' }] };
+  p.goal = { baseline: 40, target: 80, date: addDays(todayISO(), 21) };
+  let n = 1001;
+  const mk = (teacherId, period, skill) => ({ id: uid(), teacherId, period, kind: 'first', rows: Array.from({ length: 9 }, (_, k) => {
+    const r = (k * 7 + teacherId.charCodeAt(1) * 3) % 10;
+    const a = Math.min(2, Math.max(0, Math.round(skill + (r - 5) / 4)));
+    return { id: uid(), student: String(n++), s: { i1: a, i2: Math.min(2, a + (r % 3 === 0 ? 0 : 0)), i3: Math.max(0, a - (r % 4 === 0 ? 1 : 0)), i4: Math.max(0, Math.min(2, a - (r % 2))) } };
+  }) });
+  p.scores = [mk('m1', 'Period 1', 2.3), mk('m2', 'Period 2', 1.8), mk('m3', 'Period 5', 1.6), mk('m4', 'Period 6', 1.9)];
+  p.steps = { skill: { done: true }, targets: { done: true }, gotit: { done: true }, build: { done: true }, goal: { done: true }, scores: { done: true } };
+  p.talk = { build: [{ id: uid(), at: addDays(todayISO(), -14), by: 'm2', text: 'Agreed to use the same wooden block photo for every class.' }] };
+  s.plans = [p]; s.activePlanId = p.id;
+  const p2 = blankPlan();
+  p2.standardIds = ['ca-cte-ea-B7.3']; p2.targets = [{ id: uid(), text: 'I can measure to the nearest 1/16 inch.' }];
+  p2.steps = { skill: { done: true } };
+  s.plans.push(p2);
+  const last = addDays(todayISO(), -7);
+  s.meetings = [{ id: uid(), date: last, planId: p.id, startedAt: last + 'T15:00:00', endedAt: last + 'T15:45:00', minutes: 45,
+    attendance: ['m1', 'm2', 'm3', 'm4'],
+    agenda: [{ id: uid(), topic: 'Check in and review our agreements', minutes: 5, kind: 'checkin', notes: '' },
+      { id: uid(), topic: 'Enter scores', minutes: 20, kind: 'step', planId: p.id, stepKey: 'scores', notes: 'Everyone finished entering scores during the meeting.' },
+      { id: uid(), topic: 'Wrap up: where we stopped and what\'s next', minutes: 7, kind: 'wrap', notes: '' }],
+    discussion: 'Several students drew the views in the wrong places. We think the orientation of the block is confusing them.',
+    decisions: 'Results conversation next week. Bring two student sketches each: one strong, one that missed.',
+    todos: [{ id: uid(), text: 'Bring two student sketches (one strong, one that missed)', ownerId: 'all', due: todayISO(), done: false },
+      { id: uid(), text: 'Find a short video on orthographic projection', ownerId: 'm3', due: todayISO(), done: false }],
+    stoppedAt: { planId: p.id, stepKey: 'results' }, nextTime: 'Look at results together and plan reteaching for target B.' }];
+  s.strategies = [{ id: uid(), planId: p2.id, targetId: p2.targets[0].id, teacherId: 'm2', anonymous: false, text: 'I had students measure their own desks and phones first, then trade and check each other\'s measurements before the worksheet.', tags: ['Hands-on', 'Partner check'], link: '', mine: 86, team: 71, sharedAt: addDays(todayISO(), -30) }];
+  return s;
+}
+
+/* PLC Launchpad 1.0 · shell, routing, binding, home, plans, tour */
+
+const NAV = [
+  ['home', 'Home', 'home', 'tool'],
+  ['plans', 'Plans', 'plan', 'learn'],
+  ['meetings', 'Team time', 'meeting', 'team'],
+  ['results', 'Results', 'results', 'check'],
+  ['worked', 'What worked', 'practice', 'reteach'],
+  ['team', 'Team', 'team', 'team']
+];
+
+function route() {
+  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'home';
+  const [page, a, b] = h.split('-');
+  return { page, a, b, raw: h };
+}
+const go = hash => { if (location.hash === '#' + hash) render(); else location.hash = hash; };
+
+function shell() {
+  const r = route();
+  const nav = NAV.map(([k, label, ic, fam]) => {
+    const cur = r.page === k || (k === 'plans' && r.page === 'plan') || (k === 'meetings' && r.page === 'meeting');
+    return `<a href="#${k}" class="f-${fam}" ${cur ? 'aria-current="page"' : ''}>${icon(ic)}<span>${label}</span></a>`;
+  }).join('');
+  const m = runningMeeting();
+  return `<header class="top"><div class="top-in">
+    <a class="brand" href="#home" aria-label="PLC Launchpad home"><svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="8" fill="var(--ink)"/><ellipse cx="17" cy="17" rx="15" ry="6.5" fill="none" stroke="var(--check)" stroke-width="2.5" transform="rotate(-30 17 17)"/><circle cx="29" cy="10" r="3" fill="var(--learn)"/></svg><span>PLC Launchpad</span></a>
+    <button class="team-pill f-team" type="button" data-act="switchTeam" title="Switch team"><span class="orb">${icon('team')}</span><span>${esc(S.team.name)}</span></button>
+    ${m ? `<a class="timer-pill" href="#meeting-${m.id}">${icon('clock')}Team time <b data-timer>--:--</b><span class="go">Open</span></a>` : ''}
+    <nav class="nav" aria-label="Main">${nav}</nav>
+    <span class="status-dot" id="saveStatus"><i></i><span></span></span>
+  </div></header>`;
+}
+
+function render() {
+  const r = route();
+  const views = { home: viewHome, plans: viewPlans, plan: viewPlan, meetings: viewMeetings, meeting: viewMeeting, results: viewResults, worked: viewWorked, team: viewTeam, words: viewWords };
+  const view = views[r.page] || viewHome;
+  const scrollY = window.scrollY, focusId = document.activeElement?.id;
+  const sameView = render.last === r.raw;
+  document.getElementById('app').innerHTML = shell() + `<main id="main">${APP.demo ? demoBanner() : ''}${view(r)}</main>`;
+  setStatus(APP.status);
+  tickTimer();
+  if (sameView) { window.scrollTo(0, scrollY); if (focusId) document.getElementById(focusId)?.focus(); }
+  else window.scrollTo(0, 0);
+  render.last = r.raw;
+  const titles = { home: 'Home', plans: 'Plans', plan: 'Plan', meetings: 'Team time', meeting: 'Team time', results: 'Results', worked: 'What worked for us', team: 'Team', words: 'PLC words' };
+  document.title = (titles[r.page] || 'Home') + ' · PLC Launchpad';
+}
+function demoBanner() {
+  return `<div class="demo-banner">${icon('spark')}<span><b>You're looking at an example team.</b> Try anything; it only saves in this browser.</span><button class="btn sm" data-act="startOwnTeam">Start our own team</button></div>`;
+}
+
+/* ---------- binding: inputs with data-bind write straight into the workspace ---------- */
+function scopeObj(scope) {
+  const r = route();
+  if (scope === 'p') return planById(r.a);
+  if (scope === 'm') return S.meetings.find(m => m.id === r.a);
+  return S;
+}
+function walk(obj, path) {
+  const parts = path.split('.');
+  let o = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const k = parts[i];
+    o = k.startsWith('#') ? o.find(x => x.id === k.slice(1)) : (o[k] ??= {});
+    if (o == null) return [null];
+  }
+  return [o, parts[parts.length - 1]];
+}
+function setPath(obj, path, val) { const [o, k] = walk(obj, path); if (o) o[k] = val; }
+function getPath(obj, path) { const [o, k] = walk(obj, path); return o ? o[k] : undefined; }
+
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.matches('[data-bind]')) {
+    const [scope, path] = el.dataset.bind.split(':');
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.dataset.type === 'number') v = v === '' ? '' : Number(v);
+    setPath(scopeObj(scope), path, v);
+    save();
+    if (el.dataset.live) refreshLive(el.dataset.live, el);
+  }
+  if (el.matches('[data-filter]')) refreshLive(el.dataset.filter, el);
+});
+document.addEventListener('change', e => { if (e.target.matches('[data-bind][data-rerender]')) render(); });
+
+const LIVE = {};
+function refreshLive(name, el) { (LIVE[name] || (() => {}))(el); }
+
+/* ---------- actions: buttons with data-act ---------- */
+const ACT = {};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const fn = ACT[b.dataset.act];
+  if (fn) { e.preventDefault(); fn(b, e); }
+});
+ACT.toggleTerm = b => { const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); document.getElementById(b.getAttribute('aria-controls')).hidden = !open; };
+ACT.say = b => voice.say(b.dataset.text);
+ACT.go = b => go(b.dataset.to);
+
+ACT.switchTeam = async () => {
+  if (APP.mode === 'cloud' && APP.directory) {
+    const code = t => (/^[0-9a-f-]{36}$/.test(t.id) ? 'team-' + t.id : t.id);
+    const live = APP.directory.teams.filter(t => !t.removed && APP.directory.subjects.some(s => s.id === t.subjectId && !s.removed));
+    const fd = await ask(`<h2>Switch team</h2><div class="field"><label for="teamPick">PLC team</label><select id="teamPick" name="team">${APP.directory.subjects.filter(s => !s.removed).map(s =>
+      `<optgroup label="${esc(s.name)}">${live.filter(t => t.subjectId === s.id).map(t => `<option value="${esc(code(t))}" ${code(t) === APP.subject ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+      <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Open team</button></div>`);
+    if (fd && fd.get('team') !== APP.subject) { voice.stop(); plcNavigate('?course=' + encodeURIComponent(fd.get('team'))); }
+    return;
+  }
+  const teams = store.get('lp-teams') || [];
+  const fd = await ask(`<h2>Teams in this browser</h2><p class="muted">When Launchpad runs on your school's Google site, your team list comes from the school directory instead.</p>
+    <div class="field"><label for="teamPick">Open</label><select id="teamPick" name="team"><option value="demo" ${APP.teamKey === 'demo' ? 'selected' : ''}>Example team</option>${teams.map(t => `<option value="${esc(t.key)}" ${t.key === APP.teamKey ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Open team</button></div>`);
+  if (fd) { store.set('lp-current-team', fd.get('team')); location.hash = 'home'; location.reload(); }
+};
+ACT.startOwnTeam = async () => {
+  const fd = await ask(`<h2>Start your team</h2><div class="field"><label for="nt">Team name</label><input id="nt" name="name" type="text" required placeholder="Engineering 9 team"></div>
+    <div class="field"><label for="nc">Course</label><input id="nc" name="course" type="text" placeholder="Introduction to Engineering Design"></div>
+    <div class="field"><label for="ncat">Standards</label><select id="ncat" name="cat">${Object.entries(APP.catalogs).map(([k, c]) => `<option value="${k}">${esc(c.title || k)}</option>`).join('')}</select></div>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Create team</button></div>`);
+  if (!fd) return;
+  const key = 't' + Date.now().toString(36);
+  const teams = store.get('lp-teams') || []; teams.push({ key, name: fd.get('name') }); store.set('lp-teams', teams);
+  store.set('plc-launchpad-1:' + key, blankState(fd.get('name'), fd.get('course'), [fd.get('cat')]));
+  store.set('lp-current-team', key); location.hash = 'team'; location.reload();
+};
+
+/* ---------- who's using this device ---------- */
+async function needMe(reason) {
+  if (ME && member(ME)) return true;
+  if (!S.members.length) { toast('Add your team members first.'); go('team'); return false; }
+  const fd = await ask(`<h2>Which teacher are you?</h2><p class="muted">${esc(reason || 'Launchpad uses this to show your own classes and invitations.')}</p>
+    <div class="chips">${S.members.map(m => `<label class="chip"><input type="radio" name="me" value="${m.id}" required> ${esc(m.name)}</label>`).join('')}</div>
+    ${privacyNote('This is remembered on this device only.')}
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">That's me</button></div>`);
+  if (!fd) return false;
+  setMe(fd.get('me')); render(); return true;
+}
+ACT.whoAmI = async () => { ME = null; await needMe(); };
+
+/* ================================================================ HOME */
+function viewHome() {
+  const p = activePlan();
+  const last = lastMeeting();
+  const running = runningMeeting();
+  const me = member(ME);
+  const invites = invitationsFor(ME);
+  const todos = openTodos();
+  let welcome;
+  if (running) {
+    welcome = `<div class="welcome"><span class="eyebrow" style="color:inherit;opacity:.7">Team time is running</span><h2>You're in a team meeting</h2>
+      <div class="row"><a class="btn light lead-orb" href="#meeting-${running.id}"><span class="orb f-team">${icon('meeting')}</span>Back to the meeting</a></div></div>`;
+  } else if (last) {
+    const stop = last.stoppedAt && planById(last.stoppedAt.planId);
+    const st = last.stoppedAt && step(last.stoppedAt.stepKey);
+    welcome = `<div class="welcome">
+      <span class="eyebrow" style="color:inherit;opacity:.7">Welcome back${me ? ', ' + esc(me.name) : ''}</span>
+      <h2>${st ? `Last time (${esc(fmtDate(last.date))}) you stopped at step ${STEPS.indexOf(st) + 1}: ${esc(st.label)}.` : `Your last meeting was ${esc(fmtDate(last.date))}.`}</h2>
+      ${last.nextTime ? `<p class="quote">Next time we'll… ${esc(last.nextTime)}</p>` : ''}
+      <p>${plural(todos.length, 'open to-do')}${stop ? ' · ' + esc(planTitle(stop)) : ''}</p>
+      <div class="row">
+        <button class="btn light lead-orb" data-act="startMeeting"><span class="orb f-team">${icon('meeting')}</span>Start this week's team time</button>
+        ${stop && st ? `<a class="btn ghost" href="#plan-${stop.id}-${st.key}">Go to ${esc(st.label)}</a>` : ''}
+      </div></div>`;
+  } else {
+    welcome = `<div class="welcome"><span class="eyebrow" style="color:inherit;opacity:.7">Welcome to Launchpad</span>
+      <h2>Your team works through four questions for each must-learn skill.</h2>
+      <p>Launchpad walks you through every step, keeps your meeting notes, and remembers where you stopped each week.</p>
+      <div class="row"><button class="btn light lead-orb" data-act="${p ? 'startMeeting' : 'newPlan'}"><span class="orb f-${p ? 'team' : 'learn'}">${icon(p ? 'meeting' : 'plus')}</span>${p ? 'Start team time' : 'Start your first plan'}</button>
+      <button class="btn ghost" data-act="tour">${icon('play')}Watch the 90-second tour</button></div></div>`;
+  }
+
+  const orbit = p ? orbitSVG(p) : `<div class="empty">${icon('plan')}<b>No plans yet</b><span>A plan takes one must-learn skill through all four questions.</span><button class="btn fam f-learn" data-act="newPlan">${icon('plus')}Start a plan</button></div>`;
+
+  const inviteHTML = invites.slice(0, 2).map(inviteCard).join('');
+  const todoHTML = todos.length ? `<div class="card f-team"><div class="card-head"><span class="orb sm">${icon('norms')}</span><div class="grow"><h3>Open to-dos</h3><span class="small muted">From your team meetings</span></div></div>
+    <div class="list">${todos.slice(0, 5).map(todoRow).join('')}</div></div>` : '';
+  const plans = S.plans.length ? `<div class="card"><div class="card-head"><span class="orb sm f-learn">${icon('plan')}</span><div class="grow"><h3>Our plans</h3></div><a class="btn sm ghost" href="#plans">All plans</a></div>
+    <div class="list">${S.plans.slice(0, 4).map(planRow).join('')}</div></div>` : '';
+  const strat = S.strategies.slice(-1).map(stratCard).join('');
+
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">${esc(S.team.course || 'Team home')}</span><h1>${esc(S.team.name)}</h1></div>
+    <div class="row">${me ? `<button class="btn sm soft" data-act="whoAmI">${icon('person')}You're ${esc(me.name)}</button>` : S.members.length ? `<button class="btn sm soft" data-act="whoAmI">${icon('person')}Which teacher are you?</button>` : ''}
+    <button class="btn sm ghost" data-act="tour">${icon('play')}Tour</button></div></div>
+    <div class="home">
+      <div class="stack">${welcome}<div class="orbit-wrap">${orbit}${p ? `<p class="small muted">Showing: <b>${esc(planTitle(p))}</b>${S.plans.length > 1 ? ` · <a href="#plans">switch plan</a>` : ''}</p>` : ''}</div></div>
+      <div class="stack">${inviteHTML}${todoHTML}${plans}${strat ? `<div class="stack"><div class="row"><h3 class="spacer">What worked for us</h3><a class="btn sm ghost" href="#worked">See all</a></div>${strat}</div>` : ''}</div>
+    </div>`;
+}
+
+function orbitSVG(p) {
+  const pos = { learn: [125, 125], check: [395, 125], reteach: [395, 395], stretch: [125, 395] };
+  const C = 2 * Math.PI * 70;
+  const planets = Object.entries(FAMILIES).map(([f, info]) => {
+    const [x, y] = pos[f], v = famProgress(p, f);
+    const first = STEPS.find(s => s.fam === f && stepState(p, s.key) < 100) || STEPS.find(s => s.fam === f);
+    const label = `Question ${info.n}, ${info.word}: ${info.q} ${v}% done. Open ${first.label}.`;
+    return `<a href="#plan-${p.id}-${first.key}" class="planet" aria-label="${esc(label)}"><g class="face">
+      <circle class="track" cx="${x}" cy="${y}" r="70" fill="none" stroke="var(--line)" stroke-width="7"/>
+      <circle cx="${x}" cy="${y}" r="70" fill="none" stroke="var(--${f})" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - v / 100)}" transform="rotate(-90 ${x} ${y})"/>
+      <circle cx="${x}" cy="${y}" r="58" fill="var(--paper)" stroke="var(--${f})" stroke-width="3"/>
+      <svg x="${x - 15}" y="${y - 40}" width="30" height="30" viewBox="0 0 24 24" class="ico" style="color:var(--${f})">${ICONS[f]}</svg>
+      <text x="${x}" y="${y + 10}" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink)">${info.word}</text>
+      <text x="${x}" y="${y + 30}" text-anchor="middle" font-size="13" fill="var(--ink-soft)" style="font-family:var(--body)">${v >= 100 ? 'Done' : v > 0 ? v + '% done' : 'Not started'}</text>
+      <circle cx="${x + 50}" cy="${y - 46}" r="15" fill="var(--${f})"/>
+      <text x="${x + 50}" y="${y - 41}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--on-${f})">${info.n}</text></g></a>`;
+  }).join('');
+  const t = planTitle(p), lines = wrapText(t, 16, 3);
+  return `<svg class="orbit" viewBox="0 0 520 520" role="group" aria-label="This plan's four questions">
+    <circle class="ring" cx="260" cy="260" r="191"/>
+    <g class="moon"><circle cx="260" cy="69" r="8" fill="var(--team)"/><animateTransform attributeName="transform" type="rotate" from="0 260 260" to="360 260 260" dur="40s" repeatCount="indefinite"/></g>
+    <circle cx="260" cy="260" r="84" fill="var(--ink)"/>
+    <text x="260" y="${236 - (lines.length - 1) * 9}" text-anchor="middle" font-size="12" fill="var(--sky)" opacity=".7" style="font-family:var(--body);letter-spacing:.1em">THIS PLAN</text>
+    ${lines.map((l, i) => `<text x="260" y="${262 - (lines.length - 1) * 9 + i * 20}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--sky)">${esc(l)}</text>`).join('')}
+    ${planets}</svg>`;
+}
+function wrapText(text, width, maxLines) {
+  const words = String(text).replace(/^I can /i, 'I can ').split(/\s+/), lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > width && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+    if (lines.length === maxLines) break;
+  }
+  if (lines.length < maxLines && cur) lines.push(cur);
+  if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, '') + '…';
+  return lines;
+}
+
+function planRow(p) {
+  const s = p.standardIds.length && standardById(p.standardIds[0]);
+  const n = nextStep(p);
+  return `<a class="li f-learn" href="#plan-${p.id}-${n.key}"><span class="orb sm">${icon('plan')}</span><span><b>${esc(planTitle(p))}</b><span class="sub">${s ? esc(s.code) + ' · ' : ''}${planDone(p) ? 'Finished' : 'Next: ' + esc(n.label)}</span></span>${pipHTML(p)}</a>`;
+}
+function todoRow(t) {
+  const owner = t.ownerId === 'all' ? 'Everyone' : memberName(t.ownerId);
+  return `<div class="li todo f-team ${t.done ? 'done' : ''}"><button type="button" class="check-circle" aria-pressed="${!!t.done}" aria-label="Mark done: ${esc(t.text)}" data-act="toggleTodo" data-meeting="${t.meetingId}" data-id="${t.id}">${t.done ? icon('done') : ''}</button>
+    <span><b>${esc(t.text)}</b><span class="sub">${esc(owner)}${t.due ? ' · by ' + esc(fmtDate(t.due)) : ''}</span></span><span></span></div>`;
+}
+ACT.toggleTodo = b => {
+  const m = S.meetings.find(x => x.id === b.dataset.meeting), t = m?.todos.find(x => x.id === b.dataset.id);
+  if (!t) return; t.done = !t.done; save(); render(); if (t.done) toast('To-do done.');
+};
+
+ACT.newPlan = () => {
+  const p = blankPlan(); S.plans.push(p); S.activePlanId = p.id; save(); go(`plan-${p.id}-skill`);
+};
+
+/* ================================================================ PLANS */
+function viewPlans() {
+  const cards = S.plans.map(p => {
+    const s = p.standardIds.length && standardById(p.standardIds[0]);
+    const n = nextStep(p), active = p.id === S.activePlanId;
+    return `<div class="plan-card f-learn"><div class="row"><span class="orb sm">${icon('plan')}</span><span class="tag spacer">${s ? esc(s.code) : 'No skill chosen yet'}</span>${active ? `<span class="chip" aria-pressed="true" style="--c:var(--team);--on:var(--on-team)">On home screen</span>` : ''}</div>
+      <b>${esc(planTitle(p))}</b>${pipHTML(p)}<span class="small muted">${planDone(p) ? 'Finished' : 'Next step: ' + esc(n.label)}</span>
+      <div class="row"><a class="btn sm fam" href="#plan-${p.id}-${n.key}">${planDone(p) ? 'Open' : 'Continue'}${icon('arrow')}</a>
+      ${active ? '' : `<button class="btn sm ghost" data-act="makeActive" data-id="${p.id}">Show on home</button>`}</div></div>`;
+  }).join('');
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">Plans</span><h1>One plan for each must-learn skill</h1>
+    <p>Each plan takes one skill through the four questions. Most teams work on one or two at a time.</p></div>
+    <button class="btn fam f-learn lead-orb" data-act="newPlan"><span class="orb" style="background:var(--paper);color:var(--learn)">${icon('plus')}</span>Start a new plan</button></div>
+    ${S.plans.length ? `<div class="plan-cards">${cards}</div>` : `<div class="empty">${icon('plan')}<b>No plans yet</b><button class="btn fam f-learn" data-act="newPlan">Start your first plan</button></div>`}`;
+}
+ACT.makeActive = b => { S.activePlanId = b.dataset.id; save(); render(); toast('This plan now shows on the home screen.'); };
+
+/* ================================================================ TOUR */
+ACT.tour = () => {
+  const CH = [
+    ['center', 'A PLC is a team of teachers who share one promise: every student will learn. Launchpad keeps your team\'s work for each must-learn skill in one plan.'],
+    ['learn', 'Question one, in blue: what must every student learn? You choose one skill from your state standards and write it as an I can statement.'],
+    ['check', 'Question two, in orange: how will we know they learned it? Every teacher gives the same short check. Each teacher enters their own scores, and the team only sees totals.'],
+    ['reteach', 'Question three, in green: what if a student hasn\'t learned it yet? You plan reteaching with a new approach, then check again.'],
+    ['stretch', 'Question four, in gold: what if a student already knows it? You plan a way to stretch them further.'],
+    ['team', 'Your team time, in purple, keeps the agenda, notes and to-dos. When you end a meeting, Launchpad remembers where you stopped, so next week starts right there.'],
+    ['share', 'When your students do better than the team on a skill, Launchpad invites you to share what you did. Sharing is always your choice.']
+  ];
+  const svg = `<svg viewBox="0 0 520 340" style="width:100%;height:auto;display:block" aria-hidden="true">
+    <circle cx="260" cy="170" r="120" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 8"/>
+    <g data-tour="center"><circle cx="260" cy="170" r="54" fill="var(--ink)"/><text x="260" y="166" text-anchor="middle" font-size="14" font-weight="800" fill="var(--sky)" style="font-family:var(--display)">Every student</text><text x="260" y="186" text-anchor="middle" font-size="14" font-weight="800" fill="var(--sky)" style="font-family:var(--display)">learns</text></g>
+    ${[['learn', 175, 85, 1], ['check', 345, 85, 2], ['reteach', 345, 255, 3], ['stretch', 175, 255, 4]].map(([f, x, y]) => `<g data-tour="${f}" class="tour-p"><circle cx="${x}" cy="${y}" r="38" fill="var(--${f})"/><svg x="${x - 16}" y="${y - 16}" width="32" height="32" viewBox="0 0 24 24" class="ico" style="color:var(--on-${f})">${ICONS[f]}</svg></g>`).join('')}
+    <g data-tour="team" class="tour-p"><circle cx="460" cy="170" r="30" fill="var(--team)"/><svg x="446" y="156" width="28" height="28" viewBox="0 0 24 24" class="ico" style="color:var(--on-team)">${ICONS.meeting}</svg></g>
+    <g data-tour="share" class="tour-p"><circle cx="60" cy="170" r="30" fill="var(--reteach)"/><svg x="46" y="156" width="28" height="28" viewBox="0 0 24 24" class="ico" style="color:var(--on-reteach)">${ICONS.practice}</svg></g>
+  </svg>`;
+  ask(`<div class="row"><h2 class="spacer">How Launchpad works</h2><button type="button" class="icon-btn" data-cancel aria-label="Close">${icon('close')}</button></div>
+    <div style="background:var(--wash);border-radius:28px;padding:10px">${svg}</div>
+    <p id="tourCap" aria-live="polite" style="min-height:4.6em">Press play for a narrated tour. It takes about 90 seconds.</p>
+    <div class="row"><button type="button" class="btn fam f-check lead-orb" id="tourPlay"><span class="orb" style="background:var(--paper);color:var(--check)">${icon('play')}</span><span>Play</span></button><span class="small muted spacer" id="tourStep">7 short parts</span></div>`, {
+    onOpen(d) {
+      let i = -1, playing = false, token = 0;
+      const paint = () => $$('[data-tour]', d).forEach(g => { const on = i < 0 || g.dataset.tour === CH[i][0] || g.dataset.tour === 'center'; g.style.opacity = on ? 1 : 0.18; g.style.transition = 'opacity .5s'; });
+      const stepTo = n => {
+        const my = ++token;
+        if (n >= CH.length) { playing = false; $('#tourPlay span:last-child', d).textContent = 'Play again'; i = -1; paint(); return; }
+        i = n; paint();
+        $('#tourCap', d).textContent = CH[n][1]; $('#tourStep', d).textContent = `Part ${n + 1} of ${CH.length}`;
+        voice.say(CH[n][1], () => { if (playing && my === token) setTimeout(() => stepTo(n + 1), 400); });
+      };
+      $('#tourPlay', d).addEventListener('click', () => {
+        if (playing) { playing = false; token++; voice.stop(); $('#tourPlay span:last-child', d).textContent = 'Play'; return; }
+        playing = true; $('#tourPlay span:last-child', d).textContent = 'Pause'; stepTo(i < 0 ? 0 : i);
+      });
+      d.addEventListener('close', () => { token++; voice.stop(); });
+    }
+  });
+};
+
+/* PLC Launchpad 1.0 · the plan flight path and its eleven steps */
+
+function viewPlan(r) {
+  const p = planById(r.a);
+  if (!p) return `<div class="empty">${icon('plan')}<b>That plan isn't here anymore.</b><a class="btn" href="#plans">See all plans</a></div>`;
+  const st = step(r.b) || nextStep(p);
+  const last = lastMeeting();
+  const stoppedHere = last?.stoppedAt?.planId === p.id ? last.stoppedAt.stepKey : null;
+
+  let path = `<h3>${esc(planTitle(p))}</h3>`;
+  for (const [f, info] of Object.entries(FAMILIES)) {
+    path += `<div class="fam-label f-${f}">${icon(f)}${info.n} · ${info.word}</div>`;
+    for (const s of STEPS.filter(s => s.fam === f)) {
+      path += `<a class="step-link f-${f} ${s.key === stoppedHere ? 'here' : ''}" href="#plan-${p.id}-${s.key}" ${s.key === st.key ? 'aria-current="step"' : ''}>${tokHTML(stepState(p, s.key), s.icon)}<span>${esc(s.label)}</span></a>`;
+    }
+  }
+  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1];
+  const done = stepState(p, st.key) === 100;
+  const fam = FAMILIES[st.fam];
+  const body = (STEP_VIEWS[st.key] || (() => ''))(p);
+  const talk = (p.talk[st.key] || []);
+  const meeting = runningMeeting();
+
+  return `<div class="plan-layout">
+    <nav class="path" aria-label="Plan steps">${path}<div style="padding:12px 6px 0">${pipHTML(p)}</div></nav>
+    <section class="card station tint f-${st.fam}" aria-labelledby="stepTitle">
+      <div class="st-head"><span class="orb lg">${icon(st.icon)}</span><div class="grow">
+        <span class="eyebrow" style="color:var(--c)">Question ${fam.n} · ${fam.word} · Step ${idx + 1} of ${STEPS.length}</span>
+        <h2 id="stepTitle">${esc(st.q)}</h2><p class="what">${esc(st.what)}</p>
+        <div class="row" style="align-items:flex-start">${termChip(st.term, st.fam)}<button type="button" class="btn sm soft" data-act="say" data-text="${esc(st.q + ' ' + st.what)}">${icon('listen')}Read this to me</button></div>
+      </div></div>
+      <div class="st-body">${body}</div>
+      <div class="talk f-team"><div class="card-head"><span class="orb">${icon('note')}</span><div class="grow"><h4>Team talk</h4><span class="small muted">Notes from your conversation about this step${meeting ? ' · also saved to today\'s meeting' : ''}</span></div></div>
+        ${talk.map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}
+        <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm" data-act="addTalk">${icon('plus')}Add note</button></div>
+      </div>
+      <div class="st-foot">
+        ${prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}${esc(prev.label)}</a>` : ''}
+        <span class="spacer"></span>
+        <button class="btn ${done ? 'soft' : 'fam'} lead-orb" data-act="markStep" data-step="${st.key}"><span class="orb" style="background:${done ? 'var(--c)' : 'var(--paper)'};color:${done ? 'var(--on)' : 'var(--c)'}">${icon('done')}</span>${done ? 'Done · undo' : next ? 'Mark done and go on' : 'Mark done'}</button>
+        ${next ? `<a class="btn ghost" href="#plan-${p.id}-${next.key}">${esc(next.label)}${icon('arrow')}</a>` : ''}
+      </div>
+    </section></div>`;
+}
+ACT.markStep = b => {
+  const p = planById(route().a), key = b.dataset.step;
+  const was = p.steps[key]?.done;
+  p.steps[key] = { ...(p.steps[key] || {}), done: !was, at: new Date().toISOString() };
+  save();
+  const next = STEPS[STEPS.indexOf(step(key)) + 1];
+  if (!was && next) { toast('Step done. Next: ' + next.label); go(`plan-${p.id}-${next.key}`); } else render();
+};
+ACT.addTalk = () => {
+  const input = $('#talkInput'), text = input.value.trim(); if (!text) { input.focus(); return; }
+  const r = route(), p = planById(r.a), key = (step(r.b) || nextStep(p)).key;
+  const note = { id: uid(), at: todayISO(), by: ME || '', text };
+  (p.talk[key] ||= []).push(note);
+  const m = runningMeeting();
+  if (m) (m.stepNotes ||= []).push({ ...note, planId: p.id, stepKey: key });
+  save(); render();
+};
+ACT.delTalk = b => { const r = route(), p = planById(r.a), key = (step(r.b) || nextStep(p)).key; p.talk[key] = (p.talk[key] || []).filter(n => n.id !== b.dataset.id); save(); render(); };
+
+const STEP_VIEWS = {};
+
+/* ---------------------------------------------------------------- 1 skill */
+STEP_VIEWS.skill = p => {
+  const chosen = p.standardIds.map(standardById).filter(Boolean);
+  const why = [['Needed for what comes next', 'readiness'], ['Used in other subjects', 'leverage'], ['Lasts beyond this year', 'endurance'], ['On the state test', '']];
+  return `${zava('Look for a skill students will use again and need for what comes next. If a big standard feels like too much for one plan, pick one skill inside it.',
+      'Of 22 drafting standards, a team picks <b>B2.1 · sketching in three views</b>. Every later unit uses it, and a short check can show whether students have it.')}
+    ${chosen.length ? chosen.map(s => `<div class="chosen"><span class="orb f-learn">${icon('standard')}</span><div class="stack" style="gap:4px"><span class="eyebrow" style="color:var(--learn)">Our must-learn skill · ${esc(s.code)}</span><b>${esc(s.text)}</b><span class="small muted">${esc(s.pathway || s.catalogTitle || '')}</span></div><button class="icon-btn" data-act="toggleStd" data-id="${s.id}" aria-label="Remove">${icon('close')}</button></div>`).join('') : ''}
+    <div class="field f-learn"><span class="lbl">Why this skill made the cut</span><span class="help">Tap all that are true. PLC words: readiness, leverage, endurance.</span>
+      <div class="chips">${why.map(([w, t]) => `<button type="button" class="chip" aria-pressed="${p.why.includes(w)}" data-act="toggleWhy" data-v="${esc(w)}">${esc(w)}${t ? ` <small>· ${t}</small>` : ''}</button>`).join('')}</div></div>
+    <div class="field f-learn"><label for="stdSearch">${chosen.length ? 'Choose a different skill' : 'Find the skill in your state standards'}</label>
+      <div class="std-tools"><input type="search" id="stdSearch" placeholder="Search by word or code, like sketch or B2" data-filter="std"></div>
+      <div class="std-list" id="stdList">${stdListHTML(p, '')}</div></div>`;
+};
+function stdListHTML(p, q) {
+  const all = catalogStandards();
+  if (!all.length) return `<div class="empty">No standards are set for this team. Choose them on the Team page.</div>`;
+  const ql = q.trim().toLowerCase();
+  const match = s => !ql || (s.code + ' ' + s.text + ' ' + (s.pathway || '')).toLowerCase().includes(ql);
+  const out = [];
+  for (const s of all) {
+    const broad = isBroad(s);
+    const kids = broad ? all.filter(k => !isBroad(k) && parentCode(k) === s.code && k.catalog === s.catalog) : [];
+    if (!broad && all.some(b => isBroad(b) && b.code === parentCode(s) && b.catalog === s.catalog)) continue; // listed under its parent
+    if (!match(s) && !kids.some(match)) continue;
+    out.push(stdBtn(p, s, broad ? 'Big standard' : 'Skill'));
+    for (const k of kids) if (match(k) || match(s)) out.push(stdBtn(p, k, 'One skill inside it', true));
+  }
+  return out.join('') || `<div class="empty">Nothing matches "${esc(q)}". Try a shorter word.</div>`;
+}
+const stdBtn = (p, s, kind, child) => `<button type="button" class="std ${isBroad(s) ? 'broad' : ''} ${child ? 'child' : ''}" aria-pressed="${p.standardIds.includes(s.id)}" data-act="toggleStd" data-id="${s.id}"><span class="code">${esc(s.code)}</span><span><span class="kind">${kind}</span>${esc(s.text)}</span></button>`;
+LIVE.std = el => { const p = planById(route().a); $('#stdList').innerHTML = stdListHTML(p, el.value); };
+ACT.toggleStd = b => {
+  const p = planById(route().a), id = b.dataset.id;
+  p.standardIds = p.standardIds.includes(id) ? p.standardIds.filter(x => x !== id) : [id];
+  save(); render(); if (p.standardIds.length) toast('Skill chosen. Next, write it in student words.');
+};
+ACT.toggleWhy = b => { const p = planById(route().a), v = b.dataset.v; p.why = p.why.includes(v) ? p.why.filter(x => x !== v) : [...p.why, v]; save(); render(); };
+
+/* -------------------------------------------------------------- 2 targets */
+STEP_VIEWS.targets = p => {
+  const s = p.standardIds.length && standardById(p.standardIds[0]);
+  if (!p.targets.length) p.targets.push({ id: uid(), text: '' });
+  return `${s ? `<div class="chosen"><span class="orb sm f-learn">${icon('standard')}</span><div><span class="eyebrow" style="color:var(--learn)">Official wording · ${esc(s.code)}</span><p>${esc(s.text)}</p></div></div>` : `<div class="empty">Choose the skill first. <a class="btn sm" href="#plan-${p.id}-skill">Choose the skill</a></div>`}
+    ${zava('Start with "I can". Use words a student would use, and name something you could see them do on a short check. Each statement gets a letter that follows it through the whole plan.',
+      '<b>Official:</b> "Demonstrate the sketching process used in concept development."<br><b>A:</b> I can sketch the front, top and side views of a simple object.<br><b>B:</b> I can line up the views so their sizes match.')}
+    <div class="stack" id="targetRows">${p.targets.map((t, i) => `<div class="target-row f-learn"><span class="letter">${LETTERS[i]}</span>
+      <textarea id="t-${t.id}" data-bind="p:targets.#${t.id}.text" placeholder="I can…" aria-label="I can statement ${LETTERS[i]}" style="min-height:60px">${esc(t.text)}</textarea>
+      <button class="icon-btn" data-act="delTarget" data-id="${t.id}" aria-label="Remove statement ${LETTERS[i]}">${icon('trash')}</button></div>`).join('')}</div>
+    <div class="row">${p.targets.length < 4 ? `<button class="btn sm ghost" data-act="addTarget">${icon('plus')}Add another "I can"</button>` : ''}
+      ${APP.mode === 'cloud' ? `<button class="btn sm fam f-learn" data-act="suggestTargets">${icon('guide')}Suggest wording</button>` : ''}</div>
+    <div id="suggestions"></div>`;
+};
+ACT.addTarget = () => { const p = planById(route().a); p.targets.push({ id: uid(), text: '' }); save(); render(); };
+ACT.delTarget = b => { const p = planById(route().a); p.targets = p.targets.filter(t => t.id !== b.dataset.id); p.check.items.forEach(i => { if (i.targetId === b.dataset.id) i.targetId = ''; }); save(); render(); };
+ACT.suggestTargets = async b => {
+  const p = planById(route().a), box = $('#suggestions');
+  b.disabled = true; box.innerHTML = `<p class="muted">Zava is writing two suggestions…</p>`;
+  const r = await api('POST', '/api/learning-targets', { teamId: APP.root, subject: APP.subject, planId: p.id, standards: p.standardIds.map(standardById).filter(Boolean).map(s => ({ code: s.code, text: s.text })), draft: p.targets.map(t => t.text).filter(Boolean).join('\n') });
+  b.disabled = false;
+  if (!r.ok) { box.innerHTML = `<p class="muted">${esc(r.data.error || 'Suggestions are unavailable right now.')}</p>`; return; }
+  box.innerHTML = `<div class="stack">${r.data.suggestions.map(sg => `<div class="li f-learn" style="border-radius:22px"><span class="orb sm">${icon('guide')}</span><span><b style="font-weight:400">${esc(sg)}</b></span><button class="btn sm" data-act="useSuggestion" data-text="${esc(sg)}">Use this</button></div>`).join('')}</div>`;
+};
+ACT.useSuggestion = b => { const p = planById(route().a); const empty = p.targets.find(t => !t.text.trim()); if (empty) empty.text = b.dataset.text; else p.targets.push({ id: uid(), text: b.dataset.text }); save(); render(); };
+
+/* --------------------------------------------------------------- 3 got it */
+STEP_VIEWS.gotit = p => {
+  return `${zava('Decide this before anyone sees results, so the team sorts students the same way. Many teams use 75% or 80% of the points.', 'On an 8-point check with "got it" at 75%, a student needs 6 points.', 'learn')}
+    <div class="fields f-learn">
+      <div class="field"><label for="gotIt">"Got it" means at least this much of the points</label><div class="row"><input id="gotIt" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:gotIt" data-live="gotit" value="${esc(p.gotIt)}"><b>%</b></div></div>
+      <div class="field"><span class="lbl">In points</span><p id="gotItPoints" class="goal-sentence" style="font-size:1.1rem;padding:12px 16px">${gotItPoints(p)}</p></div>
+      <div class="field wide"><label for="gotNote">What does a student who has it do?</label><span class="help">Describe it so any teacher on the team would score the same work the same way.</span>
+        <textarea id="gotNote" data-bind="p:gotItNote" placeholder="A student who has it…">${esc(p.gotItNote)}</textarea></div>
+    </div>`;
+};
+const gotItPoints = p => { const m = maxPoints(p); return m ? `${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the team check` : 'Set once the team check has points.'; };
+LIVE.gotit = () => { const el = $('#gotItPoints'); if (el) el.textContent = gotItPoints(planById(route().a)); };
+
+/* ------------------------------------------------------------ 4 the check */
+STEP_VIEWS.build = p => {
+  const opts = id => `<option value="">Which "I can"?</option>` + p.targets.map((t, i) => `<option value="${t.id}" ${t.id === id ? 'selected' : ''}>${LETTERS[i]} · ${esc(t.text.slice(0, 40) || 'statement ' + LETTERS[i])}</option>`).join('');
+  return `${zava('Keep it short: four to six questions is plenty. Give it on the same day in every class if you can, and tie every question to an "I can" statement so results show which part students missed.', '', 'check')}
+    <div class="fields f-check">
+      <div class="field"><label for="ckName">Name of the check</label><input id="ckName" type="text" data-bind="p:check.name" value="${esc(p.check.name)}" placeholder="Three-view sketch check"></div>
+      <div class="field"><label for="ckDate">Day every class takes it</label><input id="ckDate" type="date" data-bind="p:check.date" value="${esc(p.check.date)}"></div>
+    </div>
+    <div class="stack f-check" id="items">${p.check.items.map((it, i) => `<div class="item-row">
+      <span class="n">${i + 1}</span>
+      <textarea id="ip-${it.id}" data-bind="p:check.items.#${it.id}.prompt" aria-label="Question ${i + 1}" placeholder="Question or task">${esc(it.prompt)}</textarea>
+      <input type="number" min="0" step="1" aria-label="Points for question ${i + 1}" data-type="number" data-bind="p:check.items.#${it.id}.points" data-live="points" value="${esc(it.points)}" placeholder="Points">
+      <select aria-label="I can statement for question ${i + 1}" data-bind="p:check.items.#${it.id}.targetId">${opts(it.targetId)}</select>
+      <button class="icon-btn" data-act="delItem" data-id="${it.id}" aria-label="Remove question ${i + 1}">${icon('trash')}</button>
+      <textarea style="grid-column:2/-1;min-height:48px" data-bind="p:check.items.#${it.id}.guide" aria-label="Scoring guide for question ${i + 1}" placeholder="Scoring guide (teachers only): what earns each point">${esc(it.guide || '')}</textarea>
+    </div>`).join('')}</div>
+    <div class="row"><button class="btn sm fam f-check" data-act="addItem">${icon('plus')}Add a question</button><span class="spacer"></span><b id="totalPts">${maxPoints(p)} points in all</b></div>
+    ${!p.targets.some(t => t.text) ? `<p class="small muted">Tip: write your "I can" statements first so each question can be tied to one.</p>` : ''}`;
+};
+ACT.addItem = () => { const p = planById(route().a); p.check.items.push({ id: uid(), prompt: '', points: 1, targetId: p.targets[0]?.id || '', guide: '' }); save(); render(); setTimeout(() => $$('#items textarea')[$$('#items textarea').length - 2]?.focus(), 30); };
+ACT.delItem = b => { const p = planById(route().a); p.check.items = p.check.items.filter(i => i.id !== b.dataset.id); save(); render(); };
+LIVE.points = () => { const el = $('#totalPts'); if (el) el.textContent = maxPoints(planById(route().a)) + ' points in all'; };
+
+/* ------------------------------------------------------------ 5 team goal */
+STEP_VIEWS.goal = p => `${zava('A good goal is a stretch but reachable. If you gave a pre-check, enter where students started so you can see growth.', 'By Dec 3, 80% of our students will reach "got it" on the three-view sketch check, up from 40%.', 'check')}
+  <div class="fields f-check">
+    <div class="field"><label for="gTarget">Share of students who will reach "got it"</label><div class="row"><input id="gTarget" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:goal.target" data-live="goal" value="${esc(p.goal.target)}"><b>%</b></div></div>
+    <div class="field"><label for="gDate">By this date</label><input id="gDate" type="date" data-bind="p:goal.date" data-live="goal" value="${esc(p.goal.date)}"></div>
+    <div class="field"><label for="gBase">Where students started (optional)</label><span class="help">PLC word: baseline</span><div class="row"><input id="gBase" type="number" min="0" max="100" style="width:110px" data-type="number" data-bind="p:goal.baseline" data-live="goal" value="${esc(p.goal.baseline)}"><b>%</b></div></div>
+  </div>
+  <div class="field"><span class="lbl">Our team goal</span><p class="goal-sentence" id="goalSentence">${goalSentence(p)}</p></div>`;
+function goalSentence(p) {
+  const d = p.goal.date ? fmtDate(p.goal.date, { month: 'long', day: 'numeric' }) : '<mark>a date</mark>';
+  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will reach "got it" on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our team check'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
+}
+LIVE.goal = () => { const el = $('#goalSentence'); if (el) el.innerHTML = goalSentence(planById(route().a)); };
+
+/* --------------------------------------------------------------- 6 scores */
+STEP_VIEWS.scores = p => scoresView(p, 'first');
+function scoresView(p, kind) {
+  if (!p.check.items.length) return `<div class="empty">${icon('check')}<b>Build the team check first</b><span>Scores are entered for each question on the check.</span><a class="btn fam f-check" href="#plan-${p.id}-build">Build the team check</a></div>`;
+  const me = member(ME);
+  const entry = S.members.map(m => { const st = stats(p, { kind, teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${esc(m.name)} · ${st.n ? plural(st.n, 'student') : 'not yet'}</span>`; }).join('');
+  if (!me) return `<div class="teacher-dots">${entry}</div><div class="empty">${icon('person')}<b>Which teacher are you?</b><span>You enter scores for your own classes only.</span><button class="btn" data-act="whoAmI">Choose your name</button></div>`;
+  const sets = p.scores.filter(s => s.teacherId === ME && (s.kind || 'first') === kind);
+  const intro = kind === 'recheck'
+    ? zava('Re-check only the students who didn\'t reach "got it" the first time. Launchpad adds them for you.', '', 'reteach')
+    : zava('Enter a score for each question. A total and "got it" fill in on their own. You can paste straight from a spreadsheet: student ID first, then one column per question.', '', 'check');
+  return `${intro}
+    <div class="row"><span class="small muted">Who has entered:</span><div class="teacher-dots">${entry}</div></div>
+    ${privacyNote('Use student ID numbers, not names. Your teammates never see your students\' rows, only team totals.')}
+    ${sets.map(set => scoreTable(p, set)).join('') || `<div class="empty">No classes yet.</div>`}
+    <div class="row"><button class="btn fam ${kind === 'recheck' ? 'f-reteach' : 'f-check'}" data-act="addSet" data-kind="${kind}">${icon('plus')}${kind === 'recheck' ? 'Start my re-check list' : sets.length ? 'Add another class' : 'Add my first class'}</button></div>`;
+}
+function scoreTable(p, set) {
+  const items = p.check.items;
+  return `<div class="stack"><div class="row"><span class="orb sm f-check">${icon('score')}</span><input type="text" aria-label="Class name" data-bind="p:scores.#${set.id}.period" value="${esc(set.period)}" style="max-width:220px" placeholder="Class period">
+    <span class="spacer"></span><button class="btn sm ghost" data-act="pasteRows" data-set="${set.id}">${icon('paste')}Paste from a spreadsheet</button><button class="btn sm danger" data-act="delSet" data-set="${set.id}">${icon('trash')}Remove class</button></div>
+    <div class="score-wrap"><table class="scores"><thead><tr><th scope="col">Student ID</th>${items.map((it, i) => `<th scope="col" title="${esc(it.prompt)}">Q${i + 1}<br><span class="muted">/${esc(it.points)}${it.targetId ? ' · ' + LETTERS[p.targets.findIndex(t => t.id === it.targetId)] : ''}</span></th>`).join('')}<th scope="col">Total</th><th scope="col">Result</th><th></th></tr></thead>
+    <tbody>${set.rows.map(row => scoreRow(p, set, row)).join('')}</tbody></table></div>
+    <div><button class="btn sm soft" data-act="addRow" data-set="${set.id}">${icon('plus')}Add a student</button></div></div>`;
+}
+function scoreRow(p, set, row) {
+  const res = rowResult(p, row);
+  return `<tr id="row-${row.id}"><td><input class="sid" type="text" aria-label="Student ID" data-bind="p:scores.#${set.id}.rows.#${row.id}.student" value="${esc(row.student)}"></td>
+    ${p.check.items.map((it, i) => `<td><input type="number" min="0" max="${esc(it.points)}" aria-label="Student ${esc(row.student)} question ${i + 1}" data-type="number" data-bind="p:scores.#${set.id}.rows.#${row.id}.s.${it.id}" data-live="row" data-row="${row.id}" data-set="${set.id}" value="${esc(row.s?.[it.id] ?? '')}"></td>`).join('')}
+    <td class="num" data-total>${res.complete ? `${res.total}/${res.max}` : '–'}</td><td data-got>${gotPill(res)}</td>
+    <td><button class="icon-btn" data-act="delRow" data-set="${set.id}" data-row="${row.id}" aria-label="Remove student">${icon('close')}</button></td></tr>`;
+}
+const gotPill = res => res.complete ? (res.got ? `<span class="got yes">${icon('done')}Got it</span>` : `<span class="got no">Not yet</span>`) : `<span class="got wait">Not scored yet</span>`;
+LIVE.row = el => {
+  const p = planById(route().a), set = p.scores.find(s => s.id === el.dataset.set), row = set.rows.find(r => r.id === el.dataset.row);
+  const res = rowResult(p, row), tr = $('#row-' + row.id);
+  $('[data-total]', tr).textContent = res.complete ? `${res.total}/${res.max}` : '–';
+  $('[data-got]', tr).innerHTML = gotPill(res);
+};
+ACT.addSet = b => {
+  const p = planById(route().a), kind = b.dataset.kind, me = member(ME);
+  const set = { id: uid(), teacherId: ME, period: kind === 'recheck' ? 'Re-check' : (me?.periods ? 'Period ' + String(me.periods).split(/[,\s]+/)[p.scores.filter(s => s.teacherId === ME).length] || 'My class' : 'My class'), kind, rows: [] };
+  if (kind === 'recheck') {
+    for (const s of p.scores.filter(s => s.teacherId === ME && (s.kind || 'first') === 'first'))
+      for (const r of s.rows) { const res = rowResult(p, r); if (res.complete && !res.got) set.rows.push({ id: uid(), student: r.student, s: {} }); }
+    if (!set.rows.length) { toast('None of your students need a re-check.'); return; }
+  } else set.rows.push({ id: uid(), student: '', s: {} });
+  p.scores.push(set); save(); render();
+};
+ACT.delSet = async b => {
+  const ok = await ask(`<h2>Remove this class?</h2><p class="muted">Its scores will be deleted. Version history keeps earlier saves.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep it</button><button class="btn danger">Remove class</button></div>`);
+  if (!ok) return; const p = planById(route().a); p.scores = p.scores.filter(s => s.id !== b.dataset.set); save(); render();
+};
+ACT.addRow = b => { const p = planById(route().a), set = p.scores.find(s => s.id === b.dataset.set); const row = { id: uid(), student: '', s: {} }; set.rows.push(row); save(); render(); setTimeout(() => $(`#row-${row.id} .sid`)?.focus(), 30); };
+ACT.delRow = b => { const p = planById(route().a), set = p.scores.find(s => s.id === b.dataset.set); set.rows = set.rows.filter(r => r.id !== b.dataset.row); save(); render(); };
+ACT.pasteRows = async b => {
+  const p = planById(route().a), set = p.scores.find(s => s.id === b.dataset.set);
+  const fd = await ask(`<h2>Paste scores</h2><p class="muted">Copy rows from your spreadsheet: the student ID first, then one column for each of the ${p.check.items.length} questions, in order.</p>
+    <textarea name="rows" rows="8" placeholder="1001&#9;2&#9;1&#9;2&#9;2" style="font-family:ui-monospace,monospace" required></textarea>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Add these students</button></div>`);
+  if (!fd) return;
+  let added = 0;
+  for (const line of String(fd.get('rows')).split(/\r?\n/)) {
+    const cells = line.split(/\t|,/).map(c => c.trim()); if (!cells[0]) continue;
+    const s = {}; p.check.items.forEach((it, i) => { const v = cells[i + 1]; if (v !== undefined && v !== '' && !isNaN(Number(v))) s[it.id] = Number(v); });
+    set.rows = set.rows.filter(r => r.student || Object.keys(r.s).length);
+    set.rows.push({ id: uid(), student: cells[0], s }); added++;
+  }
+  save(); render(); toast(`${plural(added, 'student')} added.`);
+};
+
+/* -------------------------------------------------------------- 7 results */
+STEP_VIEWS.results = p => {
+  const team = stats(p), mine = ME ? stats(p, { teacherId: ME }) : null;
+  const inv = invitationsFor(ME).filter(i => i.plan.id === p.id);
+  const discuss = [['Discuss', 'Which "I can" statement was hardest? What did we expect?'], ['Look at student work', 'Compare one strong and one missed answer. What is the error?'], ['Decide together', 'Who needs reteaching, and what will we do differently?']];
+  return `${resultsPanel(p, team, mine)}
+    ${inv.map(inviteCard).join('')}
+    <div class="grid3">${discuss.map(([h, q], i) => `<div class="card bubble"><span class="eyebrow" style="color:var(--check)">${i + 1} · ${h}</span><p>${q}</p></div>`).join('')}</div>
+    <div class="fields f-check"><div class="field wide"><label for="rNotes">What we noticed</label><textarea id="rNotes" data-bind="p:results.notes" placeholder="Most students drew the right views, but in the wrong places…">${esc(p.results.notes)}</textarea></div>
+      <div class="field wide"><label for="rDec">What we decided</label><textarea id="rDec" data-bind="p:results.decision" placeholder="Reteach target B in small groups on Tuesday…">${esc(p.results.decision)}</textarea></div></div>`;
+};
+function resultsPanel(p, team, mine, compact) {
+  if (!p.check.items.length || !team.n) return `<div class="locked">${icon('results')}<div><b>No scores yet</b><p class="small muted">Results appear once teachers enter scores.</p></div></div>`;
+  if (!teamUnlocked(team)) return `<div class="locked">${icon('lock')}<div><b>Team results are hidden for now</b><p class="small muted">To protect privacy, they appear once at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored. So far: ${plural(team.n, 'student')} from ${plural(team.teachers, 'teacher')}.</p></div></div>
+    ${mine && mine.n ? myLine(mine) : ''}`;
+  const R = 74, C = 2 * Math.PI * R, goal = Number(p.goal.target) || 0;
+  const ring = `<div class="big-ring f-check"><svg viewBox="0 0 170 170"><circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--wash)" stroke-width="14"/>
+    <circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--check)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - team.pct / 100)}" transform="rotate(-90 85 85)"/>
+    ${goal ? `<line x1="85" y1="4" x2="85" y2="22" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" transform="rotate(${goal * 3.6} 85 85)"/>` : ''}</svg>
+    <b class="num">${team.pct}%</b><span>got it</span></div>`;
+  const bars = p.targets.map((t, i) => { const s = team.per[t.id]; if (!s || !s.n) return ''; return `<div class="barrow f-learn"><span class="letter sm">${LETTERS[i]}</span>
+    <div class="track"><i style="width:${s.pct}%;background:var(--check)"></i>${goal ? `<span class="goal" style="left:${goal}%" title="Team goal ${goal}%"></span>` : ''}</div><b class="num">${s.pct}%</b>
+    <span class="lab">${esc(t.text)}</span></div>`; }).join('');
+  return `<div class="card f-check" style="background:var(--paper)"><div class="row" style="align-items:center;gap:26px">${ring}
+      <div class="stack" style="flex:1;min-width:240px"><div><span class="eyebrow">Whole team · ${plural(team.n, 'student')} · ${plural(team.teachers, 'teacher')}</span>
+      <h3 style="margin-top:4px">${team.got} of ${team.n} students got it${goal ? ` · goal ${goal}%` : ''}</h3>${team.waiting ? `<p class="small muted">${plural(team.waiting, 'row')} not scored yet are left out.</p>` : ''}</div>
+      ${compact ? '' : `<div class="bars">${bars}</div>`}</div></div>
+    ${mine && mine.n ? myLine(mine, team) : ''}</div>`;
+}
+function myLine(mine, team) {
+  return `<div class="li" style="border-radius:22px;background:var(--wash)"><span class="orb sm f-tool">${icon('lock')}</span><span><b>Your students: ${mine.pct}% got it${team ? ` · team ${team.pct}%` : ''}</b><span class="sub">Only you see this line.</span></span><span></span></div>`;
+}
+
+/* -------------------------------------------------------------- 8 reteach */
+STEP_VIEWS.reteach = p => {
+  const team = stats(p);
+  const groups = p.targets.map((t, i) => { const s = team.per[t.id]; return s && s.n ? `<div class="li f-reteach" style="border-radius:22px"><span class="letter sm" style="background:var(--reteach);color:var(--on-reteach)">${LETTERS[i]}</span><span><b>${s.n - s.got} students need reteaching</b><span class="sub">${esc(t.text)}</span></span><span></span></div>` : ''; }).join('');
+  const myKids = ME ? p.scores.filter(s => s.teacherId === ME && (s.kind || 'first') === 'first').flatMap(s => s.rows).filter(r => { const x = rowResult(p, r); return x.complete && !x.got; }).map(r => r.student) : [];
+  const ideas = S.strategies.filter(s => s.planId === p.id || p.targets.some(t => t.id === s.targetId)).concat(S.strategies.filter(s => s.planId !== p.id)).slice(0, 3);
+  return `${zava('Teaching it again the same way rarely works. Try a hands-on model, a visual, or a small group with a different teacher. Your teammates\' shared ideas are below.', '', 'reteach')}
+    ${teamUnlocked(team) ? `<div class="stack">${groups}</div>` : `<div class="locked">${icon('lock')}<div><b>Group sizes appear with team results</b><p class="small muted">Once ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored.</p></div></div>`}
+    ${myKids.length ? `<div class="li" style="border-radius:22px"><span class="orb sm f-tool">${icon('lock')}</span><span><b>Your students for reteaching: ${myKids.map(esc).join(', ')}</b><span class="sub">Only you see these IDs.</span></span><span></span></div>` : ''}
+    <div class="fields f-reteach">
+      <div class="field"><label for="rtLead">Who leads the reteach group?</label><select id="rtLead" data-bind="p:reteach.leader"><option value="">Choose…</option>${S.members.map(m => `<option value="${m.id}" ${p.reteach.leader === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}<option value="each" ${p.reteach.leader === 'each' ? 'selected' : ''}>Each teacher with their own students</option></select></div>
+      <div class="field"><label for="rtWhen">When?</label><input id="rtWhen" type="text" data-bind="p:reteach.when" value="${esc(p.reteach.when)}" placeholder="Tuesday and Thursday, first 20 minutes"></div>
+      <div class="field wide"><label for="rtHow">The new way we'll teach it</label><textarea id="rtHow" data-bind="p:reteach.how" placeholder="Students hold a real block and trace each face onto grid paper…">${esc(p.reteach.how)}</textarea></div>
+    </div>
+    ${ideas.length ? `<div class="stack"><h3>${icon('practice')} Ideas from your team</h3>${ideas.map(stratCard).join('')}</div>` : ''}`;
+};
+
+/* --------------------------------------------------------------- 9 re-check */
+STEP_VIEWS.recheck = p => {
+  const re = stats(p, { kind: 'recheck' });
+  return `${scoresView(p, 'recheck')}
+    ${re.n ? `<div class="card f-reteach" style="background:var(--paper)"><h3>${re.got} of ${re.n} retaught students now have it</h3><p class="small muted">Across the whole team. ${teamUnlocked(stats(p)) ? '' : 'Individual classes are never shown.'}</p></div>` : ''}`;
+};
+
+/* --------------------------------------------------------------- 10 stretch */
+STEP_VIEWS.stretch = p => {
+  const ways = ['On their own', 'With a partner', 'Small group', 'Teach it back'];
+  return `${zava('A good stretch asks "why" or "what if" with the same skill. Avoid simply handing out more problems of the same kind. It runs while other students are retaught, so nobody waits.', 'Sketch an object with a hidden hole, show it with hidden lines, and explain your choice to a partner.', 'stretch')}
+    <div class="fields f-stretch">
+      <div class="field wide"><label for="stAct">The stretch activity</label><textarea id="stAct" data-bind="p:stretch.activity" placeholder="Students who got it will…">${esc(p.stretch.activity)}</textarea></div>
+      <div class="field wide"><span class="lbl">How students work on it</span><div class="chips">${ways.map(w => `<button type="button" class="chip" aria-pressed="${p.stretch.how.includes(w)}" data-act="toggleWay" data-v="${esc(w)}">${w}</button>`).join('')}</div></div>
+      <div class="field wide"><label for="stMat">Materials link (optional)</label><input id="stMat" type="url" data-bind="p:stretch.materials" value="${esc(p.stretch.materials)}" placeholder="https://"></div>
+    </div>`;
+};
+ACT.toggleWay = b => { const p = planById(route().a), v = b.dataset.v; p.stretch.how = p.stretch.how.includes(v) ? p.stretch.how.filter(x => x !== v) : [...p.stretch.how, v]; save(); render(); };
+
+/* ----------------------------------------------------------------- 11 wrap */
+function finalStats(p) {
+  const team = stats(p); if (!team.n) return team;
+  const re = p.scores.filter(s => s.kind === 'recheck');
+  let got = team.got;
+  for (const set of re) for (const r of set.rows) {
+    const res = rowResult(p, r); if (!res.complete || !res.got) continue;
+    const first = p.scores.filter(s => s.teacherId === set.teacherId && (s.kind || 'first') === 'first').flatMap(s => s.rows).find(x => x.student === r.student);
+    if (first && !rowResult(p, first).got) got++;
+  }
+  return { ...team, got, pct: pct(got, team.n) };
+}
+STEP_VIEWS.wrap = p => {
+  const f = finalStats(p), goal = Number(p.goal.target) || 0;
+  const met = teamUnlocked(f) && goal && f.pct >= goal;
+  return `<div class="card f-stretch" style="background:var(--paper)">
+      ${teamUnlocked(f) ? `<span class="eyebrow">After reteaching</span><h3 style="font-size:1.6rem">${f.pct}% of students have it${goal ? ` · goal ${goal}%` : ''}</h3>
+      <p>${goal ? (met ? 'You reached your team goal. Celebrate it together!' : `You're ${goal - f.pct} points from your goal.`) : ''}</p>` : `<div class="locked">${icon('lock')}<div><b>Results appear once enough scores are in</b></div></div>`}
+    </div>
+    ${zava('Take five minutes to name what worked. Then decide whether to keep going with this skill or start the next one.', '', 'stretch')}
+    <div class="fields f-stretch">
+      <div class="field wide"><label for="wRef">What did we learn as a team?</label><textarea id="wRef" data-bind="p:wrap.reflection" placeholder="Hands-on models worked better than the worksheet…">${esc(p.wrap.reflection)}</textarea></div>
+      <div class="field wide"><span class="lbl">What's next?</span><div class="chips">${['Start the next must-learn skill', 'Keep working on this skill', 'Revisit later in the year'].map(w => `<button type="button" class="chip" aria-pressed="${p.wrap.next === w}" data-act="setNext" data-v="${esc(w)}">${w}</button>`).join('')}</div></div>
+    </div>
+    ${p.wrap.next === 'Start the next must-learn skill' ? `<div><button class="btn fam f-learn" data-act="newPlan">${icon('plus')}Start the next plan</button></div>` : ''}`;
+};
+ACT.setNext = b => { const p = planById(route().a); p.wrap.next = b.dataset.v; save(); render(); };
+
+/* PLC Launchpad 1.0 · team time, results, what worked for us, team, PLC words */
+
+/* ================================================================ TEAM TIME */
+function viewMeetings() {
+  const running = runningMeeting();
+  const past = S.meetings.filter(m => m.endedAt).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const todos = openTodos();
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team time</span><h1>Your weekly 45 minutes</h1>
+    <p>Start team time when you sit down together. Launchpad builds the agenda from where you stopped, keeps your notes and to-dos, and remembers where you ended.</p></div>
+    ${running ? `<a class="btn fam f-team lead-orb" href="#meeting-${running.id}"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('clock')}</span>Back to today's meeting</a>`
+      : `<button class="btn fam f-team lead-orb" data-act="startMeeting"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('play')}</span>Start team time</button>`}</div>
+    <div class="meet-layout"><div class="stack">
+      ${past.length ? past.map(m => {
+        const st = m.stoppedAt && step(m.stoppedAt.stepKey), p = m.planId && planById(m.planId);
+        return `<a class="meeting-row" href="#meeting-${m.id}"><span class="date">${esc(fmtDate(m.date, { day: 'numeric' }))}<small>${esc(fmtDate(m.date, { month: 'short' }))}</small></span>
+          <span><b>${p ? esc(planTitle(p)) : 'Team meeting'}</b><span class="sub muted small" style="display:block">${st ? 'Stopped at ' + esc(st.label) : ''}${m.attendance?.length ? ' · ' + plural(m.attendance.length, 'teacher') : ''}${(m.todos || []).length ? ' · ' + plural(m.todos.length, 'to-do') : ''}</span></span>${icon('arrow')}</a>`;
+      }).join('') : `<div class="empty">${icon('meeting')}<b>No meetings yet</b><span>Your first team time will show up here with its notes.</span></div>`}
+    </div><div class="stack">
+      ${todos.length ? `<div class="card f-team"><h3>Open to-dos</h3><div class="list">${todos.map(todoRow).join('')}</div></div>` : ''}
+      <div class="card f-team"><div class="card-head"><span class="orb sm">${icon('norms')}</span><h3>Our agreements</h3></div>
+        ${S.norms.length ? `<ul style="margin:0;padding-left:20px;display:grid;gap:6px">${S.norms.map(n => `<li>${esc(n.text)}</li>`).join('')}</ul>` : `<p class="muted small">Add your team agreements on the Team page.</p>`}
+        ${termChip('Norms', 'team')}</div>
+    </div></div>`;
+}
+
+ACT.startMeeting = async () => {
+  if (runningMeeting()) { go('meeting-' + runningMeeting().id); return; }
+  const p = activePlan();
+  const fd = await ask(`<h2>Start team time</h2>
+    <div class="field"><label for="mPlan">What will you work on?</label><select id="mPlan" name="plan">${S.plans.map(x => `<option value="${x.id}" ${x === p ? 'selected' : ''}>${esc(planTitle(x))}</option>`).join('')}<option value="">Something else (no plan)</option></select></div>
+    <div class="field"><label for="mLen">How long?</label><div class="row"><input id="mLen" name="len" type="number" min="10" max="120" step="5" value="45" style="width:100px"><span>minutes</span></div></div>
+    <p class="small muted">Launchpad suggests an agenda from where you stopped. You can change it.</p>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn fam f-team">${icon('play')}Start</button></div>`);
+  if (!fd) return;
+  const plan = planById(fd.get('plan'));
+  const m = { id: uid(), date: todayISO(), planId: plan?.id || '', startedAt: new Date().toISOString(), endedAt: '', minutes: Number(fd.get('len')) || 45,
+    attendance: ME ? [ME] : [], agenda: suggestedAgenda(plan), discussion: '', decisions: '', todos: [], stepNotes: [] };
+  if (plan) S.activePlanId = plan.id;
+  S.meetings.push(m); save(); go('meeting-' + m.id);
+};
+
+function viewMeeting(r) {
+  const m = S.meetings.find(x => x.id === r.a);
+  if (!m) return `<div class="empty">That meeting isn't here anymore. <a class="btn" href="#meetings">All meetings</a></div>`;
+  const live = m.startedAt && !m.endedAt;
+  const p = planById(m.planId);
+  const earlier = openTodos().filter(t => t.meetingId !== m.id);
+  const agenda = m.agenda.map((a, i) => {
+    const st = a.kind === 'step' && step(a.stepKey);
+    const fam = st ? st.fam : a.kind === 'wrap' || a.kind === 'checkin' || a.kind === 'todos' ? 'team' : 'tool';
+    return `<div class="agenda-item f-${fam}"><div class="card-head"><span class="orb sm">${icon(st ? st.icon : a.kind === 'checkin' ? 'norms' : a.kind === 'todos' ? 'done' : a.kind === 'wrap' ? 'history' : 'note')}</span>
+      <div class="grow"><input type="text" aria-label="Agenda item ${i + 1}" data-bind="m:agenda.#${a.id}.topic" value="${esc(a.topic)}" style="border:0;padding:4px 0;font-weight:700;font-family:var(--display);font-size:1.05rem;background:transparent"></div>
+      <span class="mins"><input type="number" min="0" aria-label="Minutes" data-type="number" data-bind="m:agenda.#${a.id}.minutes" value="${esc(a.minutes)}" style="width:62px;padding:4px 8px"> min</span>
+      ${st && p ? `<a class="btn sm fam" href="#plan-${p.id}-${st.key}">Open step</a>` : ''}
+      <button class="icon-btn" data-act="delAgenda" data-id="${a.id}" aria-label="Remove agenda item">${icon('close')}</button></div>
+      ${a.kind === 'checkin' && S.norms.length ? `<p class="small muted">${S.norms.map(n => esc(n.text)).join(' · ')}</p>` : ''}
+      <textarea aria-label="Notes for ${esc(a.topic)}" data-bind="m:agenda.#${a.id}.notes" placeholder="Notes" style="min-height:58px">${esc(a.notes)}</textarea></div>`;
+  }).join('');
+  const total = m.agenda.reduce((s, a) => s + (Number(a.minutes) || 0), 0);
+  const stepNotes = (m.stepNotes || []).map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(step(n.stepKey)?.label || '')} · ${esc(memberName(n.by))}</span></span><span></span></div>`).join('');
+  const st = m.stoppedAt && step(m.stoppedAt.stepKey);
+
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">${live ? 'Team time · in progress' : 'Team meeting notes'} · ${esc(fmtDate(m.date, { weekday: 'long', month: 'long', day: 'numeric' }))}</span>
+    <h1 style="font-size:clamp(1.6rem,3.2vw,2.4rem)">${p ? esc(planTitle(p)) : 'Team meeting'}</h1>${!live && st ? `<p>Stopped at <b>${esc(st.label)}</b>${m.nextTime ? ` · Next time: ${esc(m.nextTime)}` : ''}</p>` : ''}</div>
+    <div class="row">${live ? `<button class="btn fam f-team lead-orb" data-act="endMeeting"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('done')}</span>End team time</button>` : `<a class="btn ghost" href="#meetings">${icon('back')}All meetings</a><button class="btn danger sm" data-act="delMeeting">${icon('trash')}Delete</button>`}</div></div>
+  <div class="meet-layout">
+    <div class="stack">
+      <div class="card f-team"><div class="card-head"><span class="orb sm">${icon('team')}</span><h3 class="grow">Who's here</h3></div>
+        <div class="attend">${S.members.map(x => `<button type="button" class="chip" aria-pressed="${m.attendance.includes(x.id)}" data-act="toggleAttend" data-id="${x.id}">${esc(x.name)}</button>`).join('') || '<span class="muted small">Add team members on the Team page.</span>'}</div></div>
+      ${earlier.length ? `<div class="card f-team"><h3>To-dos from earlier meetings</h3><div class="list">${earlier.map(todoRow).join('')}</div></div>` : ''}
+      <div class="row"><h2 class="spacer" style="font-size:1.4rem">Agenda <span class="small muted num">· ${total} of ${m.minutes} minutes</span></h2><button class="btn sm ghost" data-act="addAgenda">${icon('plus')}Add item</button></div>
+      ${agenda}
+      ${stepNotes ? `<div class="card f-team"><h3>Notes added in plan steps</h3><div class="list">${stepNotes}</div></div>` : ''}
+      <div class="card f-team"><div class="fields">
+        <div class="field wide"><label for="mDisc">What we talked about</label><span class="help">The conversation in a few sentences: questions raised, what surprised you.</span><textarea id="mDisc" data-bind="m:discussion" placeholder="We noticed…">${esc(m.discussion)}</textarea></div>
+        <div class="field wide"><label for="mDec">What we decided</label><textarea id="mDec" data-bind="m:decisions" placeholder="We will…">${esc(m.decisions)}</textarea></div>
+      </div></div>
+      <div class="card f-team"><div class="row"><h3 class="spacer">To-dos</h3><button class="btn sm fam" data-act="addTodo">${icon('plus')}Add to-do</button></div>
+        ${(m.todos || []).map(t => `<div class="todo-row"><input type="text" aria-label="To-do" data-bind="m:todos.#${t.id}.text" value="${esc(t.text)}" placeholder="What needs doing">
+          <select aria-label="Who" data-bind="m:todos.#${t.id}.ownerId"><option value="all" ${t.ownerId === 'all' ? 'selected' : ''}>Everyone</option>${S.members.map(x => `<option value="${x.id}" ${t.ownerId === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+          <input type="date" aria-label="By when" data-bind="m:todos.#${t.id}.due" value="${esc(t.due)}">
+          <button class="icon-btn" data-act="delTodo" data-id="${t.id}" aria-label="Remove to-do">${icon('trash')}</button></div>`).join('') || '<p class="muted small">Nothing yet.</p>'}</div>
+      ${!live ? `<div class="card f-team"><div class="fields"><div class="field"><label for="mStop">Where we stopped</label><select id="mStop" data-act-change="stop">${stopOptions(m)}</select></div>
+        <div class="field"><label for="mNext">Next time we'll…</label><input id="mNext" type="text" data-bind="m:nextTime" value="${esc(m.nextTime || '')}"></div></div></div>` : ''}
+    </div>
+    <aside class="stack" style="position:sticky;top:84px">
+      ${live ? `<div class="card f-team" style="justify-items:center;text-align:center">${clockHTML()}<p class="small muted">Ends at ${esc(new Date(Date.parse(m.startedAt) + m.minutes * 60000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))}</p>
+        <div class="row"><button class="btn sm ghost" data-act="addTime" data-min="5">+5 min</button></div></div>` : ''}
+      ${p ? `<div class="card"><div class="card-head"><span class="orb sm f-learn">${icon('plan')}</span><div class="grow"><b>${esc(planTitle(p))}</b>${pipHTML(p)}</div></div>
+        <a class="btn sm fam f-learn" href="#plan-${p.id}-${nextStep(p).key}">Next step: ${esc(nextStep(p).label)}</a></div>` : ''}
+      <div class="card"><h4>Our agreements</h4>${S.norms.length ? `<ul style="margin:0;padding-left:18px;display:grid;gap:4px" class="small">${S.norms.map(n => `<li>${esc(n.text)}</li>`).join('')}</ul>` : '<p class="small muted">None yet.</p>'}</div>
+    </aside>
+  </div>`;
+}
+const stopOptions = m => { const p = planById(m.planId); return p ? STEPS.map(s => `<option value="${s.key}" ${m.stoppedAt?.stepKey === s.key ? 'selected' : ''}>${esc(s.label)}</option>`).join('') : '<option value="">No plan</option>'; };
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-act-change="stop"]')) { const m = S.meetings.find(x => x.id === route().a); m.stoppedAt = { planId: m.planId, stepKey: e.target.value }; save(); }
+});
+function clockHTML() {
+  const R = 66, C = 2 * Math.PI * R;
+  return `<div class="clock f-team"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="${R}" fill="none" stroke="var(--wash)" stroke-width="12"/><circle data-clock cx="75" cy="75" r="${R}" fill="none" stroke="var(--team)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90 75 75)"/></svg><b data-timer>--:--</b><span>left</span></div>`;
+}
+function tickTimer() {
+  const m = runningMeeting(); if (!m) return;
+  const end = Date.parse(m.startedAt) + m.minutes * 60000, left = Math.round((end - Date.now()) / 1000);
+  const txt = left >= 0 ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` : `+${Math.floor(-left / 60)}:${String(-left % 60).padStart(2, '0')}`;
+  $$('[data-timer]').forEach(el => { el.textContent = txt; });
+  const c = $('[data-clock]'); if (c) { const C = 2 * Math.PI * 66; c.setAttribute('stroke-dashoffset', String(C * (1 - Math.max(0, left) / (m.minutes * 60)))); }
+  if (left === 300) toast('Five minutes left. Time to wrap up: where did you stop?');
+}
+setInterval(tickTimer, 1000);
+const curMeeting = () => S.meetings.find(x => x.id === route().a);
+ACT.toggleAttend = b => { const m = curMeeting(), id = b.dataset.id; m.attendance = m.attendance.includes(id) ? m.attendance.filter(x => x !== id) : [...m.attendance, id]; save(); render(); };
+ACT.addAgenda = () => { curMeeting().agenda.push({ id: uid(), topic: '', minutes: 5, kind: 'other', notes: '' }); save(); render(); };
+ACT.delAgenda = b => { const m = curMeeting(); m.agenda = m.agenda.filter(a => a.id !== b.dataset.id); save(); render(); };
+ACT.addTodo = () => { (curMeeting().todos ||= []).push({ id: uid(), text: '', ownerId: 'all', due: addDays(todayISO(), 7), done: false }); save(); render(); setTimeout(() => { const ins = $$('.todo-row input[type=text]'); ins[ins.length - 1]?.focus(); }, 30); };
+ACT.delTodo = b => { const m = curMeeting(); m.todos = m.todos.filter(t => t.id !== b.dataset.id); save(); render(); };
+ACT.addTime = b => { curMeeting().minutes += Number(b.dataset.min); save(); render(); };
+ACT.delMeeting = async () => {
+  if (!await ask(`<h2>Delete these meeting notes?</h2><p class="muted">Version history keeps earlier saves.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep</button><button class="btn danger">Delete</button></div>`)) return;
+  S.meetings = S.meetings.filter(m => m.id !== route().a); save(); go('meetings');
+};
+ACT.endMeeting = async () => {
+  const m = curMeeting(), p = planById(m.planId), guess = p ? nextStep(p).key : '';
+  const fd = await ask(`<h2>Wrap up team time</h2><p class="muted">Next week, Launchpad opens right here.</p>
+    ${p ? `<div class="field"><label for="eStop">Where did you stop?</label><select id="eStop" name="stop">${STEPS.map(s => `<option value="${s.key}" ${s.key === guess ? 'selected' : ''}>${esc(s.label)}${stepState(p, s.key) === 100 ? ' (done)' : ''}</option>`).join('')}</select></div>` : ''}
+    <div class="field"><label for="eNext">Next time we'll…</label><input id="eNext" name="next" type="text" placeholder="Look at results together and plan reteaching"></div>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Keep working</button><button class="btn fam f-team">${icon('done')}End and save notes</button></div>`);
+  if (!fd) return;
+  m.endedAt = new Date().toISOString();
+  if (p) m.stoppedAt = { planId: p.id, stepKey: fd.get('stop') };
+  m.nextTime = String(fd.get('next') || '');
+  save(); toast('Saved. Next week starts where you stopped.'); go('home');
+};
+
+/* ================================================================ RESULTS */
+function viewResults() {
+  const withScores = S.plans.filter(p => p.scores.length);
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">Results</span><h1>How our students are doing</h1>
+    <p>Totals for each plan's team check. Each teacher's own classes are visible only to them.</p></div></div>
+    ${privacyNote(`Team results stay hidden until at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored, so no one class can be singled out.`)}
+    <div class="stack" style="margin-top:16px">${withScores.length ? withScores.map(p => {
+      const team = stats(p), mine = ME ? stats(p, { teacherId: ME }) : null;
+      return `<div class="stack"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3 class="spacer">${esc(planTitle(p))}</h3><a class="btn sm fam f-check" href="#plan-${p.id}-results">Open results step</a><a class="btn sm ghost" href="#plan-${p.id}-scores">Enter scores</a></div>
+        <div class="teacher-dots">${S.members.map(m => { const st = stats(p, { teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${st.n ? 'Scores in' : 'Waiting'}</span>`; }).join('')}</div>
+        ${resultsPanel(p, team, mine)}</div>`;
+    }).join('') : `<div class="empty">${icon('results')}<b>No scores yet</b><span>Scores are entered in step 6 of each plan.</span></div>`}</div>`;
+}
+
+/* ============================================================ WHAT WORKED */
+function inviteCard(inv) {
+  const i = inv.plan.targets.indexOf(inv.target);
+  return `<div class="invite f-reteach"><div class="card-head"><span class="orb">${icon('practice')}</span><div class="grow"><span class="eyebrow" style="color:var(--reteach)">An invitation for you · only you see this</span>
+    <h3>Your students did better than the team on "${esc(inv.target.text)}"</h3></div></div>
+    <div class="vs"><span class="letter sm">${LETTERS[i]}</span>
+      <div class="vs-bar f-reteach"><div class="bar"><i style="width:${inv.mine}%"></i></div><span><b>Your students</b><b>${inv.mine}%</b></span></div>
+      <div class="vs-bar f-tool"><div class="bar"><i style="width:${inv.team}%;background:var(--line)"></i></div><span><b>Whole team</b><b>${inv.team}%</b></span></div></div>
+    <p>Would you share what you did? A sentence or two helps your teammates plan their reteaching. You choose whether your name shows.</p>
+    <div class="row"><button class="btn fam f-reteach" data-act="share" data-key="${inv.key}">${icon('share')}Share what I did</button>
+      <button class="btn ghost sm" data-act="inviteLater" data-key="${inv.key}">Not now</button><button class="btn ghost sm" data-act="inviteNever" data-key="${inv.key}">Don't ask for this skill</button></div></div>`;
+}
+function stratCard(s) {
+  const p = planById(s.planId), t = p?.targets.find(x => x.id === s.targetId);
+  const who = s.anonymous ? 'A teammate' : memberName(s.teacherId);
+  return `<article class="strat f-reteach"><div class="who"><span class="avatar">${s.anonymous ? icon('person') : esc(initials(who))}</span><span><b style="color:var(--ink)">${esc(who)}</b> shared ${esc(fmtDate(s.sharedAt))}</span></div>
+    <blockquote>${esc(s.text)}</blockquote>
+    <div class="row">${s.mine != null ? `<span class="proof">${icon('results')}${s.mine}% got it · team ${s.team}%</span>` : ''}${(s.tags || []).map(x => `<span class="chip" style="font-size:.78rem;padding:3px 10px">${esc(x)}</span>`).join('')}</div>
+    ${t ? `<p class="small muted">For: ${esc(t.text)}</p>` : ''}${s.link ? `<a class="small" href="${esc(s.link)}" target="_blank" rel="noopener">${icon('link')} Materials</a>` : ''}
+    ${s.teacherId === ME ? `<div><button class="btn sm ghost" data-act="unshare" data-id="${s.id}">Stop sharing</button></div>` : ''}</article>`;
+}
+function viewWorked() {
+  const invites = invitationsFor(ME);
+  const byPlan = S.plans.map(p => [p, S.strategies.filter(s => s.planId === p.id)]).filter(([, l]) => l.length);
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">What worked for us</span><h1>Teaching moves our team shares</h1>
+    <p>When a teacher's students do better than the team on a skill, Launchpad invites them to share what they did. Sharing is always a choice, and you decide whether your name shows.</p></div>${termChip('Shared instructional practice', 'reteach')}</div>
+    ${invites.length ? `<div class="stack" style="margin-bottom:26px">${invites.map(inviteCard).join('')}</div>` : ''}
+    ${byPlan.length ? byPlan.map(([p, list]) => `<div class="stack" style="margin-bottom:26px"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3>${esc(planTitle(p))}</h3></div><div class="grid2">${list.map(stratCard).join('')}</div></div>`).join('')
+      : `<div class="empty">${icon('practice')}<b>Nothing shared yet</b><span>Invitations appear after team results come in.</span></div>`}`;
+}
+const inviteByKey = key => invitationsFor(ME).find(i => i.key === key);
+ACT.inviteLater = b => { ((S.invites[ME] ||= {}))[b.dataset.key] = 'later:' + addDays(todayISO(), 7); save(); render(); toast('We\'ll ask again next week.'); };
+ACT.inviteNever = b => { ((S.invites[ME] ||= {}))[b.dataset.key] = 'never'; save(); render(); toast('Got it. We won\'t ask about this skill again.'); };
+ACT.share = async b => {
+  const inv = inviteByKey(b.dataset.key); if (!inv) return;
+  const tags = ['Hands-on', 'Visual', 'Small groups', 'Partner check', 'Explained it differently', 'Real-world example', 'Technology', 'More practice time'];
+  const fd = await ask(`<h2>Share what you did</h2><p class="muted">For "${esc(inv.target.text)}" · your students ${inv.mine}%, team ${inv.team}%</p>
+    <div class="field"><label for="shText">What did you do that you think made the difference?</label><textarea id="shText" name="text" required placeholder="I had students hold a real block and trace each face before drawing…"></textarea></div>
+    <div class="field"><span class="lbl">Tags (optional)</span><div class="chips">${tags.map(t => `<label class="chip"><input type="checkbox" name="tags" value="${esc(t)}"> ${esc(t)}</label>`).join('')}</div></div>
+    <div class="field"><label for="shLink">Link to materials (optional)</label><input id="shLink" name="link" type="url" placeholder="https://"></div>
+    <div class="field"><span class="lbl">Show my name?</span><div class="chips"><label class="chip"><input type="radio" name="anon" value="no" checked> Yes, show my name</label><label class="chip"><input type="radio" name="anon" value="yes"> Share as "a teammate"</label></div></div>
+    <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn fam f-reteach">${icon('share')}Share with my team</button></div>`);
+  if (!fd) return;
+  S.strategies.push({ id: uid(), planId: inv.plan.id, targetId: inv.target.id, teacherId: ME, anonymous: fd.get('anon') === 'yes', text: String(fd.get('text')).trim(),
+    tags: fd.getAll('tags').map(String), link: String(fd.get('link') || '').trim(), mine: inv.mine, team: inv.team, sharedAt: todayISO() });
+  save(); render(); toast('Thank you. Your idea now shows in What worked for us.');
+};
+ACT.unshare = async b => {
+  if (!await ask(`<h2>Stop sharing this?</h2><p class="muted">It will be removed for your whole team.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep sharing</button><button class="btn danger">Stop sharing</button></div>`)) return;
+  S.strategies = S.strategies.filter(s => s.id !== b.dataset.id); save(); render();
+};
+
+/* ================================================================ TEAM */
+function viewTeam() {
+  const roles = ['Teacher', 'Team lead', 'Coach', 'Administrator'];
+  const cats = Object.entries(APP.catalogs);
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team</span><h1>Our team</h1><p>Who's on the team, how you work together, and which standards you use.</p></div>
+    <a class="btn ghost" href="#words">${icon('glossary')}PLC words</a></div>
+    <div class="grid2" style="align-items:start">
+      <div class="stack">
+        <div class="card f-team"><div class="card-head"><span class="orb sm">${icon('team')}</span><h3 class="grow">Team details</h3></div>
+          <div class="fields"><div class="field"><label for="tName">Team name</label><input id="tName" type="text" data-bind="t:team.name" value="${esc(S.team.name)}"></div>
+            <div class="field"><label for="tCourse">Course</label><input id="tCourse" type="text" data-bind="t:team.course" value="${esc(S.team.course)}"></div>
+            <div class="field"><label for="tGrade">Grade or level</label><input id="tGrade" type="text" data-bind="t:team.grade" value="${esc(S.team.grade)}"></div></div></div>
+        <div class="card f-team"><div class="row"><span class="orb sm">${icon('person')}</span><h3 class="spacer">Members</h3><button class="btn sm fam" data-act="addMember">${icon('plus')}Add a teacher</button></div>
+          ${S.members.map(m => `<div class="stack" style="background:var(--wash);border-radius:24px;padding:12px 14px;gap:10px"><div class="row"><span class="avatar">${esc(initials(m.name))}</span><input type="text" aria-label="Name" data-bind="t:members.#${m.id}.name" value="${esc(m.name)}" placeholder="Name" style="flex:1;min-width:140px">${m.id === ME ? '<span class="chip" aria-pressed="true" style="--c:var(--team);--on:var(--on-team)">You</span>' : ''}<button class="icon-btn" data-act="delMember" data-id="${m.id}" aria-label="Remove ${esc(m.name)}">${icon('trash')}</button></div>
+            <div class="fields"><input type="email" aria-label="School email" data-bind="t:members.#${m.id}.email" value="${esc(m.email)}" placeholder="School email">
+            <select aria-label="Role" data-bind="t:members.#${m.id}.role">${roles.map(r => `<option ${m.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+            <input type="text" class="wide" aria-label="Class periods" data-bind="t:members.#${m.id}.periods" value="${esc(m.periods || '')}" placeholder="Class periods, like 1, 3, 5"></div></div>`).join('') || '<p class="muted small">No one yet. Add each teacher on the team.</p>'}
+          ${privacyNote('School emails let Launchpad know who\'s signed in on your school\'s Google site.')}
+          ${S.members.length ? `<button class="btn sm soft" data-act="whoAmI">${icon('person')}${ME && member(ME) ? 'Change which teacher you are' : 'Which teacher are you?'}</button>` : ''}</div>
+      </div>
+      <div class="stack">
+        <div class="card f-team"><div class="row"><span class="orb sm">${icon('norms')}</span><h3 class="spacer">Team agreements</h3><button class="btn sm fam" data-act="addNorm">${icon('plus')}Add</button></div>
+          ${termChip('Norms', 'team')}
+          ${S.norms.map((n, i) => `<div class="row"><span class="orb sm soft">${i + 1}</span><input type="text" aria-label="Agreement ${i + 1}" data-bind="t:norms.#${n.id}.text" value="${esc(n.text)}" style="flex:1"><button class="icon-btn" data-act="delNorm" data-id="${n.id}" aria-label="Remove agreement">${icon('trash')}</button></div>`).join('') || `<p class="muted small">Agreements like "We start and end on time" keep meetings on track.</p>`}</div>
+        <div class="card f-learn"><div class="card-head"><span class="orb sm">${icon('standard')}</span><h3 class="grow">Standards we use</h3></div>
+          ${APP.mode === 'cloud' ? `<p class="small muted">Set by your school's Launchpad admin in the directory.</p><ul class="small">${(S.team.catalogs || []).map(k => `<li>${esc(APP.catalogs[k]?.title || k)}</li>`).join('')}</ul>`
+            : `<div class="chips">${cats.map(([k, c]) => `<button type="button" class="chip" aria-pressed="${(S.team.catalogs || []).includes(k)}" data-act="toggleCat" data-k="${k}">${esc(c.title || k)}</button>`).join('')}</div>`}</div>
+        ${APP.mode === 'local' ? `<div class="card"><h3>This browser</h3><p class="small muted">Right now your team saves only in this browser. Once Launchpad is on your school's Google site, it saves online for the whole team.</p>
+          <div class="row">${APP.demo ? `<button class="btn sm" data-act="startOwnTeam">${icon('plus')}Start our own team</button><button class="btn sm ghost" data-act="resetDemo">Reset the example</button>` : `<button class="btn sm ghost" data-act="startOwnTeam">${icon('plus')}Start another team</button>`}</div></div>` : ''}
+      </div>
+    </div>`;
+}
+ACT.addMember = () => { S.members.push({ id: uid(), name: '', email: '', role: 'Teacher', periods: '' }); save(); render(); setTimeout(() => { const ins = $$('[data-bind$=".name"]'); ins[ins.length - 1]?.focus(); }, 30); };
+ACT.delMember = async b => {
+  if (!await ask(`<h2>Remove this teacher?</h2><p class="muted">Scores they entered stay with the plan.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep</button><button class="btn danger">Remove</button></div>`)) return;
+  S.members = S.members.filter(m => m.id !== b.dataset.id); save(); render();
+};
+ACT.addNorm = () => { S.norms.push({ id: uid(), text: '' }); save(); render(); };
+ACT.delNorm = b => { S.norms = S.norms.filter(n => n.id !== b.dataset.id); save(); render(); };
+ACT.toggleCat = b => { const k = b.dataset.k, c = S.team.catalogs || []; S.team.catalogs = c.includes(k) ? c.filter(x => x !== k) : [...c, k]; save(); render(); };
+ACT.resetDemo = async () => {
+  if (!await ask(`<h2>Reset the example team?</h2><div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Reset</button></div>`)) return;
+  S = sampleState(); ME = 'm1'; store.set('lp-me:demo', 'm1'); save(); go('home');
+};
+
+/* ================================================================ PLC WORDS */
+function viewWords() {
+  return `<div class="page-head"><div class="lead"><span class="eyebrow">PLC words</span><h1>Plain words, real terms</h1>
+    <p>Launchpad uses everyday words on every screen, with the PLC term right beside them. Here they all are in one place.</p></div></div>
+    ${Object.entries({ ...FAMILIES, team: { n: '', word: 'Team', q: 'How do we work together?' } }).map(([f, info]) => `<div class="stack" style="margin-bottom:28px">
+      <div class="row f-${f}"><span class="orb">${icon(f)}</span><h2 style="font-size:1.4rem">${info.n ? info.n + ' · ' : ''}${info.word}</h2><span class="muted">${esc(info.q)}</span></div>
+      <div class="words">${WORDS.filter(w => w[0] === f).map(w => `<div class="word f-${f}"><h3>${esc(w[1])}</h3><span class="term" style="cursor:default"><span class="tag">PLC term</span>${esc(w[2])}</span>
+        <p>${esc(w[3])}</p>${w[4] ? `<p class="example"><i>Example:</i> ${esc(w[4])}</p>` : ''}
+        <div><button class="btn sm soft" data-act="say" data-text="${esc(w[2] + '. ' + w[3])}">${icon('listen')}Hear it</button></div></div>`).join('')}</div></div>`).join('')}`;
+}
+
+/* ================================================================ START */
+window.addEventListener('hashchange', () => { voice.stop(); render(); });
+boot().then(ok => { if (ok) render(); });
+
+})();</script>

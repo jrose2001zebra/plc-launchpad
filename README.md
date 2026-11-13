@@ -7,24 +7,23 @@ Created by John Rose.
 
 | Path | What it is |
 |---|---|
-| `index.html` | The live app (v0.509), copied unchanged from the current site. The whole front end is in this one file. |
-| `quiz-connector.txt` | Google Apps Script the app hands to a PLC coordinator to connect Google Forms quizzes to results. |
-| `apps-script/` | The Google Apps Script version: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files. |
-| `design/design-system.html` | The design language: color families, icons, plain-language word list and the home screen layout. Every redesigned screen follows it. |
-| `prototype/concept-orbit.html` | Design concept for the redesign: the four questions as an orbit, a narrated animated tour, plan-once linked fields, and a ready board. |
+| `app/` | **PLC Launchpad 1.0**, the rebuilt app. Source in `app/src`; `python3 app/build.py` makes one self-contained page in `app/dist`. |
+| `apps-script/` | Runs the app on Google Apps Script for your school: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files. |
+| `design/design-system.html` | The design language: color families, icons, plain-language word list. Every screen follows it. |
+| `legacy/v0.509.html` | The previous app, kept for reference. |
+| `prototype/concept-orbit.html` | The first design concept. |
 
-## Hosting
+## How the app is organized
 
-The current site saves through server routes on its ChatGPT host, and that server code is not
-available. `apps-script/` replaces it: Launchpad runs from Google Apps Script, limited to your
-school's Google domain, with all data in the deploying account's Drive.
-See [apps-script/SETUP.md](apps-script/SETUP.md).
+- **Home** is the orbit: this plan's four questions around the team, with where you stopped last week,
+  open to-dos, invitations to share and your plans.
+- **Plans** take one must-learn skill through 11 steps across the four questions (Learn, Check, Reteach, Stretch).
+- **Team time** runs your weekly meeting: timer, attendance, an agenda built from where you stopped,
+  notes, decisions, to-dos, and "where did we stop / next time we'll…" at the end.
+- **Results** show team totals only. Each teacher sees their own classes; team results stay hidden
+  until at least 5 students from 3 teachers are scored.
+- **What worked for us** collects teaching strategies. A teacher whose students beat the team on a skill
+  is invited to share; sharing, and showing their name, is always their choice.
+- **Team** holds members, team agreements and standards. **PLC words** is the glossary.
 
-## Redesign plan
-
-1. Keep this baseline untouched so nothing is lost.
-2. Make DuFour's four questions the backbone of every plan and of the home screen.
-3. Merge the two standard pickers ("Choose Essential Standards" and "Build Plan") into one.
-4. Replace the standard dashboard look with the custom orbit and circle visual system.
-5. Rewrite labels in plain language, with the official term one tap away.
-6. Turn Zava, the plan guide, into short animated videos with narration.
+Color always means a family: blue Learn, orange Check, green Reteach, gold Stretch, purple Team.
