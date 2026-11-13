@@ -122,10 +122,10 @@ const WORDS = [
   ['learn', 'Big standard · one skill inside it', 'Broad standard · specific indicator', 'The state groups skills under a big standard. You can pick the whole thing, or just one skill inside it, which is usually easier to teach and check.', 'B2.0 is the big standard on sketching. B2.1 is one skill inside it.'],
   ['learn', '"I can" statement', 'Learning target', 'The skill rewritten in words a student understands, usually starting with "I can". Each one should be something a short check can see.', '"I can sketch the front, top and side views of a simple object."'],
   ['learn', 'Why this skill made the cut', 'Endurance · leverage · readiness', 'Three tests for a must-learn skill: it lasts beyond this year (endurance), it is used in other subjects (leverage), and students need it for what comes next (readiness).', 'Measuring is used in math and science too, so it has leverage.'],
-  ['check', 'What counts as "got it"', 'Proficiency', 'The score the team agrees means a student has learned the skill. Decide it before you see any results.', '3 out of 4 points, or 80% of the check.'],
+  ['check', 'Proficiency score', 'Proficiency', 'The percentage on the team check that shows a student has learned the skill. A student at or above it is proficient. The team agrees on it before anyone sees results.', '75% on the team check, or 6 of 8 points.'],
   ['check', 'Team check', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
-  ['check', 'SMART goal (team goal)', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date. SMART stands for specific, measurable, attainable, results-oriented and time-bound.', 'By Dec 3, 80% of our students will reach "got it" on the sketching check.'],
-  ['check', 'Where students started', 'Baseline', 'How students did before the teaching, so the team can see growth.', '45% got it on the pre-check.'],
+  ['check', 'SMART goal (team goal)', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date. SMART stands for specific, measurable, attainable, results-oriented and time-bound.', 'By Dec 3, 80% of our students will score 75% or higher on the sketching check.'],
+  ['check', 'Where students started', 'Baseline', 'How students did before the teaching, so the team can see growth.', '40% of students were proficient on the pre-check.'],
   ['check', 'Scoring practice together', 'Calibration', 'Teachers score the same few pieces of student work, then talk until they score them the same way.', 'Everyone scores three sketches, then compares.'],
   ['check', 'Student work', 'Evidence of learning', 'Anything students produce that shows what they know: answers, sketches, explanations, projects.', ''],
   ['check', 'Not scored yet', 'Awaiting evidence', 'A student row with a missing score. It is left out of results until it is complete.', ''],
@@ -138,7 +138,7 @@ const WORDS = [
   ['team', 'Team agreements', 'Norms', 'How your team agrees to work together, like starting on time and assuming good intent. Revisit them often.', ''],
   ['team', 'Team time', 'Collaborative team meeting', 'Your weekly time together. Launchpad keeps the agenda, notes, decisions and where you stopped.', ''],
   ['team', 'Team lead · subject lead', 'PLC team lead · subject coordinator', 'The people who help organize a team\'s work and a subject\'s teams.', ''],
-  ['team', 'Plan for one skill', 'PLC cycle', 'One must-learn skill taken through all four questions, from choosing it to stretching the students who got it.', '']
+  ['team', 'Plan for one skill', 'PLC cycle', 'One must-learn skill taken through all four questions, from choosing it to stretching the students who are already proficient.', '']
 ];
 const term = name => WORDS.find(w => w[2] === name || w[1] === name);
 
@@ -174,22 +174,22 @@ const STEPS = [
     q: 'Which skill matters most right now?', what: 'Pick one must-learn skill from your state standards. Choosing one specific skill makes the rest of the plan much easier.', term: 'Essential standard' },
   { key: 'targets', fam: 'learn', label: 'Write "I can" statements', icon: 'target', minutes: 15,
     q: 'What will students say they can do?', what: 'Rewrite the skill in student words. Most plans need one to three "I can" statements.', term: 'Learning target' },
-  { key: 'gotit', fam: 'learn', label: 'Decide what "got it" means', icon: 'score', minutes: 10,
-    q: 'What does "got it" look like?', what: 'Agree on the score that means a student has learned it, before anyone sees results.', term: 'Proficiency' },
+  { key: 'gotit', fam: 'learn', label: 'Set the proficiency score', icon: 'score', minutes: 10,
+    q: 'What score shows a student is proficient?', what: 'Agree on the percentage a student needs on the team check. Decide it before anyone sees results.', term: 'Proficiency' },
   { key: 'build', fam: 'check', label: 'Build the team check', icon: 'check', minutes: 25,
     q: 'What will be on the team check?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
   { key: 'goal', fam: 'check', label: 'Set our SMART goal', icon: 'goal', minutes: 10,
-    q: 'What is our SMART goal?', what: 'Say how many students will reach "got it" on the team check, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
+    q: 'What is our SMART goal?', what: 'Say what share of students will be proficient on the team check, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
   { key: 'scores', fam: 'check', label: 'Enter scores', icon: 'score', minutes: 15,
     q: 'How did your students do?', what: 'Each teacher enters their own classes. Your team only ever sees totals.', term: 'Evidence of learning' },
   { key: 'results', fam: 'check', label: 'Look at results together', icon: 'results', minutes: 20,
     q: 'What did the check show us?', what: 'Read the team results together, talk about them, and decide what to do next.', term: 'Collective inquiry' },
   { key: 'reteach', fam: 'reteach', label: 'Plan reteaching', icon: 'reteach', minutes: 20,
-    q: 'How will we reteach students who don\'t have it yet?', what: 'Plan extra time and a different approach. Ideas your teammates shared show up here.', term: 'Intervention (Tier 2)' },
+    q: 'How will we reteach students who aren\'t proficient yet?', what: 'Plan extra time and a different approach. Ideas your teammates shared show up here.', term: 'Intervention (Tier 2)' },
   { key: 'recheck', fam: 'reteach', label: 'Re-check', icon: 'recheck', minutes: 15,
     q: 'Did the reteaching work?', what: 'Give a short second check to the students you retaught, and enter their scores.', term: 'Follow-up assessment' },
   { key: 'stretch', fam: 'stretch', label: 'Plan the stretch', icon: 'stretch', minutes: 15,
-    q: 'How will we stretch students who already have it?', what: 'Plan something deeper, not just more of the same, that runs while others are retaught.', term: 'Extension / enrichment' },
+    q: 'How will we stretch students who are already proficient?', what: 'Plan something deeper, not just more of the same, that runs while others are retaught.', term: 'Extension / enrichment' },
   { key: 'wrap', fam: 'stretch', label: 'Did we reach our goal?', icon: 'goal', minutes: 15,
     q: 'Did we reach our goal?', what: 'Compare results with your team goal, write down what you learned, and choose what comes next.', term: 'PLC cycle' }
 ];
@@ -230,6 +230,9 @@ const isBroad = s => /\.0$/.test(s.code || '');
 const parentCode = s => (s.code || '').replace(/\.\d+$/, '.0');
 
 /* --------------------------------------------------------- scores & results */
+/* Optional letter grade beside each percentage (standard 90/80/70/60 scale). */
+const letterGrade = v => (v >= 90 ? 'A' : v >= 80 ? 'B' : v >= 70 ? 'C' : v >= 60 ? 'D' : 'F');
+const scoreText = (p, v) => (p.scoreAs === 'letter' ? `${v}% · ${letterGrade(v)}` : `${v}%`);
 const maxPoints = p => p.check.items.reduce((a, i) => a + (Number(i.points) || 0), 0);
 function rowResult(p, row) {
   const items = p.check.items;
@@ -246,7 +249,8 @@ function rowResult(p, row) {
     const tgot = its.reduce((a, i) => a + (Number(row.s?.[i.id]) || 0), 0);
     per[t.id] = complete ? (100 * tgot) / tmax >= p.gotIt : null;
   }
-  return { complete, total, max, got: complete && max > 0 && (100 * total) / max >= p.gotIt, per };
+  const score = max ? Math.round((100 * total) / max) : 0;
+  return { complete, total, max, score, got: complete && max > 0 && (100 * total) / max >= p.gotIt, per };
 }
 function stats(p, { kind = 'first', teacherId = null } = {}) {
   const sets = p.scores.filter(s => (s.kind || 'first') === kind && (!teacherId || s.teacherId === teacherId));
@@ -448,7 +452,7 @@ function sampleState() {
   p.standardIds = ['ca-cte-ea-B2.1'];
   p.why = ['Needed for what comes next', 'Lasts beyond this year'];
   p.targets = [{ id: 'tA', text: 'I can sketch the front, top and side views of a simple object.' }, { id: 'tB', text: 'I can line up the views so their sizes match.' }];
-  p.gotIt = 75; p.gotItNote = 'A student who has it draws all three views in the right places with matching sizes. Small line wobbles are fine.';
+  p.gotIt = 75; p.gotItNote = 'A proficient student draws all three views in the right places with matching sizes. Small line wobbles are fine.';
   p.check = { name: 'Three-view sketch check', date: addDays(todayISO(), -6), items: [
     { id: 'i1', prompt: 'Sketch the front view of the block shown.', points: 2, targetId: 'tA', guide: '2: correct shape and features · 1: shape right, features missing' },
     { id: 'i2', prompt: 'Sketch the top view.', points: 2, targetId: 'tA', guide: '' },

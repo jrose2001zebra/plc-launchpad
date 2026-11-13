@@ -78,7 +78,7 @@ STEP_VIEWS.skill = p => {
   const chosen = p.standardIds.map(standardById).filter(Boolean);
   const why = [['Needed for what comes next', 'readiness'], ['Used in other subjects', 'leverage'], ['Lasts beyond this year', 'endurance'], ['On the state test', '']];
   return `${zava('Look for a skill students will use again and need for what comes next. If a big standard feels like too much for one plan, pick one skill inside it.',
-      'Of 22 drafting standards, a team picks <b>B2.1 · sketching in three views</b>. Every later unit uses it, and a short check can show whether students have it.')}
+      'Of 22 drafting standards, a team picks <b>B2.1 · sketching in three views</b>. Every later unit uses it, and a short check can show whether students are proficient.')}
     ${chosen.length ? chosen.map(s => `<div class="chosen"><span class="orb f-learn">${icon('standard')}</span><div class="stack" style="gap:4px"><span class="eyebrow" style="color:var(--learn)">Our must-learn skill · ${esc(s.code)}</span><b>${esc(s.text)}</b><span class="small muted">${esc(s.pathway || s.catalogTitle || '')}</span></div><button class="icon-btn" data-act="toggleStd" data-id="${s.id}" aria-label="Remove">${icon('close')}</button></div>`).join('') : ''}
     ${chosen.length ? `<div class="field f-learn"><span class="lbl">Why this skill made the cut</span><span class="help">Tap all that are true. PLC words: readiness, leverage, endurance.</span>
       <div class="chips">${why.map(([w, t]) => `<button type="button" class="chip" aria-pressed="${p.why.includes(w)}" data-act="toggleWhy" data-v="${esc(w)}">${esc(w)}${t ? ` <small>· ${t}</small>` : ''}</button>`).join('')}</div></div>` : ''}
@@ -139,17 +139,25 @@ ACT.suggestTargets = async b => {
 };
 ACT.useSuggestion = b => { const p = planById(route().a); const empty = p.targets.find(t => !t.text.trim()); if (empty) empty.text = b.dataset.text; else p.targets.push({ id: uid(), text: b.dataset.text }); save(); render(); };
 
-/* --------------------------------------------------------------- 3 got it */
+/* ------------------------------------------------------ 3 proficiency score */
 STEP_VIEWS.gotit = p => {
-  return `${zava('Decide this before anyone sees results, so the team sorts students the same way. Many teams use 75% or 80% of the points.', 'On an 8-point check with "got it" at 75%, a student needs 6 points.', 'learn')}
+  const presets = [[70, 'C'], [75, ''], [80, 'B'], [90, 'A']];
+  return `${zava('Decide this before anyone sees results, so every teacher sorts students the same way. Many teams use 75% or 80%.', 'On an 8-point check with a proficiency score of 75%, a student needs 6 points.', 'learn')}
     <div class="fields f-learn">
-      <div class="field"><label for="gotIt">"Got it" means at least this much of the points</label><div class="row"><input id="gotIt" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:gotIt" data-live="gotit" value="${esc(p.gotIt)}"><b>%</b></div></div>
-      <div class="field"><span class="lbl">In points</span><p id="gotItPoints" class="goal-sentence" style="font-size:1.1rem;padding:12px 16px">${gotItPoints(p)}</p></div>
-      <div class="field wide"><label for="gotNote">What does a student who has it do?</label><span class="help">Describe it so any teacher on the team would score the same work the same way.</span>
-        <textarea id="gotNote" data-bind="p:gotItNote" placeholder="A student who has it…">${esc(p.gotItNote)}</textarea></div>
+      <div class="field wide"><label for="gotIt">A student is proficient with a score of at least</label>
+        <div class="row"><input id="gotIt" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:gotIt" data-live="gotit" value="${esc(p.gotIt)}"><b>%</b>
+        <span class="chips">${presets.map(([v, g]) => `<button type="button" class="chip" aria-pressed="${Number(p.gotIt) === v}" data-act="setGotIt" data-v="${v}">${v}%${g ? ` <small>· ${g}</small>` : ''}</button>`).join('')}</span></div>
+        <p id="gotItPoints" class="help">${gotItPoints(p)}</p></div>
+      <div class="field wide"><span class="lbl">Show student scores as</span><div class="chips">
+        <button type="button" class="chip" aria-pressed="${p.scoreAs !== 'letter'}" data-act="setScoreAs" data-v="percent">Percentage <small>· 88%</small></button>
+        <button type="button" class="chip" aria-pressed="${p.scoreAs === 'letter'}" data-act="setScoreAs" data-v="letter">Percentage and letter grade <small>· 88% · B</small></button></div></div>
+      <div class="field wide"><label for="gotNote">What does a proficient student's work look like?</label><span class="help">Describe it so any teacher on the team would score the same work the same way.</span>
+        <textarea id="gotNote" data-bind="p:gotItNote" placeholder="A proficient student…">${esc(p.gotItNote)}</textarea></div>
     </div>`;
 };
-const gotItPoints = p => { const m = maxPoints(p); return m ? `${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the team check` : 'Set once the team check has points.'; };
+ACT.setGotIt = b => { const p = planById(route().a); p.gotIt = Number(b.dataset.v); save(); render(); };
+ACT.setScoreAs = b => { const p = planById(route().a); p.scoreAs = b.dataset.v; save(); render(); };
+const gotItPoints = p => { const m = maxPoints(p); return m ? `That's ${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the team check${p.scoreAs === 'letter' ? `, a ${letterGrade(Number(p.gotIt) || 0)} or better` : ''}.` : 'Once the team check has points, Launchpad shows how many points that is.'; };
 LIVE.gotit = () => { const el = $('#gotItPoints'); if (el) el.textContent = gotItPoints(planById(route().a)); };
 
 /* ------------------------------------------------------------ 4 the check */
@@ -176,16 +184,16 @@ ACT.delItem = b => { const p = planById(route().a); p.check.items = p.check.item
 LIVE.points = () => { const el = $('#totalPts'); if (el) el.textContent = maxPoints(planById(route().a)) + ' points in all'; };
 
 /* ------------------------------------------------------------ 5 team goal */
-STEP_VIEWS.goal = p => `${zava('A good goal is a stretch but reachable. If you gave a pre-check, enter where students started so you can see growth.', 'By Dec 3, 80% of our students will reach "got it" on the three-view sketch check, up from 40%.', 'check')}
+STEP_VIEWS.goal = p => `${zava('A good goal is a stretch but reachable. If you gave a pre-check, enter where students started so you can see growth.', 'By Dec 3, 80% of our students will score 75% or higher on the three-view sketch check, up from 40%.', 'check')}
   <div class="fields f-check">
-    <div class="field"><label for="gTarget">Share of students who will reach "got it"</label><div class="row"><input id="gTarget" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:goal.target" data-live="goal" value="${esc(p.goal.target)}"><b>%</b></div></div>
+    <div class="field"><label for="gTarget">Share of students who will be proficient</label><div class="row"><input id="gTarget" type="number" min="1" max="100" step="5" style="width:110px" data-type="number" data-bind="p:goal.target" data-live="goal" value="${esc(p.goal.target)}"><b>%</b></div></div>
     <div class="field"><label for="gDate">By this date</label><input id="gDate" type="date" data-bind="p:goal.date" data-live="goal" value="${esc(p.goal.date)}"></div>
     <div class="field"><label for="gBase">Where students started (optional)</label><span class="help">PLC word: baseline</span><div class="row"><input id="gBase" type="number" min="0" max="100" style="width:110px" data-type="number" data-bind="p:goal.baseline" data-live="goal" value="${esc(p.goal.baseline)}"><b>%</b></div></div>
   </div>
   <div class="field"><span class="lbl">Our team goal</span><p class="goal-sentence" id="goalSentence">${goalSentence(p)}</p></div>`;
 function goalSentence(p) {
   const d = p.goal.date ? fmtDate(p.goal.date, { month: 'long', day: 'numeric' }) : '<mark>a date</mark>';
-  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will reach "got it" on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our team check'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
+  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will score <mark>${esc(p.gotIt)}% or higher</mark> on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our team check'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
 }
 LIVE.goal = () => { const el = $('#goalSentence'); if (el) el.innerHTML = goalSentence(planById(route().a)); };
 
@@ -198,8 +206,8 @@ function scoresView(p, kind) {
   if (!me) return `<div class="teacher-dots">${entry}</div><div class="empty">${icon('person')}<b>Which teacher are you?</b><span>You enter scores for your own classes only.</span><button class="btn" data-act="whoAmI">Choose your name</button></div>`;
   const sets = p.scores.filter(s => s.teacherId === ME && (s.kind || 'first') === kind);
   const intro = kind === 'recheck'
-    ? zava('Re-check only the students who didn\'t reach "got it" the first time. Launchpad adds them for you.', '', 'reteach')
-    : zava('Enter a score for each question. A total and "got it" fill in on their own. You can paste straight from a spreadsheet: student ID first, then one column per question.', '', 'check');
+    ? zava('Re-check only the students who weren\'t proficient the first time. Launchpad adds them for you.', '', 'reteach')
+    : zava('Enter a score for each question. The total and percentage fill in on their own, green when a student is proficient. You can paste straight from a spreadsheet: student ID first, then one column per question.', '', 'check');
   return `${intro}
     <div class="row"><span class="small muted">Who has entered:</span><div class="teacher-dots">${entry}</div></div>
     ${privacyNote('Use student ID numbers, not names. Your teammates never see your students\' rows, only team totals.')}
@@ -210,7 +218,7 @@ function scoreTable(p, set) {
   const items = p.check.items;
   return `<div class="stack"><div class="row"><span class="orb sm f-check">${icon('score')}</span><input type="text" aria-label="Class name" data-bind="p:scores.#${set.id}.period" value="${esc(set.period)}" style="max-width:220px" placeholder="Class period">
     <span class="spacer"></span><button class="btn sm ghost" data-act="pasteRows" data-set="${set.id}">${icon('paste')}Paste from a spreadsheet</button><button class="btn sm danger" data-act="delSet" data-set="${set.id}">${icon('trash')}Remove class</button></div>
-    <div class="score-wrap"><table class="scores"><thead><tr><th scope="col">Student ID</th>${items.map((it, i) => `<th scope="col" title="${esc(it.prompt)}">Q${i + 1}<br><span class="muted">/${esc(it.points)}${it.targetId ? ' · ' + LETTERS[p.targets.findIndex(t => t.id === it.targetId)] : ''}</span></th>`).join('')}<th scope="col">Total</th><th scope="col">Result</th><th></th></tr></thead>
+    <div class="score-wrap"><table class="scores"><thead><tr><th scope="col">Student ID</th>${items.map((it, i) => `<th scope="col" title="${esc(it.prompt)}">Q${i + 1}<br><span class="muted">/${esc(it.points)}${it.targetId ? ' · ' + LETTERS[p.targets.findIndex(t => t.id === it.targetId)] : ''}</span></th>`).join('')}<th scope="col">Points</th><th scope="col">Score</th><th></th></tr></thead>
     <tbody>${set.rows.map(row => scoreRow(p, set, row)).join('')}</tbody></table></div>
     <div><button class="btn sm soft" data-act="addRow" data-set="${set.id}">${icon('plus')}Add a student</button></div></div>`;
 }
@@ -218,15 +226,15 @@ function scoreRow(p, set, row) {
   const res = rowResult(p, row);
   return `<tr id="row-${row.id}"><td><input class="sid" type="text" aria-label="Student ID" data-bind="p:scores.#${set.id}.rows.#${row.id}.student" value="${esc(row.student)}"></td>
     ${p.check.items.map((it, i) => `<td><input type="number" min="0" max="${esc(it.points)}" aria-label="Student ${esc(row.student)} question ${i + 1}" data-type="number" data-bind="p:scores.#${set.id}.rows.#${row.id}.s.${it.id}" data-live="row" data-row="${row.id}" data-set="${set.id}" value="${esc(row.s?.[it.id] ?? '')}"></td>`).join('')}
-    <td class="num" data-total>${res.complete ? `${res.total}/${res.max}` : '–'}</td><td data-got>${gotPill(res)}</td>
+    <td class="num" data-total>${res.complete ? `${res.total}/${res.max}` : '–'}</td><td data-got>${gotPill(res, p)}</td>
     <td><button class="icon-btn" data-act="delRow" data-set="${set.id}" data-row="${row.id}" aria-label="Remove student">${icon('close')}</button></td></tr>`;
 }
-const gotPill = res => res.complete ? (res.got ? `<span class="got yes">${icon('done')}Got it</span>` : `<span class="got no">Not yet</span>`) : `<span class="got wait">Not scored yet</span>`;
+const gotPill = (res, p) => res.complete ? `<span class="got ${res.got ? 'yes' : 'no'}" title="${res.got ? 'Proficient' : 'Not yet proficient'}">${res.got ? icon('done') : ''}${scoreText(p, res.score)}</span>` : `<span class="got wait">Not scored yet</span>`;
 LIVE.row = el => {
   const p = planById(route().a), set = p.scores.find(s => s.id === el.dataset.set), row = set.rows.find(r => r.id === el.dataset.row);
   const res = rowResult(p, row), tr = $('#row-' + row.id);
   $('[data-total]', tr).textContent = res.complete ? `${res.total}/${res.max}` : '–';
-  $('[data-got]', tr).innerHTML = gotPill(res);
+  $('[data-got]', tr).innerHTML = gotPill(res, p);
 };
 ACT.addSet = b => {
   const p = planById(route().a), kind = b.dataset.kind, me = member(ME);
@@ -279,18 +287,18 @@ function resultsPanel(p, team, mine, compact) {
   const ring = `<div class="big-ring f-check"><svg viewBox="0 0 170 170"><circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--wash)" stroke-width="14"/>
     <circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--check)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - team.pct / 100)}" transform="rotate(-90 85 85)"/>
     ${goal ? `<line x1="85" y1="4" x2="85" y2="22" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" transform="rotate(${goal * 3.6} 85 85)"/>` : ''}</svg>
-    <b class="num">${team.pct}%</b><span>got it</span></div>`;
+    <b class="num">${team.pct}%</b><span>proficient</span></div>`;
   const bars = p.targets.map((t, i) => { const s = team.per[t.id]; if (!s || !s.n) return ''; return `<div class="barrow f-learn"><span class="letter sm">${LETTERS[i]}</span>
     <div class="track"><i style="width:${s.pct}%;background:var(--check)"></i>${goal ? `<span class="goal" style="left:${goal}%" title="Team goal ${goal}%"></span>` : ''}</div><b class="num">${s.pct}%</b>
     <span class="lab">${esc(t.text)}</span></div>`; }).join('');
   return `<div class="card f-check" style="background:var(--paper)"><div class="row" style="align-items:center;gap:26px">${ring}
       <div class="stack" style="flex:1;min-width:240px"><div><span class="eyebrow">Whole team · ${plural(team.n, 'student')} · ${plural(team.teachers, 'teacher')}</span>
-      <h3 style="margin-top:4px">${team.got} of ${team.n} students got it${goal ? ` · goal ${goal}%` : ''}</h3>${team.waiting ? `<p class="small muted">${plural(team.waiting, 'row')} not scored yet are left out.</p>` : ''}</div>
+      <h3 style="margin-top:4px">${team.got} of ${team.n} students proficient (${esc(p.gotIt)}% or higher)${goal ? ` · goal ${goal}%` : ''}</h3>${team.waiting ? `<p class="small muted">${plural(team.waiting, 'row')} not scored yet are left out.</p>` : ''}</div>
       ${compact ? '' : `<div class="bars">${bars}</div>`}</div></div>
     ${mine && mine.n ? myLine(mine, team) : ''}</div>`;
 }
 function myLine(mine, team) {
-  return `<div class="li" style="border-radius:22px;background:var(--wash)"><span class="orb sm f-tool">${icon('lock')}</span><span><b>Your students: ${mine.pct}% got it${team ? ` · team ${team.pct}%` : ''}</b><span class="sub">Only you see this line.</span></span><span></span></div>`;
+  return `<div class="li" style="border-radius:22px;background:var(--wash)"><span class="orb sm f-tool">${icon('lock')}</span><span><b>Your students: ${mine.pct}% proficient${team ? ` · team ${team.pct}%` : ''}</b><span class="sub">Only you see this line.</span></span><span></span></div>`;
 }
 
 /* -------------------------------------------------------------- 8 reteach */
@@ -314,7 +322,7 @@ STEP_VIEWS.reteach = p => {
 STEP_VIEWS.recheck = p => {
   const re = stats(p, { kind: 'recheck' });
   return `${scoresView(p, 'recheck')}
-    ${re.n ? `<div class="card f-reteach" style="background:var(--paper)"><h3>${re.got} of ${re.n} retaught students now have it</h3><p class="small muted">Across the whole team. ${teamUnlocked(stats(p)) ? '' : 'Individual classes are never shown.'}</p></div>` : ''}`;
+    ${re.n ? `<div class="card f-reteach" style="background:var(--paper)"><h3>${re.got} of ${re.n} retaught students are now proficient</h3><p class="small muted">Across the whole team. ${teamUnlocked(stats(p)) ? '' : 'Individual classes are never shown.'}</p></div>` : ''}`;
 };
 
 /* --------------------------------------------------------------- 10 stretch */
@@ -322,7 +330,7 @@ STEP_VIEWS.stretch = p => {
   const ways = ['On their own', 'With a partner', 'Small group', 'Teach it back'];
   return `${zava('A good stretch asks "why" or "what if" with the same skill. Avoid simply handing out more problems of the same kind. It runs while other students are retaught, so nobody waits.', 'Sketch an object with a hidden hole, show it with hidden lines, and explain your choice to a partner.', 'stretch')}
     <div class="fields f-stretch">
-      <div class="field wide"><label for="stAct">The stretch activity</label><textarea id="stAct" data-bind="p:stretch.activity" placeholder="Students who got it will…">${esc(p.stretch.activity)}</textarea></div>
+      <div class="field wide"><label for="stAct">The stretch activity</label><textarea id="stAct" data-bind="p:stretch.activity" placeholder="Students who are already proficient will…">${esc(p.stretch.activity)}</textarea></div>
       <div class="field wide"><span class="lbl">How students work on it</span><div class="chips">${ways.map(w => `<button type="button" class="chip" aria-pressed="${p.stretch.how.includes(w)}" data-act="toggleWay" data-v="${esc(w)}">${w}</button>`).join('')}</div></div>
       <div class="field wide"><label for="stMat">Materials link (optional)</label><input id="stMat" type="url" data-bind="p:stretch.materials" value="${esc(p.stretch.materials)}" placeholder="https://"></div>
     </div>`;
@@ -345,7 +353,7 @@ STEP_VIEWS.wrap = p => {
   const f = finalStats(p), goal = Number(p.goal.target) || 0;
   const met = teamUnlocked(f) && goal && f.pct >= goal;
   return `<div class="card f-stretch" style="background:var(--paper)">
-      ${teamUnlocked(f) ? `<span class="eyebrow">After reteaching</span><h3 style="font-size:1.6rem">${f.pct}% of students have it${goal ? ` · goal ${goal}%` : ''}</h3>
+      ${teamUnlocked(f) ? `<span class="eyebrow">After reteaching</span><h3 style="font-size:1.6rem">${f.pct}% of students are proficient${goal ? ` · goal ${goal}%` : ''}</h3>
       <p>${goal ? (met ? 'You reached your team goal. Celebrate it together!' : `You're ${goal - f.pct} points from your goal.`) : ''}</p>` : `<div class="locked">${icon('lock')}<div><b>Results appear once enough scores are in</b></div></div>`}
     </div>
     ${zava('Take five minutes to name what worked. Then decide whether to keep going with this skill or start the next one.', '', 'stretch')}

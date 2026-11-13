@@ -152,8 +152,8 @@ function inviteCard(inv) {
   return `<div class="invite f-reteach"><div class="card-head"><span class="orb">${icon('practice')}</span><div class="grow"><span class="eyebrow" style="color:var(--reteach)">An invitation for you · only you see this</span>
     <h3>Your students did better than the team on "${esc(inv.target.text)}"</h3></div></div>
     <div class="vs"><span class="letter sm">${LETTERS[i]}</span>
-      <div class="vs-bar f-reteach"><div class="bar"><i style="width:${inv.mine}%"></i></div><span><b>Your students</b><b>${inv.mine}%</b></span></div>
-      <div class="vs-bar f-tool"><div class="bar"><i style="width:${inv.team}%;background:var(--line)"></i></div><span><b>Whole team</b><b>${inv.team}%</b></span></div></div>
+      <div class="vs-bar f-reteach"><div class="bar"><i style="width:${inv.mine}%"></i></div><span><b>Your students proficient</b><b>${inv.mine}%</b></span></div>
+      <div class="vs-bar f-tool"><div class="bar"><i style="width:${inv.team}%;background:var(--line)"></i></div><span><b>Whole team proficient</b><b>${inv.team}%</b></span></div></div>
     <p>Would you share what you did? A sentence or two helps your teammates plan their reteaching. You choose whether your name shows.</p>
     <div class="row"><button class="btn fam f-reteach" data-act="share" data-key="${inv.key}">${icon('share')}Share what I did</button>
       <button class="btn ghost sm" data-act="inviteLater" data-key="${inv.key}">Not now</button><button class="btn ghost sm" data-act="inviteNever" data-key="${inv.key}">Don't ask for this skill</button></div></div>`;
@@ -163,7 +163,7 @@ function stratCard(s) {
   const who = s.anonymous ? 'A teammate' : memberName(s.teacherId);
   return `<article class="strat f-reteach"><div class="who"><span class="avatar">${s.anonymous ? icon('person') : esc(initials(who))}</span><span><b style="color:var(--ink)">${esc(who)}</b> shared ${esc(fmtDate(s.sharedAt))}</span></div>
     <blockquote>${esc(s.text)}</blockquote>
-    <div class="row">${s.mine != null ? `<span class="proof">${icon('results')}${s.mine}% got it · team ${s.team}%</span>` : ''}${(s.tags || []).map(x => `<span class="chip" style="font-size:.78rem;padding:3px 10px">${esc(x)}</span>`).join('')}</div>
+    <div class="row">${s.mine != null ? `<span class="proof">${icon('results')}${s.mine}% proficient · team ${s.team}%</span>` : ''}${(s.tags || []).map(x => `<span class="chip" style="font-size:.78rem;padding:3px 10px">${esc(x)}</span>`).join('')}</div>
     ${t ? `<p class="small muted">For: ${esc(t.text)}</p>` : ''}${s.link ? `<a class="small" href="${esc(s.link)}" target="_blank" rel="noopener">${icon('link')} Materials</a>` : ''}
     ${s.teacherId === ME ? `<div><button class="btn sm ghost" data-act="unshare" data-id="${s.id}">Stop sharing</button></div>` : ''}</article>`;
 }
@@ -178,7 +178,7 @@ function viewWorked() {
 }
 const inviteByKey = key => invitationsFor(ME).find(i => i.key === key);
 ACT.inviteLater = b => { ((S.invites[ME] ||= {}))[b.dataset.key] = 'later:' + addDays(todayISO(), 7); save(); render(); toast('We\'ll ask again next week.'); };
-ACT.inviteNever = b => { ((S.invites[ME] ||= {}))[b.dataset.key] = 'never'; save(); render(); toast('Got it. We won\'t ask about this skill again.'); };
+ACT.inviteNever = b => { ((S.invites[ME] ||= {}))[b.dataset.key] = 'never'; save(); render(); toast('Okay. We won\'t ask about this skill again.'); };
 ACT.share = async b => {
   const inv = inviteByKey(b.dataset.key); if (!inv) return;
   const tags = ['Hands-on', 'Visual', 'Small groups', 'Partner check', 'Explained it differently', 'Real-world example', 'Technology', 'More practice time'];
