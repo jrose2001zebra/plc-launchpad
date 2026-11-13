@@ -1,0 +1,95 @@
+<script>
+/* PLC Launchpad · Apps Script bridge
+   Runs before the app. Sends the app's /api/... requests to Code.gs through google.script.run,
+   and makes links and page changes work inside the Apps Script frame. */
+(function () {
+  'use strict';
+  var P = window.__PLC;
+
+  function call(fn, arg) {
+    return new Promise(function (resolve, reject) {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](arg);
+    });
+  }
+
+  /* The outer address bar holds the #/route; copy it in before the app starts. */
+  P.ready = new Promise(function (resolve) {
+    var done = false;
+    function finish() { if (!done) { done = true; resolve(); } }
+    try {
+      google.script.url.getLocation(function (loc) {
+        if (loc && loc.hash && !location.hash) history.replaceState(null, '', '#' + loc.hash);
+        finish();
+      });
+    } catch (e) { finish(); }
+    setTimeout(finish, 2000);
+  });
+  window.addEventListener('hashchange', function () {
+    try { google.script.history.replace(null, P.params, location.hash.replace(/^#/, '')); } catch (e) {}
+  });
+
+  /* fetch('/api/...') and the quiz connector file go to the server; everything else is untouched. */
+  var realFetch = window.fetch.bind(window);
+  function base64(blob) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(String(reader.result).split(',')[1] || ''); };
+      reader.onerror = function () { reject(reader.error); };
+      reader.readAsDataURL(blob);
+    });
+  }
+  window.fetch = async function (input, init) {
+    init = init || {};
+    var url = typeof input === 'string' ? input : input.url;
+    var path = url === './quiz-connector.txt' ? '/api/asset/quiz-connector' : (url.indexOf('/api/') === 0 ? url : null);
+    if (!path) return realFetch(input, init);
+    var parsed = new URL(path, 'https://launchpad.invalid');
+    var query = {};
+    parsed.searchParams.forEach(function (v, k) { query[k] = v; });
+    var headers = new Headers(init.headers || {});
+    var req = { method: String(init.method || 'GET').toUpperCase(), path: parsed.pathname, query: query };
+    if (headers.has('If-Match')) req.ifMatch = headers.get('If-Match');
+    if (init.body instanceof Blob) {
+      req.fileName = decodeURIComponent(headers.get('X-File-Name') || init.body.name || 'file');
+      req.mime = init.body.type || 'application/octet-stream';
+      req.bodyBase64 = await base64(init.body);
+    } else if (init.body != null) {
+      req.body = String(init.body);
+    }
+    var out;
+    try { out = await call('api', req); }
+    catch (e) { throw new TypeError('Could not reach Launchpad. Check your connection and try again.'); }
+    if (out && out.base64 != null) {
+      var raw = atob(out.base64), bytes = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      return new Response(bytes, { status: out.status || 200, headers: { 'Content-Type': out.mime || 'application/octet-stream' } });
+    }
+    var isText = out && out.text != null;
+    return new Response(isText ? out.text : JSON.stringify((out && out.body) || {}), {
+      status: (out && out.status) || 200,
+      headers: { 'Content-Type': isText ? 'text/plain' : 'application/json' }
+    });
+  };
+
+  /* Page changes must load the whole app again at the top level, not inside this frame. */
+  window.plcNavigate = function (href) {
+    window.open(new URL(String(href), P.execUrl).href, '_top');
+  };
+  window.plcReload = function () {
+    window.open(P.execUrl + P.search + location.hash, '_top');
+  };
+  window.plcPreview = function (file) {
+    return file && file.driveId ? 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.driveId) + '&sz=w1200' : '';
+  };
+
+  /* Links: app links reload at the top level; other websites open in a new tab. */
+  document.addEventListener('click', function (event) {
+    var a = event.target.closest && event.target.closest('a[href]');
+    if (!a || event.defaultPrevented) return;
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) === '#' || /^(mailto|tel):/i.test(href)) return;
+    if (a.href.indexOf(P.execUrl) === 0) { event.preventDefault(); window.open(a.href, '_top'); return; }
+    if (/^https?:/i.test(a.href) && !a.target) a.target = '_blank';
+  }, true);
+})();
+</script>

@@ -1,0 +1,13 @@
+Files for the Apps Script project, built from index.html by apps-script/build.py.
+In the Apps Script editor, create each one with the same name (without .html/.gs) and paste its contents.
+
+Bridge.html  (4,349 bytes)
+Code.gs  (26,062 bytes)
+Head.html  (351,998 bytes)
+Index.html  (187 bytes)
+Page1.html  (240,255 bytes)
+Page2.html  (240,120 bytes)
+Page3.html  (240,000 bytes)
+Page4.html  (239,706 bytes)
+QuizConnector.html  (12,376 bytes)
+appsscript.json  (365 bytes)

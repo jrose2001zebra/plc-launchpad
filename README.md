@@ -9,13 +9,15 @@ Created by John Rose.
 |---|---|
 | `index.html` | The live app (v0.509), copied unchanged from the current site. The whole front end is in this one file. |
 | `quiz-connector.txt` | Google Apps Script the app hands to a PLC coordinator to connect Google Forms quizzes to results. |
+| `apps-script/` | The Google Apps Script version: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files. |
 | `prototype/concept-orbit.html` | Design concept for the redesign: the four questions as an orbit, a narrated animated tour, plan-once linked fields, and a ready board. |
 
-## Not in this repository yet
+## Hosting
 
-The app saves and loads team workspaces through server routes on its current host
-(`/api/demo/…`, `/api/resources/…`, `/api/learning-targets`, `/api/directory-home`).
-That server code is not part of the page, so it is not here.
+The current site saves through server routes on its ChatGPT host, and that server code is not
+available. `apps-script/` replaces it: Launchpad runs from Google Apps Script, limited to your
+school's Google domain, with all data in the deploying account's Drive.
+See [apps-script/SETUP.md](apps-script/SETUP.md).
 
 ## Redesign plan
 
