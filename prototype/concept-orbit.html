@@ -1,0 +1,681 @@
+<title>PLC Launchpad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: an orbit system. The team's promise sits at the center; DuFour's four questions orbit it as planets.
+   Every section is built from circles, capsules and overlapping "ink" shapes instead of boxes. */
+:root{
+  --sky:#E9EFF7; --paper:#FFFFFF; --ink:#14213D; --ink-soft:#4C5876; --line:#C7D2E3;
+  --q1:#2F5BEA; --q2:#F26A2E; --q3:#0F9C7C; --q4:#E2A800;
+  --on-q:#14213D; --on-q1:#FFFFFF;
+  --blend:multiply; --glow:rgba(47,91,234,.14);
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757;
+  --q1:#7391FF; --q2:#FF8A55; --q3:#33D1AA; --q4:#FFCB3D; --on-q1:#0D1424;
+  --blend:screen; --glow:rgba(115,145,255,.18); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757;
+  --q1:#7391FF; --q2:#FF8A55; --q3:#33D1AA; --q4:#FFCB3D; --on-q1:#0D1424;
+  --blend:screen; --glow:rgba(115,145,255,.18); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.6rem,6.4vw,5.2rem);font-weight:800;letter-spacing:-.03em}
+h2{font-size:clamp(2rem,4.2vw,3.2rem);font-weight:800;letter-spacing:-.02em}
+h3{font-size:1.5rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--q1);outline-offset:3px;border-radius:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- header ---------- */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sky)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--sky) 86%,transparent);backdrop-filter:blur(10px)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.2rem;text-decoration:none;color:var(--ink)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem;padding:8px 14px;border-radius:999px;border:2px solid var(--line)}
+nav a:hover{border-color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding-block:28px 56px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:32px;align-items:center}
+.hero-copy{display:grid;gap:22px}
+.hero-copy .lede{font-size:1.2rem;color:var(--ink-soft);max-width:34ch}
+.hero h1 .c1{color:var(--q1)} .hero h1 .c2{color:var(--q2)} .hero h1 .c3{color:var(--q3)}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:14px 22px;font-weight:700;text-decoration:none;font-size:1rem}
+.btn.primary{background:var(--ink);color:var(--sky)}
+.btn.ghost{background:transparent;border:2px solid var(--ink);color:var(--ink)}
+.btn .dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--q2);color:var(--on-q)}
+.inks{position:absolute;inset:0 0 -40px;pointer-events:none;overflow:hidden;z-index:-1}
+.inks span{position:absolute;border-radius:50%;mix-blend-mode:var(--blend);opacity:.22}
+.orbit-box{position:relative;width:100%;max-width:560px;justify-self:center}
+.orbit{width:100%;height:auto;display:block;overflow:visible}
+.orbit .ring{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round}
+.orbit .core{fill:var(--ink)}
+.orbit .core-text{fill:var(--sky);font-family:var(--display);font-weight:800;text-anchor:middle}
+.orbit .core-sub{fill:var(--sky);opacity:.75;font-family:var(--body);font-size:15px;text-anchor:middle}
+.planet{cursor:pointer;outline:none}
+.planet .pfill{fill:var(--paper);stroke-width:4;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.planet .ptrack{fill:none;stroke:var(--line);stroke-width:7}
+.planet .parc{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.planet .pnum{font-family:var(--display);font-weight:800;font-size:44px;text-anchor:middle}
+.planet .pword{font-family:var(--display);font-weight:700;font-size:15px;text-anchor:middle;fill:var(--ink)}
+.planet .pfill, .planet .ptrack, .planet .parc{transform-box:fill-box;transform-origin:center}
+.planet:hover .pfill,.planet:focus-visible .pfill,.planet.on .pfill{transform:scale(1.08)}
+.planet:focus-visible .ptrack{stroke:var(--ink)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.float{animation:bob 6s ease-in-out infinite}
+.float.d2{animation-delay:-1.5s}.float.d3{animation-delay:-3s}.float.d4{animation-delay:-4.5s}
+@keyframes bob{50%{transform:translateY(-7px)}}
+.orbit-hint{text-align:center;color:var(--ink-soft);font-size:.9rem;margin-top:6px}
+
+/* ---------- sections ---------- */
+section.band{padding-block:72px}
+.sec-head{display:grid;gap:12px;max-width:46rem;margin-bottom:34px}
+.sec-head p{color:var(--ink-soft);font-size:1.1rem}
+
+/* ---------- explainer ---------- */
+.watch{background:var(--ink);color:var(--sky);border-radius:80px 80px 0 0;position:relative;padding-block:72px 150px}
+.watch .eyebrow,.watch .sec-head p{color:color-mix(in srgb,var(--sky) 72%,transparent)}
+.player{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:28px;align-items:center}
+.screen{position:relative;border-radius:46px 46px 46px 10px;background:var(--paper);overflow:hidden;aspect-ratio:16/9;max-width:100%}
+#stage{width:100%;height:100%;display:block}
+#stage text{font-family:var(--display);fill:var(--ink)}
+.scene{opacity:0;transition:opacity .5s ease}
+.scene.on{opacity:1}
+.caption{position:absolute;left:16px;right:16px;bottom:14px;background:color-mix(in srgb,var(--ink) 88%,transparent);color:var(--sky);font-size:1rem;line-height:1.4;padding:10px 16px;border-radius:20px;text-align:center}
+.controls{display:grid;gap:20px}
+.play{width:96px;height:96px;border-radius:50%;border:0;background:var(--q2);color:var(--on-q);display:grid;place-items:center;transition:transform .2s}
+.play:hover{transform:scale(1.06)}
+.play svg{width:34px;height:34px}
+.ctl-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ctl-row .meta{display:grid;gap:4px}
+.ctl-row .meta b{font-family:var(--display);font-size:1.3rem}
+.ctl-row .meta span{color:color-mix(in srgb,var(--sky) 70%,transparent);font-size:.95rem}
+.chapters{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0}
+.chapters button{border:2px solid color-mix(in srgb,var(--sky) 30%,transparent);background:transparent;color:var(--sky);border-radius:999px;padding:6px 12px;font-size:.88rem;font-weight:700}
+.chapters button[aria-current="true"]{background:var(--sky);color:var(--ink);border-color:var(--sky)}
+.toggle{display:inline-flex;align-items:center;gap:10px;font-size:.95rem;color:color-mix(in srgb,var(--sky) 80%,transparent)}
+.toggle input{accent-color:var(--q2);width:18px;height:18px}
+.voice-note{font-size:.85rem;color:color-mix(in srgb,var(--sky) 60%,transparent)}
+
+/* explainer stage animations */
+.fig{transform-box:fill-box;transform-origin:center}
+.scene.on .fig{animation:arrive .9s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes arrive{from{opacity:0;transform:translate(var(--fx,0),var(--fy,0)) scale(.4)}to{opacity:1;transform:none}}
+.scene.on .pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+.pop{transform-box:fill-box;transform-origin:center}
+.scene.on .draw{animation:draw 1.4s ease both}
+@keyframes draw{from{stroke-dashoffset:var(--len,400)}to{stroke-dashoffset:0}}
+.splanet{transition:opacity .5s, transform .5s;opacity:.25;transform-box:fill-box;transform-origin:center}
+.splanet.lit{opacity:1}
+.splanet.now{transform:scale(1.18)}
+.typing{font-family:var(--body)!important;font-size:17px}
+
+/* ---------- planner ---------- */
+.planner{background:var(--paper);position:relative}
+.planner::before{content:"";position:absolute;left:0;right:0;top:-80px;height:80px;background:var(--paper);border-radius:0 80px 0 0}
+.watch + .planner::before{background:var(--paper)}
+.picker{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.qbtn{display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:6px 18px 6px 6px;border-radius:999px;border:2px solid var(--line);font-weight:700;text-align:left}
+.qbtn .disc{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:1.3rem;font-weight:800;background:conic-gradient(var(--c) calc(var(--p,0)*1%), var(--line) 0)}
+.qbtn .disc i{font-style:normal;width:36px;height:36px;border-radius:50%;background:var(--paper);display:grid;place-items:center;color:var(--c)}
+.qbtn[aria-selected="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--paper))}
+.qbtn small{display:block;font-weight:400;color:var(--ink-soft);font-size:.82rem}
+
+.station{--c:var(--q1);display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:30px;border-radius:64px 64px 64px 14px;background:color-mix(in srgb,var(--c) 8%,var(--sky));padding:clamp(22px,4vw,48px);position:relative;overflow:hidden}
+.station::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;right:-120px;top:-140px;background:var(--c);opacity:.12;pointer-events:none}
+.st-main{display:grid;gap:22px;min-width:0;position:relative;z-index:1}
+.st-q{display:flex;gap:18px;align-items:flex-start}
+.bignum{flex:none;width:76px;height:76px;border-radius:50%;background:var(--c);color:var(--on-q);display:grid;place-items:center;font-family:var(--display);font-size:2.4rem;font-weight:800}
+.station[data-q="1"] .bignum{color:var(--on-q1)}
+.st-q h3{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;letter-spacing:-.01em}
+.st-q p{color:var(--ink-soft);margin-top:8px;max-width:52ch}
+.term{display:inline-block;margin-top:10px}
+.term summary{list-style:none;display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;border:2px dashed color-mix(in srgb,var(--c) 70%,var(--ink));border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.term summary::-webkit-details-marker{display:none}
+.term[open] summary{background:var(--paper)}
+.term p{margin-top:10px;background:var(--paper);border-radius:22px 22px 22px 4px;padding:12px 16px;max-width:52ch;font-size:.95rem;color:var(--ink)}
+.hear{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--ink);color:var(--sky);border-radius:999px;padding:8px 14px 8px 8px;font-size:.88rem;font-weight:700;margin-top:10px;margin-left:8px}
+.hear span{width:24px;height:24px;border-radius:50%;background:var(--c);color:var(--on-q);display:grid;place-items:center}
+.terms-row{display:flex;flex-wrap:wrap;align-items:flex-start}
+
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.field{display:grid;gap:6px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field label,.field .lbl{font-weight:700;font-size:.98rem}
+.field .help{font-size:.86rem;color:var(--ink-soft)}
+.field input,.field textarea,.field select{font:inherit;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:12px 16px;width:100%}
+.field textarea{min-height:84px;resize:vertical;border-radius:22px}
+.field input:focus,.field textarea:focus{border-color:var(--c);outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 22%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 14px;font-size:.92rem;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--on-q)}
+.station[data-q="1"] .chip[aria-pressed="true"]{color:var(--on-q1)}
+.chip small{font-weight:400;opacity:.8}
+
+.linked{display:grid;gap:6px;background:var(--paper);border-radius:999px 999px 999px 999px;padding:10px 12px 10px 18px;border:2px solid color-mix(in srgb,var(--q1) 40%,var(--line))}
+.linked-in{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.linked .val{font-weight:700;min-width:0}
+.linked .from{font-size:.82rem;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+.linked button{border:0;background:var(--sky);border-radius:999px;padding:6px 12px;font-size:.82rem;font-weight:700}
+.flash{animation:flash .9s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--q2) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+
+.st-side{display:grid;gap:18px;align-content:start;min-width:0;position:relative;z-index:1}
+.reach{background:var(--paper);border-radius:40px 40px 10px 40px;padding:22px 24px;display:grid;gap:12px}
+.reach h4{margin:0;font-family:var(--display);font-size:1.1rem}
+.reach ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.reach li{display:flex;gap:12px;align-items:flex-start;font-size:.95rem}
+.reach li i{flex:none;width:12px;height:12px;border-radius:50%;margin-top:6px;background:var(--c)}
+.reach .count{font-family:var(--display);font-size:2.6rem;font-weight:800;line-height:1;color:var(--c)}
+.newbie{border-radius:40px 10px 40px 40px;border:2px dashed var(--line);padding:20px 22px;display:grid;gap:8px;font-size:.95rem}
+.newbie b{font-family:var(--display);font-size:1.05rem}
+.next{justify-self:start}
+
+/* ---------- ready board ---------- */
+.ready{position:relative}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.lane{display:grid;gap:14px;align-content:start}
+.lane-head{display:flex;align-items:center;gap:14px}
+.lane-head .orb{width:54px;height:54px;border-radius:50%;background:var(--ink);color:var(--sky);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.2rem}
+.lane-head small{display:block;color:var(--ink-soft)}
+.item{--c:var(--q1);display:flex;gap:16px;align-items:center;background:var(--paper);border-radius:999px 36px 36px 999px;padding:10px 20px 10px 10px;border:0;text-align:left;width:100%}
+.item .token{flex:none;width:52px;height:52px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), color-mix(in srgb,var(--c) 18%,var(--paper)) 0);display:grid;place-items:center;transition:background .3s}
+.item .token i{width:38px;height:38px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-style:normal;font-family:var(--display);font-weight:800;color:var(--c)}
+.item[data-s="2"] .token i{background:var(--c);color:var(--on-q)}
+.item .txt{min-width:0;display:grid;gap:2px}
+.item .txt b{font-weight:700;overflow-wrap:anywhere}
+.item .txt span{font-size:.86rem;color:var(--ink-soft)}
+.state{margin-left:auto;flex:none;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 10px;border-radius:999px;background:var(--sky)}
+.item[data-s="2"] .state{background:var(--c);color:var(--on-q)}
+.item:hover{box-shadow:0 0 0 2px var(--c)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--ink-soft);font-size:.9rem;margin-top:22px}
+
+footer{padding-block:40px 60px;color:var(--ink-soft);font-size:.9rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.reset{border:2px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem}
+
+@media (max-width:900px){
+  .hero-grid,.player,.station{grid-template-columns:minmax(0,1fr)}
+  .board{grid-template-columns:minmax(0,1fr)}
+  .watch{border-radius:48px 48px 0 0}
+}
+@media (max-width:560px){
+  .fields{grid-template-columns:minmax(0,1fr)}
+  nav a{padding:6px 10px;font-size:.85rem}
+  .brand span{display:none}
+  .station{border-radius:40px 40px 40px 12px}
+  .bignum{width:58px;height:58px;font-size:1.8rem}
+  .linked{border-radius:28px}
+  .item{border-radius:40px 28px 28px 40px}
+  .caption{font-size:.85rem;padding:8px 12px;bottom:8px;left:8px;right:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="PLC Launchpad home">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="8" fill="var(--ink)"/><ellipse cx="17" cy="17" rx="15" ry="6.5" fill="none" stroke="var(--q2)" stroke-width="2.5" transform="rotate(-30 17 17)"/><circle cx="29" cy="10" r="3" fill="var(--q1)"/></svg>
+      <span>PLC Launchpad</span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#watch">Watch</a>
+      <a href="#plan">Plan a unit</a>
+      <a href="#ready">Ready board</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="inks" aria-hidden="true">
+    <span style="width:420px;height:420px;background:var(--q1);left:-160px;top:-120px"></span>
+    <span style="width:300px;height:300px;background:var(--q2);left:40px;top:180px"></span>
+    <span style="width:220px;height:220px;background:var(--q4);right:6%;bottom:-40px"></span>
+  </div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">For collaborative teacher teams</span>
+      <h1>Four questions.<br><span class="c1">One team.</span><br><span class="c2">Every</span> <span class="c3">student.</span></h1>
+      <p class="lede">Launchpad walks your team through DuFour's four PLC questions in plain words, and keeps track of everything you're getting ready for each other and for your students.</p>
+      <div class="cta">
+        <a class="btn primary" href="#watch"><span class="dot" aria-hidden="true">▶</span>Watch the 90-second tour</a>
+        <a class="btn ghost" href="#plan">Start planning</a>
+      </div>
+    </div>
+    <div class="orbit-box">
+      <svg class="orbit" viewBox="0 0 600 600" role="group" aria-label="Your unit and the four PLC questions. Choose a question to open it.">
+        <circle class="ring" cx="300" cy="300" r="212"/>
+        <g aria-hidden="true"><circle cx="300" cy="88" r="9" fill="var(--q2)"/><animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="38s" repeatCount="indefinite"/></g>
+        <circle cx="300" cy="300" r="128" fill="var(--glow)"/>
+        <circle class="core" cx="300" cy="300" r="112"/>
+        <text class="core-sub" x="300" y="262">Our promise</text>
+        <text class="core-text" x="300" y="296" font-size="30">Every student</text>
+        <text class="core-text" x="300" y="328" font-size="30">learns</text>
+        <text class="core-sub" x="300" y="362" data-show="unitShort"></text>
+      </svg>
+      <p class="orbit-hint">The rings fill in as your team answers each question.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band watch" id="watch">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Narrated tour</span>
+      <h2>What's a PLC? Watch it, don't read it.</h2>
+      <p>A short animated walkthrough with a voice and captions. Every page in Launchpad has one, so a teacher in their first week never has to decode the jargon alone.</p>
+    </div>
+    <div class="player">
+      <div class="screen">
+        <svg id="stage" viewBox="0 0 640 360" aria-hidden="true">
+          <!-- scene 0: the team and the promise -->
+          <g class="scene" data-s="0">
+            <circle class="pop" cx="320" cy="170" r="62" fill="var(--ink)"/>
+            <text x="320" y="166" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--sky)">Every student</text>
+            <text x="320" y="188" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--sky)">learns</text>
+            <g class="fig" style="--fx:-220px;--fy:-40px;animation-delay:.2s"><circle cx="200" cy="96" r="14" fill="var(--q1)"/><rect x="184" y="114" width="32" height="34" rx="16" fill="var(--q1)"/></g>
+            <g class="fig" style="--fx:220px;--fy:-40px;animation-delay:.45s"><circle cx="440" cy="96" r="14" fill="var(--q2)"/><rect x="424" y="114" width="32" height="34" rx="16" fill="var(--q2)"/></g>
+            <g class="fig" style="--fx:-240px;--fy:60px;animation-delay:.7s"><circle cx="186" cy="214" r="14" fill="var(--q3)"/><rect x="170" y="232" width="32" height="34" rx="16" fill="var(--q3)"/></g>
+            <g class="fig" style="--fx:240px;--fy:60px;animation-delay:.95s"><circle cx="454" cy="214" r="14" fill="var(--q4)"/><rect x="438" y="232" width="32" height="34" rx="16" fill="var(--q4)"/></g>
+            <g class="fig" style="--fx:0px;--fy:140px;animation-delay:1.2s"><circle cx="320" cy="262" r="14" fill="var(--ink-soft)"/><rect x="304" y="280" width="32" height="34" rx="16" fill="var(--ink-soft)"/></g>
+          </g>
+          <!-- scene 1: three big ideas -->
+          <g class="scene" data-s="1">
+            <g class="pop" style="animation-delay:.1s"><circle cx="160" cy="160" r="74" fill="var(--q1)" opacity=".9"/><text x="160" y="154" text-anchor="middle" font-size="17" font-weight="800" style="fill:#fff">Focus on</text><text x="160" y="176" text-anchor="middle" font-size="17" font-weight="800" style="fill:#fff">learning</text></g>
+            <g class="pop" style="animation-delay:1.6s"><circle cx="320" cy="160" r="74" fill="var(--q2)" opacity=".9"/><text x="320" y="154" text-anchor="middle" font-size="17" font-weight="800">Work as</text><text x="320" y="176" text-anchor="middle" font-size="17" font-weight="800">a team</text></g>
+            <g class="pop" style="animation-delay:3.2s"><circle cx="480" cy="160" r="74" fill="var(--q3)" opacity=".9"/><text x="480" y="154" text-anchor="middle" font-size="17" font-weight="800">Look at</text><text x="480" y="176" text-anchor="middle" font-size="17" font-weight="800">results</text></g>
+          </g>
+          <!-- scenes 2-5: the four questions -->
+          <g class="scene" data-s="orbit">
+            <circle cx="320" cy="160" r="118" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 8"/>
+            <circle cx="320" cy="160" r="44" fill="var(--ink)"/>
+            <text x="320" y="166" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--sky)">Your team</text>
+            <g class="splanet" data-p="0"><circle cx="236" cy="76" r="34" fill="var(--q1)"/><text x="236" y="88" text-anchor="middle" font-size="32" font-weight="800" style="fill:#fff">1</text></g>
+            <g class="splanet" data-p="1"><circle cx="404" cy="76" r="34" fill="var(--q2)"/><text x="404" y="88" text-anchor="middle" font-size="32" font-weight="800">2</text></g>
+            <g class="splanet" data-p="2"><circle cx="404" cy="244" r="34" fill="var(--q3)"/><text x="404" y="256" text-anchor="middle" font-size="32" font-weight="800">3</text></g>
+            <g class="splanet" data-p="3"><circle cx="236" cy="244" r="34" fill="var(--q4)"/><text x="236" y="256" text-anchor="middle" font-size="32" font-weight="800">4</text></g>
+          </g>
+          <!-- scene 6: type once -->
+          <g class="scene" data-s="6">
+            <rect class="pop" x="40" y="128" width="236" height="64" rx="32" fill="var(--sky)" stroke="var(--q1)" stroke-width="3"/>
+            <text class="typing" x="62" y="167" id="typeLine"></text>
+            <path class="draw" d="M276 160 C 360 160, 360 60, 450 60" fill="none" stroke="var(--q1)" stroke-width="3" stroke-dasharray="400" style="--len:400;animation-delay:1.6s"/>
+            <path class="draw" d="M276 160 C 360 160, 360 130, 450 130" fill="none" stroke="var(--q2)" stroke-width="3" stroke-dasharray="400" style="--len:400;animation-delay:1.8s"/>
+            <path class="draw" d="M276 160 C 360 160, 360 200, 450 200" fill="none" stroke="var(--q3)" stroke-width="3" stroke-dasharray="400" style="--len:400;animation-delay:2s"/>
+            <path class="draw" d="M276 160 C 360 160, 360 270, 450 270" fill="none" stroke="var(--q4)" stroke-width="3" stroke-dasharray="400" style="--len:400;animation-delay:2.2s"/>
+            <g class="pop" style="animation-delay:2.6s"><rect x="450" y="40" width="150" height="40" rx="20" fill="var(--q1)"/><text x="525" y="66" text-anchor="middle" font-size="15" font-weight="700" style="fill:#fff">Unit plan</text></g>
+            <g class="pop" style="animation-delay:2.8s"><rect x="450" y="110" width="150" height="40" rx="20" fill="var(--q2)"/><text x="525" y="136" text-anchor="middle" font-size="15" font-weight="700">The check</text></g>
+            <g class="pop" style="animation-delay:3s"><rect x="450" y="180" width="150" height="40" rx="20" fill="var(--q3)"/><text x="525" y="206" text-anchor="middle" font-size="15" font-weight="700">Reteach plan</text></g>
+            <g class="pop" style="animation-delay:3.2s"><rect x="450" y="250" width="150" height="40" rx="20" fill="var(--q4)"/><text x="525" y="276" text-anchor="middle" font-size="15" font-weight="700">Student poster</text></g>
+          </g>
+        </svg>
+        <p class="caption" id="caption" aria-live="polite">Press play for a 90-second tour of how a PLC works.</p>
+      </div>
+      <div class="controls">
+        <div class="ctl-row">
+          <button class="play" id="playBtn" aria-label="Play the tour">
+            <svg viewBox="0 0 24 24" id="playIcon"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>
+          </button>
+          <div class="meta"><b id="chapTitle">How a PLC works</b><span id="chapCount">7 short chapters</span></div>
+        </div>
+        <ol class="chapters" id="chapters"></ol>
+        <label class="toggle"><input type="checkbox" id="voiceOn" checked> Read it aloud</label>
+        <p class="voice-note">This prototype uses your browser's built-in voice. The real tours would use a recorded or studio-quality AI narrator.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band planner" id="plan">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Plan a unit · sample unit filled in</span>
+      <h2>Answer each question once. We carry it everywhere else.</h2>
+      <p>Each question is written in everyday words. The official term sits underneath for when your principal or coach uses it. Anything marked <b>linked</b> was typed in another step and fills in here on its own.</p>
+    </div>
+    <div class="picker" role="tablist" aria-label="The four questions" id="picker"></div>
+    <div id="station"></div>
+  </div>
+</section>
+
+<section class="band ready" id="ready">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Ready board</span>
+      <h2>What still needs getting ready?</h2>
+      <p>Launchpad builds this list from your plan, so the names update as you type. Tap an item to move it from <b>Not started</b> to <b>Started</b> to <b>Ready</b>.</p>
+    </div>
+    <div class="board">
+      <div class="lane"><div class="lane-head"><div class="orb" id="teamCount">0/0</div><div><h3>For the team</h3><small>Meetings, agreements and data</small></div></div><div id="laneTeam" class="lane"></div></div>
+      <div class="lane"><div class="lane-head"><div class="orb" id="kidCount">0/0</div><div><h3>For students</h3><small>Things students will see or use</small></div></div><div id="laneKids" class="lane"></div></div>
+    </div>
+    <div class="legend"><span>The color shows which question an item comes from.</span></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>PLC Launchpad prototype · Built on Richard DuFour's PLC at Work model · The unit shown is an example.</span>
+    <button class="reset" id="resetBtn">Reset the sample unit</button>
+  </div>
+</footer>
+
+<script>
+(() => {
+const KEY = 'plc-launchpad-v1';
+const SAMPLE = {
+  unit: 'Fractions on a Number Line', grade: '3rd grade', target: 'I can place a fraction on a number line.',
+  code: '3.NF.A.2', why: ['Needed next year', 'Used in other subjects', 'On the state test'],
+  checkName: 'Number line quick check', checkDate: '2026-12-03', gotIt: '3 out of 4 correct',
+  format: ['Exit ticket'], leader: 'Ms. Alvarez', reteach: 'Fold paper strips into equal parts, then match each strip to a number line.',
+  stretch: 'Students place fractions greater than 1 and explain their thinking to a partner.',
+  stretchFormat: ['Partner task'], ready: {}
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || clone(SAMPLE); } catch (e) { S = clone(SAMPLE); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+const fmtDate = iso => { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }); };
+const nextSchoolDay = iso => { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); if (isNaN(d)) return ''; do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6); return d.toISOString().slice(0, 10); };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const or = (v, fallback) => (v && String(v).trim()) ? v : fallback;
+
+/* ---------- the four questions ---------- */
+const Q = [
+  { n: 1, c: 'var(--q1)', word: 'Learn', short: 'What must they learn?',
+    title: 'What do we want every student to learn?',
+    sub: 'Pick one skill your whole team agrees every student must walk away with. Fewer, more important skills beat a long list.',
+    term: 'Essential standard / learning target',
+    def: 'An essential standard is one of the few skills your team decides every student must master, no matter whose class they are in. A learning target is that skill rewritten in words a student understands, often as an "I can…" sentence.',
+    say: 'Question one asks: what do we want every student to learn? Your team picks one skill that matters most and writes it as an I can sentence a student would understand. You type it here once, and Launchpad puts it on your check, your reteach plan, and your student poster.',
+    newbie: 'Not sure which skill to choose? Ask your team: "If a student left our class without this, would next year\'s teacher notice?"',
+    fields: ['unit', 'grade', 'target', 'code', 'why'] },
+  { n: 2, c: 'var(--q2)', word: 'Check', short: 'How will we know?',
+    title: 'How will we know they learned it?',
+    sub: 'Plan one short check that every teacher on the team gives the same way, around the same day. Then you can compare results fairly.',
+    term: 'Common formative assessment (CFA)',
+    def: '"Common" means every teacher on the team gives the same check. "Formative" means it happens during learning, while there is still time to help, rather than as a final grade. It can be as short as a 4-question exit ticket.',
+    say: 'Question two asks: how will we know they learned it? Every teacher gives the same short check, around the same day. You decide ahead of time what counts as got it, so the team can sort students quickly when the results come in.',
+    newbie: 'Short is fine. Four well-chosen questions tell you more than a long test nobody has time to look at.',
+    fields: ['checkName', 'checkDate', 'gotIt', 'format'] },
+  { n: 3, c: 'var(--q3)', word: 'Reteach', short: 'What if they haven\'t yet?',
+    title: 'What will we do when a student hasn\'t learned it yet?',
+    sub: 'Plan extra time and a different way to teach the skill. Students who didn\'t hit "got it" on the check get this the next school day.',
+    term: 'Intervention (Tier 2)',
+    def: 'Intervention means extra, targeted help for students who have not learned an essential skill yet. Tier 2 is help given in small groups on top of regular class time. It should use a different approach than the first lesson, not the same lesson again.',
+    say: 'Question three asks: what will we do when a student has not learned it yet? Plan extra time, and a new way to teach it. Launchpad sets the reteach day for you, the school day after your check.',
+    newbie: 'Teaching it a second time the same way rarely works. Try a hands-on model, a picture, or a small group with a different teacher.',
+    fields: ['leader', 'reteach'] },
+  { n: 4, c: 'var(--q4)', word: 'Stretch', short: 'What if they already know it?',
+    title: 'What will we do when a student already knows it?',
+    sub: 'Students who got it deserve to keep growing too. Plan something that goes deeper, not just more of the same worksheet.',
+    term: 'Extension / enrichment',
+    def: 'Extension means taking a student further with the same skill: harder problems, explaining their reasoning, or applying it somewhere new. It runs at the same time as reteaching, so nobody sits and waits.',
+    say: 'Question four asks: what will we do when a student already knows it? Plan a way to stretch them, harder problems or explaining their thinking, so they keep growing while others get extra help.',
+    newbie: 'A good stretch asks "why" or "what if". Avoid simply giving more problems of the same kind.',
+    fields: ['stretch', 'stretchFormat'] }
+];
+
+const FIELD = {
+  unit: { label: 'Unit name', help: 'What your team calls this chunk of teaching.', type: 'text' },
+  grade: { label: 'Grade or course', type: 'text' },
+  target: { label: 'The skill, as a student would say it', help: 'Start with "I can…". This appears in four other places.', type: 'textarea', wide: true },
+  code: { label: 'Standard code (optional)', help: 'From your state or district list, for example 3.NF.A.2.', type: 'text' },
+  why: { label: 'Why this skill made the cut', help: 'Tap all that are true. Teacher talk: endurance, leverage, readiness.', type: 'chips', wide: true,
+         opts: [['Needed next year', 'readiness'], ['Used in other subjects', 'leverage'], ['Lasts beyond this year', 'endurance'], ['On the state test', '']] },
+  checkName: { label: 'Name of the check', type: 'text' },
+  checkDate: { label: 'Day every class gives it', type: 'date' },
+  gotIt: { label: 'What counts as "got it"?', help: 'Decide this before you see results, for example "3 out of 4 correct".', type: 'text' },
+  format: { label: 'What kind of check is it?', type: 'chips', opts: [['Exit ticket', ''], ['Short quiz', ''], ['Show me on a whiteboard', ''], ['Hands-on task', '']] },
+  leader: { label: 'Who leads the reteach group?', type: 'text' },
+  reteach: { label: 'The new way you will teach it', help: 'Different from the first lesson.', type: 'textarea', wide: true },
+  stretch: { label: 'The stretch activity', type: 'textarea', wide: true },
+  stretchFormat: { label: 'How students work on it', type: 'chips', opts: [['On their own', ''], ['Partner task', ''], ['Small group', ''], ['Teach it back', '']] }
+};
+
+/* where each answer is reused: shown in a station's "Shows up in" card */
+const REACH = {
+  1: ['Center of your orbit map', 'The check (question 2)', 'Reteach plan (question 3)', 'Stretch plan (question 4)', '"I can" poster on the ready board'],
+  2: ['Reteach day is set from the check date', 'Scoring agreement on the ready board', 'Copies to print on the ready board', 'Results meeting on the ready board'],
+  3: ['Reteach materials on the ready board', 'Group leader on the ready board'],
+  4: ['Stretch materials on the ready board']
+};
+
+const LINKS = {
+  2: [{ from: 1, label: 'The skill being checked', val: () => S.target }],
+  3: [{ from: 1, label: 'The skill to reteach', val: () => S.target },
+      { from: 2, label: 'Reteach day (school day after the check)', val: () => or(fmtDate(nextSchoolDay(S.checkDate)), 'Set a check date in question 2') },
+      { from: 2, label: 'Who joins: students below', val: () => or(S.gotIt, 'Set "got it" in question 2') }],
+  4: [{ from: 1, label: 'The skill to go deeper on', val: () => S.target },
+      { from: 3, label: 'Runs at the same time as reteach', val: () => or(fmtDate(nextSchoolDay(S.checkDate)), 'Set a check date in question 2') }]
+};
+
+const filled = k => Array.isArray(S[k]) ? S[k].length > 0 : !!(S[k] && String(S[k]).trim());
+const progress = q => Math.round(100 * q.fields.filter(filled).length / q.fields.length);
+
+/* ---------- orbit ---------- */
+const orbit = document.querySelector('.orbit');
+const POS = [[151, 151], [449, 151], [449, 449], [151, 449]];
+const NS = 'http://www.w3.org/2000/svg';
+Q.forEach((q, i) => {
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', 'planet float d' + (i + 1));
+  g.setAttribute('tabindex', '0'); g.setAttribute('role', 'button');
+  g.dataset.q = q.n;
+  const [x, y] = POS[i], C = 2 * Math.PI * 84;
+  g.innerHTML = `<circle class="ptrack" cx="${x}" cy="${y}" r="84"/>
+    <circle class="parc" cx="${x}" cy="${y}" r="84" stroke="${q.c}" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 ${x} ${y})"/>
+    <circle class="pfill" cx="${x}" cy="${y}" r="70" stroke="${q.c}"/>
+    <text class="pnum" x="${x}" y="${y + 8}" fill="${q.c}">${q.n}</text>
+    <text class="pword" x="${x}" y="${y + 34}">${q.word}</text>`;
+  const go = () => { select(q.n); document.getElementById('plan').scrollIntoView({ behavior: 'smooth' }); };
+  g.addEventListener('click', go);
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  orbit.appendChild(g);
+});
+
+/* ---------- planner ---------- */
+let cur = 1;
+const picker = document.getElementById('picker');
+picker.innerHTML = Q.map(q => `<button class="qbtn" role="tab" id="tab${q.n}" aria-controls="station" style="--c:${q.c}" data-q="${q.n}">
+  <span class="disc"><i>${q.n}</i></span><span>${q.word}<small>${q.short}</small></span></button>`).join('');
+picker.addEventListener('click', e => { const b = e.target.closest('.qbtn'); if (b) select(+b.dataset.q); });
+
+function fieldHTML(k) {
+  const f = FIELD[k], v = S[k];
+  const help = f.help ? `<span class="help" id="h-${k}">${f.help}</span>` : '';
+  const desc = f.help ? ` aria-describedby="h-${k}"` : '';
+  let ctl;
+  if (f.type === 'textarea') ctl = `<textarea id="f-${k}" data-field="${k}"${desc}>${esc(v)}</textarea>`;
+  else if (f.type === 'chips') ctl = `<div class="chips" role="group" aria-labelledby="l-${k}">${f.opts.map(([o, t]) =>
+      `<button type="button" class="chip" data-chip="${k}" data-v="${esc(o)}" aria-pressed="${(v || []).includes(o)}">${o}${t ? ` <small>· ${t}</small>` : ''}</button>`).join('')}</div>`;
+  else ctl = `<input id="f-${k}" type="${f.type}" data-field="${k}" value="${esc(v)}"${desc}>`;
+  const lab = f.type === 'chips' ? `<span class="lbl" id="l-${k}">${f.label}</span>` : `<label for="f-${k}">${f.label}</label>`;
+  return `<div class="field${f.wide ? ' wide' : ''}">${lab}${ctl}${help}</div>`;
+}
+
+function select(n) {
+  cur = n; const q = Q[n - 1];
+  document.querySelectorAll('.qbtn').forEach(b => b.setAttribute('aria-selected', String(+b.dataset.q === n)));
+  document.querySelectorAll('.planet').forEach(p => p.classList.toggle('on', +p.dataset.q === n));
+  const links = (LINKS[n] || []).map((l, i) => `<div class="linked" data-link="${i}"><span class="from">🔗 Linked from question ${l.from} · ${l.label}</span>
+      <div class="linked-in"><span class="val" data-linkval="${n}-${i}">${esc(or(l.val(), 'Not filled in yet'))}</span><button type="button" data-goto="${l.from}">Change it in question ${l.from}</button></div></div>`).join('');
+  const reach = REACH[n];
+  document.getElementById('station').innerHTML = `
+  <div class="station" data-q="${n}" style="--c:${q.c}" role="tabpanel" aria-labelledby="tab${n}">
+    <div class="st-main">
+      <div class="st-q"><div class="bignum" aria-hidden="true">${n}</div><div>
+        <h3>${q.title}</h3><p>${q.sub}</p>
+        <div class="terms-row"><details class="term"><summary>Teacher talk: ${q.term}</summary><p>${q.def}</p></details>
+        <button type="button" class="hear" data-say="${n}"><span aria-hidden="true">▶</span>Explain this to me</button></div>
+      </div></div>
+      ${links ? `<div style="display:grid;gap:10px">${links}</div>` : ''}
+      <div class="fields">${q.fields.map(fieldHTML).join('')}</div>
+      ${n < 4 ? `<button type="button" class="btn primary next" data-goto="${n + 1}">Next: question ${n + 1} →</button>` : `<a class="btn primary next" href="#ready">See what needs getting ready →</a>`}
+    </div>
+    <aside class="st-side">
+      <div class="reach"><span class="count">${reach.length}</span><h4>places this answer shows up</h4>
+        <ul>${reach.map(r => `<li><i aria-hidden="true"></i>${r}</li>`).join('')}</ul></div>
+      <div class="newbie"><b>New to this?</b><span>${q.newbie}</span></div>
+    </aside>
+  </div>`;
+  refresh();
+}
+
+const station = document.getElementById('station');
+station.addEventListener('input', e => {
+  const k = e.target.dataset.field; if (!k) return;
+  S[k] = e.target.value; save(); refresh(k);
+});
+station.addEventListener('click', e => {
+  const chip = e.target.closest('[data-chip]');
+  if (chip) { const k = chip.dataset.chip, v = chip.dataset.v; S[k] = S[k] || [];
+    S[k] = S[k].includes(v) ? S[k].filter(x => x !== v) : [...S[k], v];
+    chip.setAttribute('aria-pressed', String(S[k].includes(v))); save(); refresh(k); return; }
+  const go = e.target.closest('[data-goto]');
+  if (go) { select(+go.dataset.goto); document.getElementById('plan').scrollIntoView({ behavior: 'smooth' }); return; }
+  const say = e.target.closest('[data-say]');
+  if (say) { speakOnce(Q[+say.dataset.say - 1].say); }
+});
+
+/* ---------- ready board ---------- */
+const STATES = ['Not started', 'Started', 'Ready'];
+function items() {
+  const reteachDay = fmtDate(nextSchoolDay(S.checkDate));
+  return [
+    { id: 'norms', lane: 'team', q: 1, t: 'Review team norms before the planning meeting', d: 'Your agreements about how the team works together' },
+    { id: 'unpack', lane: 'team', q: 1, t: `Agree on what "${or(S.target, 'the skill')}" looks like`, d: 'Teacher talk: unpacking the standard' },
+    { id: 'score', lane: 'team', q: 2, t: `Agree on scoring: ${or(S.gotIt, 'set "got it" in question 2')}`, d: 'So every teacher sorts students the same way' },
+    { id: 'meet', lane: 'team', q: 3, t: `Bring results to the team ${or(fmtDate(S.checkDate), 'after the check')}`, d: `Sort students into reteach and stretch groups${reteachDay ? ' before ' + reteachDay : ''}` },
+    { id: 'poster', lane: 'kids', q: 1, t: `"I can" poster: ${or(S.target, 'add the skill in question 1')}`, d: 'Posted where students can see it all unit' },
+    { id: 'copies', lane: 'kids', q: 2, t: `Copies of the ${or(S.checkName, 'check')}`, d: S.checkDate ? 'Needed by ' + fmtDate(S.checkDate) : 'Set a date in question 2' },
+    { id: 'reteach', lane: 'kids', q: 3, t: 'Reteach materials', d: or(S.reteach, 'Describe the new approach in question 3') + (S.leader ? ` · Led by ${S.leader}` : '') },
+    { id: 'stretch', lane: 'kids', q: 4, t: 'Stretch activity materials', d: or(S.stretch, 'Describe the stretch in question 4') }
+  ];
+}
+function renderBoard() {
+  const all = items(); const counts = { team: [0, 0], kids: [0, 0] };
+  const html = { team: '', kids: '' };
+  all.forEach(it => {
+    const s = S.ready[it.id] || 0; counts[it.lane][1]++; if (s === 2) counts[it.lane][0]++;
+    html[it.lane] += `<button type="button" class="item" data-item="${it.id}" data-s="${s}" style="--c:var(--q${it.q});--p:${s * 50}"
+      aria-label="${esc(it.t)}. Status: ${STATES[s]}. Tap to change.">
+      <span class="token"><i>${s === 2 ? '✓' : it.q}</i></span>
+      <span class="txt"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></span><span class="state">${STATES[s]}</span></button>`;
+  });
+  document.getElementById('laneTeam').innerHTML = html.team;
+  document.getElementById('laneKids').innerHTML = html.kids;
+  document.getElementById('teamCount').textContent = counts.team.join('/');
+  document.getElementById('kidCount').textContent = counts.kids.join('/');
+}
+document.querySelector('.board').addEventListener('click', e => {
+  const b = e.target.closest('[data-item]'); if (!b) return;
+  S.ready[b.dataset.item] = ((S.ready[b.dataset.item] || 0) + 1) % 3; save(); renderBoard();
+  const again = document.querySelector(`[data-item="${b.dataset.item}"]`); again && again.focus();
+});
+
+/* ---------- refresh everything that depends on answers ---------- */
+function refresh(changed) {
+  const C = 2 * Math.PI * 84;
+  Q.forEach((q, i) => {
+    const p = progress(q);
+    const arc = orbit.querySelectorAll('.planet')[i].querySelector('.parc');
+    arc.setAttribute('stroke-dashoffset', C * (1 - p / 100));
+    orbit.querySelectorAll('.planet')[i].setAttribute('aria-label', `Question ${q.n}: ${q.title} ${p}% answered.`);
+    const d = document.querySelector(`#tab${q.n} .disc`); d && d.style.setProperty('--p', p);
+  });
+  const u = or(S.unit, 'Name your unit'); document.querySelectorAll('[data-show="unitShort"]').forEach(el => el.textContent = u.length > 26 ? u.slice(0, 25) + '…' : u);
+  (LINKS[cur] || []).forEach((l, i) => {
+    const el = document.querySelector(`[data-linkval="${cur}-${i}"]`); if (!el) return;
+    el.textContent = or(l.val(), 'Not filled in yet');
+  });
+  renderBoard();
+  if (changed) document.querySelectorAll('.item').forEach(el => { if (el.textContent.includes(String(S[changed]).slice(0, 12))) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } });
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => { S = clone(SAMPLE); save(); select(cur); });
+
+/* ---------- narrated tour ---------- */
+const CH = [
+  { s: '0', title: 'The promise', line: 'A professional learning community, or P L C, is a team of teachers who make one shared promise: every student will learn.' },
+  { s: '1', title: 'Three big ideas', line: 'Richard DuFour built it on three big ideas. Keep the focus on learning. Work together as a team. And look at results to decide what to do next.' },
+  { s: 'orbit', p: 0, title: 'Question 1', line: 'Every team works through four questions. Question one: what do we want every student to learn? You choose the few skills that matter most.' },
+  { s: 'orbit', p: 1, title: 'Question 2', line: 'Question two: how will we know they learned it? Every teacher gives the same short check, then the team looks at the results together.' },
+  { s: 'orbit', p: 2, title: 'Question 3', line: 'Question three: what will we do when a student has not learned it yet? Plan extra time, and a new way to teach it.' },
+  { s: 'orbit', p: 3, title: 'Question 4', line: 'Question four: what will we do when a student already knows it? Plan a way to stretch them even further.' },
+  { s: '6', title: 'Type it once', line: 'Launchpad keeps all four questions in one place. Type something once, and it shows up everywhere your team needs it.' }
+];
+const cap = document.getElementById('caption'), chapEl = document.getElementById('chapters');
+chapEl.innerHTML = CH.map((c, i) => `<li><button type="button" data-ch="${i}">${c.title}</button></li>`).join('');
+let idx = -1, playing = false, timer = null, typeTimer = null, token = 0;
+const synth = window.speechSynthesis;
+const voiceOn = () => document.getElementById('voiceOn').checked && !!synth;
+let voice = null;
+function pickVoice() { if (!synth) return; const vs = synth.getVoices(); voice = vs.find(v => /en(-|_)US/i.test(v.lang) && /natural|samantha|aria|jenny|google/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null; }
+if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+
+function show(i) {
+  idx = i; const c = CH[i];
+  document.querySelectorAll('#stage .scene').forEach(g => g.classList.toggle('on', g.dataset.s === c.s));
+  // restart CSS animations in the active scene
+  const active = document.querySelector(`#stage .scene[data-s="${c.s}"]`);
+  if (c.s !== 'orbit') { active.querySelectorAll('.fig,.pop,.draw').forEach(el => { el.style.animation = 'none'; void el.getBBox(); el.style.animation = ''; }); }
+  document.querySelectorAll('#stage .splanet').forEach(p => { const k = +p.dataset.p; p.classList.toggle('lit', c.p !== undefined && k <= c.p); p.classList.toggle('now', k === c.p); });
+  chapEl.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+  document.getElementById('chapTitle').textContent = c.title;
+  document.getElementById('chapCount').textContent = `Chapter ${i + 1} of ${CH.length}`;
+  cap.textContent = c.line;
+  clearInterval(typeTimer); const tl = document.getElementById('typeLine'); tl.textContent = '';
+  if (c.s === '6') { const txt = 'I can place a fraction…'; let n = 0; typeTimer = setInterval(() => { tl.textContent = txt.slice(0, ++n); if (n >= txt.length) clearInterval(typeTimer); }, 60); }
+}
+function speak(text, done) {
+  const my = ++token;
+  clearTimeout(timer);
+  const fallback = () => { timer = setTimeout(() => { if (my === token) done && done(); }, Math.max(3500, text.split(' ').length * 360 + 900)); };
+  if (!voiceOn()) return fallback();
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text); if (voice) u.voice = voice; u.rate = 0.98; u.pitch = 1.02;
+  let ended = false;
+  u.onend = () => { if (ended) return; ended = true; if (my === token) timer = setTimeout(() => done && done(), 500); };
+  u.onerror = () => { if (ended) return; ended = true; fallback(); };
+  synth.speak(u);
+}
+function speakOnce(text) { stop(); if (voiceOn()) { synth.cancel(); const u = new SpeechSynthesisUtterance(text); if (voice) u.voice = voice; u.rate = 0.98; synth.speak(u); } }
+function step(i) {
+  if (i >= CH.length) { stop(); cap.textContent = 'That\'s the tour. Scroll down to try planning a unit.'; return; }
+  show(i); speak(CH[i].line, () => { if (playing) step(i + 1); });
+}
+function setIcon() { document.getElementById('playIcon').innerHTML = playing ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/>' : '<path d="M7 4.5v15l13-7.5z" fill="currentColor"/>'; document.getElementById('playBtn').setAttribute('aria-label', playing ? 'Pause the tour' : 'Play the tour'); }
+function stop() { playing = false; token++; clearTimeout(timer); synth && synth.cancel(); setIcon(); }
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (playing) { stop(); return; }
+  playing = true; setIcon(); step(idx < 0 || idx >= CH.length - 1 ? 0 : idx);
+});
+chapEl.addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (!b) return; playing = true; setIcon(); step(+b.dataset.ch); });
+
+/* resting frame: show the first scene */
+show(0); cap.textContent = 'Press play for a 90-second tour of how a PLC works.';
+chapEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', 'false'));
+document.getElementById('chapTitle').textContent = 'How a PLC works';
+document.getElementById('chapCount').textContent = '7 short chapters';
+idx = -1;
+select(1);
+})();
+</script>
