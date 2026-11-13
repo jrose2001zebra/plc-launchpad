@@ -2,7 +2,6 @@
 
 const NAV = [
   ['home', 'Home', 'home', 'tool'],
-  ['plans', 'Plans', 'plan', 'learn'],
   ['meetings', 'Team time', 'meeting', 'team'],
   ['results', 'Results', 'results', 'check'],
   ['worked', 'What worked', 'practice', 'reteach'],
@@ -19,7 +18,7 @@ const go = hash => { if (location.hash === '#' + hash) render(); else location.h
 function shell() {
   const r = route();
   const nav = NAV.map(([k, label, ic, fam]) => {
-    const cur = r.page === k || (k === 'plans' && r.page === 'plan') || (k === 'meetings' && r.page === 'meeting');
+    const cur = r.page === k || (k === 'home' && (r.page === 'plan' || r.page === 'plans')) || (k === 'meetings' && r.page === 'meeting');
     return `<a href="#${k}" class="f-${fam}" ${cur ? 'aria-current="page"' : ''}>${icon(ic)}<span>${label}</span></a>`;
   }).join('');
   const m = runningMeeting();
@@ -142,53 +141,52 @@ async function needMe(reason) {
 ACT.whoAmI = async () => { ME = null; await needMe(); };
 
 /* ================================================================ HOME */
+/* Home shows one next action. Everything else waits in small tiles until it's needed. */
 function viewHome() {
-  const p = activePlan();
-  const last = lastMeeting();
-  const running = runningMeeting();
-  const me = member(ME);
-  const invites = invitationsFor(ME);
-  const todos = openTodos();
-  let welcome;
-  if (running) {
-    welcome = `<div class="welcome"><span class="eyebrow" style="color:inherit;opacity:.7">Team time is running</span><h2>You're in a team meeting</h2>
-      <div class="row"><a class="btn light lead-orb" href="#meeting-${running.id}"><span class="orb f-team">${icon('meeting')}</span>Back to the meeting</a></div></div>`;
-  } else if (last) {
-    const stop = last.stoppedAt && planById(last.stoppedAt.planId);
-    const st = last.stoppedAt && step(last.stoppedAt.stepKey);
-    welcome = `<div class="welcome">
-      <span class="eyebrow" style="color:inherit;opacity:.7">Welcome back${me ? ', ' + esc(me.name) : ''}</span>
-      <h2>${st ? `Last time (${esc(fmtDate(last.date))}) you stopped at step ${STEPS.indexOf(st) + 1}: ${esc(st.label)}.` : `Your last meeting was ${esc(fmtDate(last.date))}.`}</h2>
-      ${last.nextTime ? `<p class="quote">Next time we'll… ${esc(last.nextTime)}</p>` : ''}
-      <p>${plural(todos.length, 'open to-do')}${stop ? ' · ' + esc(planTitle(stop)) : ''}</p>
-      <div class="row">
-        <button class="btn light lead-orb" data-act="startMeeting"><span class="orb f-team">${icon('meeting')}</span>Start this week's team time</button>
-        ${stop && st ? `<a class="btn ghost" href="#plan-${stop.id}-${st.key}">Go to ${esc(st.label)}</a>` : ''}
-      </div></div>`;
-  } else {
-    welcome = `<div class="welcome"><span class="eyebrow" style="color:inherit;opacity:.7">Welcome to Launchpad</span>
-      <h2>Your team works through four questions for each must-learn skill.</h2>
-      <p>Launchpad walks you through every step, keeps your meeting notes, and remembers where you stopped each week.</p>
-      <div class="row"><button class="btn light lead-orb" data-act="${p ? 'startMeeting' : 'newPlan'}"><span class="orb f-${p ? 'team' : 'learn'}">${icon(p ? 'meeting' : 'plus')}</span>${p ? 'Start team time' : 'Start your first plan'}</button>
-      <button class="btn ghost" data-act="tour">${icon('play')}Watch the 90-second tour</button></div></div>`;
-  }
+  if (!S.members.length || !S.plans.length) return gettingStarted();
+  const p = activePlan(), last = lastMeeting(), running = runningMeeting(), me = member(ME);
+  const invites = invitationsFor(ME), todos = openTodos();
+  const finished = planDone(p), n = nextStep(p), idx = STEPS.indexOf(n), fam = FAMILIES[n.fam];
+  const eyebrow = running ? 'Team time is running' : last ? `Welcome back${me ? ', ' + esc(me.name) : ''} · your team last met ${esc(fmtDate(last.date))}` : 'Your next step';
+  const main = finished
+    ? `<span class="eyebrow">This plan is finished</span><h1 class="next-title">Nice work. Ready for the next skill?</h1>
+       <div class="row"><button class="btn big" data-act="newPlan">${icon('plus')}Start the next plan</button><a class="link-quiet" href="#plan-${p.id}-wrap">Look back at this plan</a></div>`
+    : `<span class="eyebrow">${eyebrow}</span>
+       <h1 class="next-title">Step ${idx + 1} of ${STEPS.length}: ${esc(n.label)}</h1>
+       <div class="fam-line"><span class="orb f-${n.fam}">${icon(n.fam)}</span><span>Question ${fam.n} · ${esc(fam.q)}</span></div>
+       ${last && last.nextTime && !running ? `<p class="quote">Last time you said: "Next time we'll ${esc(last.nextTime.replace(/^next time we'?ll\s*/i, ''))}"</p>` : ''}
+       <div class="row"><a class="btn big" href="#plan-${p.id}-${n.key}">Continue${icon('arrow')}</a>
+         ${running ? `<a class="btn ghost" href="#meeting-${running.id}">${icon('clock')}Back to team time</a>` : `<button class="btn ghost" data-act="startMeeting">${icon('meeting')}Start team time</button>`}</div>`;
+  const tiles = [
+    todos.length && ['#meetings', 'team', 'norms', plural(todos.length, 'open to-do'), 'From your team meetings'],
+    invites.length && ['#worked', 'reteach', 'practice', plural(invites.length, 'invitation') + ' for you', 'Share what worked in your class'],
+    S.strategies.length && !invites.length && ['#worked', 'reteach', 'practice', plural(S.strategies.length, 'shared idea'), 'What worked for us'],
+    ['#plans', 'learn', 'plan', S.plans.length > 1 ? plural(S.plans.length, 'plan') : 'Plans', S.plans.length > 1 ? 'Switch plans or start another' : 'Start another plan']
+  ].filter(Boolean);
+  return `<section class="next-card f-${finished ? 'learn' : n.fam}">
+      <div class="next-main">${main}</div>
+      <div class="next-orbit">${orbitSVG(p)}<p class="small muted" style="text-align:center">${esc(planTitle(p))}</p></div>
+    </section>
+    <div class="tiles">${tiles.map(([href, f, ic, title, sub]) => `<a class="tile f-${f}" href="${href}"><span class="orb">${icon(ic)}</span><span><b>${title}</b><span class="sub">${sub}</span></span></a>`).join('')}</div>
+    <div class="home-foot">${me ? `<button class="btn sm ghost" data-act="whoAmI">${icon('person')}You're ${esc(me.name)}</button>` : `<button class="btn sm ghost" data-act="whoAmI">${icon('person')}Which teacher are you?</button>`}
+      <button class="btn sm ghost" data-act="tour">${icon('play')}How Launchpad works</button><a class="btn sm ghost" href="#words">${icon('glossary')}PLC words</a></div>`;
+}
 
-  const orbit = p ? orbitSVG(p) : `<div class="empty">${icon('plan')}<b>No plans yet</b><span>A plan takes one must-learn skill through all four questions.</span><button class="btn fam f-learn" data-act="newPlan">${icon('plus')}Start a plan</button></div>`;
-
-  const inviteHTML = invites.slice(0, 2).map(inviteCard).join('');
-  const todoHTML = todos.length ? `<div class="card f-team"><div class="card-head"><span class="orb sm">${icon('norms')}</span><div class="grow"><h3>Open to-dos</h3><span class="small muted">From your team meetings</span></div></div>
-    <div class="list">${todos.slice(0, 5).map(todoRow).join('')}</div></div>` : '';
-  const plans = S.plans.length ? `<div class="card"><div class="card-head"><span class="orb sm f-learn">${icon('plan')}</span><div class="grow"><h3>Our plans</h3></div><a class="btn sm ghost" href="#plans">All plans</a></div>
-    <div class="list">${S.plans.slice(0, 4).map(planRow).join('')}</div></div>` : '';
-  const strat = S.strategies.slice(-1).map(stratCard).join('');
-
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">${esc(S.team.course || 'Team home')}</span><h1>${esc(S.team.name)}</h1></div>
-    <div class="row">${me ? `<button class="btn sm soft" data-act="whoAmI">${icon('person')}You're ${esc(me.name)}</button>` : S.members.length ? `<button class="btn sm soft" data-act="whoAmI">${icon('person')}Which teacher are you?</button>` : ''}
-    <button class="btn sm ghost" data-act="tour">${icon('play')}Tour</button></div></div>
-    <div class="home">
-      <div class="stack">${welcome}<div class="orbit-wrap">${orbit}${p ? `<p class="small muted">Showing: <b>${esc(planTitle(p))}</b>${S.plans.length > 1 ? ` · <a href="#plans">switch plan</a>` : ''}</p>` : ''}</div></div>
-      <div class="stack">${inviteHTML}${todoHTML}${plans}${strat ? `<div class="stack"><div class="row"><h3 class="spacer">What worked for us</h3><a class="btn sm ghost" href="#worked">See all</a></div>${strat}</div>` : ''}</div>
-    </div>`;
+/* A new team gets three things to do, in order. */
+function gettingStarted() {
+  const items = [
+    [S.members.length > 0, 'Add your team', 'Who teaches this course with you', '#team', 'Add teachers'],
+    [S.plans.length > 0, 'Start your first plan', 'One must-learn skill, taken step by step', null, 'Start a plan'],
+    [S.meetings.length > 0, 'Hold your first team time', 'Launchpad keeps your notes and where you stopped', null, 'Start team time']
+  ];
+  const nextIdx = items.findIndex(x => !x[0]);
+  return `<section class="next-card f-learn"><div class="next-main">
+      <span class="eyebrow">Getting started</span><h1 class="next-title">Three things, in order</h1>
+      <p class="muted">Launchpad walks your team through DuFour's four PLC questions, one step at a time.</p>
+      <div class="start-list">${items.map(([done, title, sub, href, cta], i) => `<div class="start-item ${done ? 'done' : ''}"><span class="n">${done ? icon('done') : i + 1}</span><span><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span>
+        ${!done && i === nextIdx ? (href ? `<a class="btn" href="${href}">${cta}</a>` : `<button class="btn" data-act="${i === 1 ? 'newPlan' : 'startMeeting'}">${cta}</button>`) : ''}</div>`).join('')}</div>
+      <div><button class="btn sm ghost" data-act="tour">${icon('play')}Watch: how Launchpad works (90 seconds)</button></div>
+    </div><div class="next-orbit">${S.plans[0] ? orbitSVG(S.plans[0]) : ''}</div></section>`;
 }
 
 function orbitSVG(p) {

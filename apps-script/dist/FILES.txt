@@ -3,7 +3,7 @@ In the Apps Script editor, create each one with the same name (without .html/.gs
 
 Bridge.html  (4,349 bytes)
 Code.gs  (26,062 bytes)
-Head.html  (26,369 bytes)
+Head.html  (31,579 bytes)
 Index.html  (115 bytes)
-Page1.html  (151,163 bytes)
+Page1.html  (152,925 bytes)
 appsscript.json  (365 bytes)

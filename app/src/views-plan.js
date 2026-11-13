@@ -1,54 +1,64 @@
 /* PLC Launchpad 1.0 · the plan flight path and its eleven steps */
 
+/* One step at a time: a slim progress strip, one question, one main button. */
 function viewPlan(r) {
   const p = planById(r.a);
-  if (!p) return `<div class="empty">${icon('plan')}<b>That plan isn't here anymore.</b><a class="btn" href="#plans">See all plans</a></div>`;
+  if (!p) return `<div class="empty">${icon('plan')}<b>That plan isn't here anymore.</b><a class="btn" href="#home">Back to home</a></div>`;
+  if (S.activePlanId !== p.id) { S.activePlanId = p.id; save(); }
   const st = step(r.b) || nextStep(p);
-  const last = lastMeeting();
-  const stoppedHere = last?.stoppedAt?.planId === p.id ? last.stoppedAt.stepKey : null;
-
-  let path = `<h3>${esc(planTitle(p))}</h3>`;
-  for (const [f, info] of Object.entries(FAMILIES)) {
-    path += `<div class="fam-label f-${f}">${icon(f)}${info.n} · ${info.word}</div>`;
-    for (const s of STEPS.filter(s => s.fam === f)) {
-      path += `<a class="step-link f-${f} ${s.key === stoppedHere ? 'here' : ''}" href="#plan-${p.id}-${s.key}" ${s.key === st.key ? 'aria-current="step"' : ''}>${tokHTML(stepState(p, s.key), s.icon)}<span>${esc(s.label)}</span></a>`;
-    }
-  }
-  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1];
+  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1], fam = FAMILIES[st.fam];
   const done = stepState(p, st.key) === 100;
-  const fam = FAMILIES[st.fam];
-  const body = (STEP_VIEWS[st.key] || (() => ''))(p);
-  const talk = (p.talk[st.key] || []);
+  const talk = p.talk[st.key] || [];
   const meeting = runningMeeting();
-
-  return `<div class="plan-layout">
-    <nav class="path" aria-label="Plan steps">${path}<div style="padding:12px 6px 0">${pipHTML(p)}</div></nav>
+  const dots = STEPS.map((s, i) => {
+    const v = stepState(p, s.key), gap = i > 0 && STEPS[i - 1].fam !== s.fam ? '<i></i>' : '';
+    return `${gap}<a class="f-${s.fam} ${v === 100 ? 'on' : v > 0 ? 'half' : ''} ${s.key === st.key ? 'cur' : ''}" href="#plan-${p.id}-${s.key}" title="Step ${i + 1}: ${esc(s.label)}" aria-label="Step ${i + 1}: ${esc(s.label)}${v === 100 ? ', done' : ''}"></a>`;
+  }).join('');
+  const body = (STEP_VIEWS[st.key] || (() => ''))(p);
+  return `<div class="focus">
+    <div class="strip">
+      <a class="btn sm ghost" href="#home">${icon('back')}Home</a>
+      <div class="strip-mid"><span class="small"><b>Step ${idx + 1} of ${STEPS.length}</b> · ${esc(planTitle(p))}</span><div class="dots" aria-label="Plan steps">${dots}</div></div>
+      <button class="btn sm ghost" data-act="allSteps">${icon('norms')}All steps</button>
+    </div>
     <section class="card station tint f-${st.fam}" aria-labelledby="stepTitle">
       <div class="st-head"><span class="orb lg">${icon(st.icon)}</span><div class="grow">
-        <span class="eyebrow" style="color:var(--c)">Question ${fam.n} · ${fam.word} · Step ${idx + 1} of ${STEPS.length}</span>
-        <h2 id="stepTitle">${esc(st.q)}</h2><p class="what">${esc(st.what)}</p>
-        <div class="row" style="align-items:flex-start">${termChip(st.term, st.fam)}<button type="button" class="btn sm soft" data-act="say" data-text="${esc(st.q + ' ' + st.what)}">${icon('listen')}Read this to me</button></div>
+        <span class="eyebrow fam-text">Question ${fam.n} · ${fam.word} · ${esc(fam.q)}</span>
+        <h1 class="step-q" id="stepTitle">${esc(st.q)}</h1><p class="what">${esc(st.what)}</p>
+        <div class="row" style="align-items:flex-start">${termChip(st.term, st.fam)}<button type="button" class="btn sm ghost" data-act="say" data-text="${esc(st.q + ' ' + st.what)}">${icon('listen')}Read this to me</button></div>
       </div></div>
       <div class="st-body">${body}</div>
-      <div class="talk f-team"><div class="card-head"><span class="orb">${icon('note')}</span><div class="grow"><h4>Team talk</h4><span class="small muted">Notes from your conversation about this step${meeting ? ' · also saved to today\'s meeting' : ''}</span></div></div>
-        ${talk.map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}
+      <details class="talk-box f-team" ${talk.length ? '' : ''}><summary><span class="orb sm">${icon('note')}</span>Team notes for this step${talk.length ? ` (${talk.length})` : ''}${meeting ? ' · saved to today\'s meeting too' : ''}</summary>
+        <div class="list">${talk.map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}</div>
         <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm" data-act="addTalk">${icon('plus')}Add note</button></div>
-      </div>
+      </details>
       <div class="st-foot">
-        ${prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}${esc(prev.label)}</a>` : ''}
+        ${prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}Back</a>` : ''}
         <span class="spacer"></span>
-        <button class="btn ${done ? 'soft' : 'fam'} lead-orb" data-act="markStep" data-step="${st.key}"><span class="orb" style="background:${done ? 'var(--c)' : 'var(--paper)'};color:${done ? 'var(--on)' : 'var(--c)'}">${icon('done')}</span>${done ? 'Done · undo' : next ? 'Mark done and go on' : 'Mark done'}</button>
-        ${next ? `<a class="btn ghost" href="#plan-${p.id}-${next.key}">${esc(next.label)}${icon('arrow')}</a>` : ''}
+        <a class="link-quiet" href="#home">Finish later</a>
+        <button class="btn big" data-act="saveNext" data-step="${st.key}">${next ? (done ? 'Next step' : 'Save and continue') : (done ? 'Back to home' : 'Finish this plan')}${icon('arrow')}</button>
       </div>
+      ${done ? `<p class="small muted done-note">${icon('done')}This step is done. <button type="button" class="linkish" data-act="undoStep" data-step="${st.key}">Mark it not done</button></p>` : ''}
     </section></div>`;
 }
-ACT.markStep = b => {
+ACT.saveNext = b => {
   const p = planById(route().a), key = b.dataset.step;
-  const was = p.steps[key]?.done;
-  p.steps[key] = { ...(p.steps[key] || {}), done: !was, at: new Date().toISOString() };
+  if (!p.steps[key]?.done) p.steps[key] = { ...(p.steps[key] || {}), done: true, at: new Date().toISOString() };
   save();
   const next = STEPS[STEPS.indexOf(step(key)) + 1];
-  if (!was && next) { toast('Step done. Next: ' + next.label); go(`plan-${p.id}-${next.key}`); } else render();
+  if (next) { toast('Saved. Step ' + (STEPS.indexOf(next) + 1) + ': ' + next.label); go(`plan-${p.id}-${next.key}`); }
+  else { toast('Plan finished. Well done!'); go('home'); }
+};
+ACT.undoStep = b => { const p = planById(route().a); p.steps[b.dataset.step] = { done: false }; save(); render(); };
+ACT.allSteps = () => {
+  const p = planById(route().a), cur = step(route().b) || nextStep(p);
+  let html = '';
+  for (const [f, info] of Object.entries(FAMILIES)) {
+    html += `<div class="fam-label f-${f}">${icon(f)}Question ${info.n} · ${info.word}</div>`;
+    for (const s of STEPS.filter(s => s.fam === f)) html += `<a class="step-link f-${f}" href="#plan-${p.id}-${s.key}" data-close ${s.key === cur.key ? 'aria-current="step"' : ''}>${tokHTML(stepState(p, s.key), s.icon)}<span>${STEPS.indexOf(s) + 1}. ${esc(s.label)}</span></a>`;
+  }
+  ask(`<div class="row"><h2 class="spacer">All steps</h2><button type="button" class="icon-btn" data-cancel aria-label="Close">${icon('close')}</button></div><div class="steps-dialog">${html}</div>`,
+    { onOpen: d => $$('[data-close]', d).forEach(a => a.addEventListener('click', () => d.close())) });
 };
 ACT.addTalk = () => {
   const input = $('#talkInput'), text = input.value.trim(); if (!text) { input.focus(); return; }
@@ -70,11 +80,11 @@ STEP_VIEWS.skill = p => {
   return `${zava('Look for a skill students will use again and need for what comes next. If a big standard feels like too much for one plan, pick one skill inside it.',
       'Of 22 drafting standards, a team picks <b>B2.1 · sketching in three views</b>. Every later unit uses it, and a short check can show whether students have it.')}
     ${chosen.length ? chosen.map(s => `<div class="chosen"><span class="orb f-learn">${icon('standard')}</span><div class="stack" style="gap:4px"><span class="eyebrow" style="color:var(--learn)">Our must-learn skill · ${esc(s.code)}</span><b>${esc(s.text)}</b><span class="small muted">${esc(s.pathway || s.catalogTitle || '')}</span></div><button class="icon-btn" data-act="toggleStd" data-id="${s.id}" aria-label="Remove">${icon('close')}</button></div>`).join('') : ''}
-    <div class="field f-learn"><span class="lbl">Why this skill made the cut</span><span class="help">Tap all that are true. PLC words: readiness, leverage, endurance.</span>
-      <div class="chips">${why.map(([w, t]) => `<button type="button" class="chip" aria-pressed="${p.why.includes(w)}" data-act="toggleWhy" data-v="${esc(w)}">${esc(w)}${t ? ` <small>· ${t}</small>` : ''}</button>`).join('')}</div></div>
-    <div class="field f-learn"><label for="stdSearch">${chosen.length ? 'Choose a different skill' : 'Find the skill in your state standards'}</label>
+    ${chosen.length ? `<div class="field f-learn"><span class="lbl">Why this skill made the cut</span><span class="help">Tap all that are true. PLC words: readiness, leverage, endurance.</span>
+      <div class="chips">${why.map(([w, t]) => `<button type="button" class="chip" aria-pressed="${p.why.includes(w)}" data-act="toggleWhy" data-v="${esc(w)}">${esc(w)}${t ? ` <small>· ${t}</small>` : ''}</button>`).join('')}</div></div>` : ''}
+    ${chosen.length && !APP.pickSkill ? `<div><button type="button" class="linkish" data-act="pickSkill">Choose a different skill</button></div>` : `<div class="field f-learn"><label for="stdSearch">Find the skill in your state standards</label>
       <div class="std-tools"><input type="search" id="stdSearch" placeholder="Search by word or code, like sketch or B2" data-filter="std"></div>
-      <div class="std-list" id="stdList">${stdListHTML(p, '')}</div></div>`;
+      <div class="std-list" id="stdList">${stdListHTML(p, '')}</div></div>`}`;
 };
 function stdListHTML(p, q) {
   const all = catalogStandards();
@@ -97,8 +107,10 @@ LIVE.std = el => { const p = planById(route().a); $('#stdList').innerHTML = stdL
 ACT.toggleStd = b => {
   const p = planById(route().a), id = b.dataset.id;
   p.standardIds = p.standardIds.includes(id) ? p.standardIds.filter(x => x !== id) : [id];
-  save(); render(); if (p.standardIds.length) toast('Skill chosen. Next, write it in student words.');
+  APP.pickSkill = false;
+  save(); render(); if (p.standardIds.length) toast('Skill chosen. When you\'re ready, press Save and continue.');
 };
+ACT.pickSkill = () => { APP.pickSkill = true; render(); setTimeout(() => $('#stdSearch')?.focus(), 30); };
 ACT.toggleWhy = b => { const p = planById(route().a), v = b.dataset.v; p.why = p.why.includes(v) ? p.why.filter(x => x !== v) : [...p.why, v]; save(); render(); };
 
 /* -------------------------------------------------------------- 2 targets */

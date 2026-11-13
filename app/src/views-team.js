@@ -88,7 +88,6 @@ function viewMeeting(r) {
         <div class="row"><button class="btn sm ghost" data-act="addTime" data-min="5">+5 min</button></div></div>` : ''}
       ${p ? `<div class="card"><div class="card-head"><span class="orb sm f-learn">${icon('plan')}</span><div class="grow"><b>${esc(planTitle(p))}</b>${pipHTML(p)}</div></div>
         <a class="btn sm fam f-learn" href="#plan-${p.id}-${nextStep(p).key}">Next step: ${esc(nextStep(p).label)}</a></div>` : ''}
-      <div class="card"><h4>Our agreements</h4>${S.norms.length ? `<ul style="margin:0;padding-left:18px;display:grid;gap:4px" class="small">${S.norms.map(n => `<li>${esc(n.text)}</li>`).join('')}</ul>` : '<p class="small muted">None yet.</p>'}</div>
     </aside>
   </div>`;
 }
