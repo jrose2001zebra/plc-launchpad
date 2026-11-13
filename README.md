@@ -10,6 +10,7 @@ Created by John Rose.
 | `index.html` | The live app (v0.509), copied unchanged from the current site. The whole front end is in this one file. |
 | `quiz-connector.txt` | Google Apps Script the app hands to a PLC coordinator to connect Google Forms quizzes to results. |
 | `apps-script/` | The Google Apps Script version: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files. |
+| `design/design-system.html` | The design language: color families, icons, plain-language word list and the home screen layout. Every redesigned screen follows it. |
 | `prototype/concept-orbit.html` | Design concept for the redesign: the four questions as an orbit, a narrated animated tour, plan-once linked fields, and a ready board. |
 
 ## Hosting

@@ -1,0 +1,512 @@
+<title>Launchpad Design Language</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: one long reference sheet. Each section is a "station" shape: circles for the four questions,
+   capsules for actions, speech-bubble cards for guidance. Color always means a question or the team. */
+:root{
+  --sky:#E9EFF7; --paper:#FFFFFF; --ink:#14213D; --ink-soft:#4C5876; --line:#C7D2E3;
+  --learn:#2F5BEA; --check:#E8622A; --reteach:#0F9C7C; --stretch:#D99A00; --team:#8A46C9;
+  --on-learn:#FFFFFF; --on-check:#14213D; --on-reteach:#FFFFFF; --on-stretch:#14213D; --on-team:#FFFFFF;
+  --blend:multiply;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Verdana","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757;
+  --learn:#7391FF; --check:#FF8A55; --reteach:#33D1AA; --stretch:#FFCB3D; --team:#C08BFF;
+  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
+  --blend:screen; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757;
+  --learn:#7391FF; --check:#FF8A55; --reteach:#33D1AA; --stretch:#FFCB3D; --team:#C08BFF;
+  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
+  --blend:screen; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;overflow-x:hidden}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,5.6vw,4.4rem);font-weight:800;letter-spacing:-.03em}
+h2{font-size:clamp(1.8rem,3.6vw,2.7rem);font-weight:800;letter-spacing:-.02em}
+h3{font-size:1.3rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.lede{font-size:1.15rem;color:var(--ink-soft);max-width:58ch}
+section{padding-block:56px}
+.head{display:grid;gap:12px;margin-bottom:30px;max-width:62ch}
+.head p{color:var(--ink-soft)}
+.ico{width:24px;height:24px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ico .fill{fill:currentColor;stroke:none}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--learn);outline-offset:3px;border-radius:10px}
+
+/* family helpers: every component reads --c and --on from its family */
+.f-learn{--c:var(--learn);--on:var(--on-learn)} .f-check{--c:var(--check);--on:var(--on-check)}
+.f-reteach{--c:var(--reteach);--on:var(--on-reteach)} .f-stretch{--c:var(--stretch);--on:var(--on-stretch)}
+.f-team{--c:var(--team);--on:var(--on-team)}
+.tint{background:color-mix(in srgb,var(--c) 10%,var(--paper))}
+
+/* hero */
+.hero{position:relative;padding-block:44px 30px;overflow:hidden}
+.hero .inks{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.hero .inks span{position:absolute;border-radius:50%;mix-blend-mode:var(--blend);opacity:.16}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:center}
+.rules{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.rules li{display:flex;gap:14px;align-items:flex-start;background:var(--paper);border-radius:999px 30px 30px 999px;padding:10px 20px 10px 10px}
+.rules li .dot{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:var(--on)}
+.rules li b{font-family:var(--display);display:block}
+.rules li span{color:var(--ink-soft);font-size:.95rem}
+
+/* families */
+.families{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.fam{border-radius:48px 48px 48px 12px;padding:22px 20px;display:grid;gap:14px;align-content:start;min-width:0}
+.fam .disc{width:72px;height:72px;border-radius:50%;background:var(--c);color:var(--on);display:grid;place-items:center;position:relative}
+.fam .disc .ico{width:34px;height:34px}
+.fam .disc i{position:absolute;right:-6px;bottom:-4px;width:30px;height:30px;border-radius:50%;background:var(--paper);color:var(--c);display:grid;place-items:center;font-style:normal;font-family:var(--display);font-weight:800;border:3px solid var(--c)}
+.fam h3{font-size:1.25rem}
+.fam .q{color:var(--ink-soft);font-size:.95rem}
+.fam ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.fam li{display:flex;gap:10px;align-items:center;font-size:.92rem;font-weight:700}
+.fam li .ico{width:20px;height:20px;color:var(--c)}
+.swatch{display:flex;gap:6px;align-items:center;font-size:.78rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.swatch b{width:16px;height:16px;border-radius:50%;background:var(--c)}
+
+/* icon grid */
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.icon-card{background:var(--paper);border-radius:28px;padding:16px;display:grid;gap:10px;justify-items:start}
+.icon-card .badge{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,var(--paper));color:var(--c)}
+.icon-card b{font-family:var(--display);font-size:1rem}
+.icon-card small{color:var(--ink-soft);font-size:.8rem;line-height:1.35}
+.icons.neutral .icon-card{--c:var(--ink)}
+
+/* term pattern */
+.pattern{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:start}
+.demo{border-radius:56px 56px 56px 12px;padding:clamp(20px,4vw,40px);display:grid;gap:14px}
+.demo .row{display:flex;gap:16px;align-items:flex-start}
+.demo .num{flex:none;width:64px;height:64px;border-radius:50%;background:var(--c);color:var(--on);display:grid;place-items:center}
+.demo .num .ico{width:30px;height:30px}
+.demo h3{font-size:clamp(1.4rem,2.6vw,1.9rem);font-weight:800}
+.demo p{color:var(--ink-soft)}
+.term{display:inline-flex;align-items:center;gap:8px;border:2px dashed color-mix(in srgb,var(--c) 70%,var(--ink));background:transparent;border-radius:999px;padding:5px 14px 5px 6px;font-size:.88rem;font-weight:700}
+.term .tag{background:var(--c);color:var(--on);border-radius:999px;padding:1px 8px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.term[aria-expanded="true"]{background:var(--paper);border-style:solid}
+.def{background:var(--paper);border-radius:24px 24px 24px 6px;padding:14px 18px;display:grid;gap:10px;max-width:56ch}
+.def b{font-family:var(--display)}
+.def .acts{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:7px 14px 7px 8px;font-weight:700;font-size:.86rem;background:var(--ink);color:var(--sky)}
+.pill .ico{width:18px;height:18px}
+.pill.soft{background:var(--sky);color:var(--ink)}
+.anatomy{display:grid;gap:12px;list-style:none;margin:0;padding:0;counter-reset:a}
+.anatomy li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:start}
+.anatomy li::before{counter-increment:a;content:counter(a);width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--sky);display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.anatomy b{font-family:var(--display)}
+.anatomy span{color:var(--ink-soft);font-size:.95rem}
+
+/* status */
+.status-row{display:flex;gap:16px;flex-wrap:wrap}
+.status{display:flex;gap:14px;align-items:center;background:var(--paper);border-radius:999px 30px 30px 999px;padding:10px 22px 10px 10px;min-width:0}
+.tok{flex:none;width:52px;height:52px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),color-mix(in srgb,var(--c) 18%,var(--paper)) 0);display:grid;place-items:center}
+.tok i{width:38px;height:38px;border-radius:50%;background:var(--paper);display:grid;place-items:center;color:var(--c)}
+.tok.done i{background:var(--c);color:var(--on)}
+.tok .ico{width:20px;height:20px}
+.status b{font-family:var(--display);display:block}
+.status span{font-size:.88rem;color:var(--ink-soft)}
+.pips{display:inline-flex;gap:5px;align-items:center}
+.pips b{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--c)}
+.pips b.on{background:var(--c)}
+.pips b.half{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
+.pip-demo{display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:var(--paper);border-radius:30px;padding:16px 22px;margin-top:16px}
+.pip-demo p{color:var(--ink-soft);font-size:.95rem;max-width:52ch}
+
+/* word list */
+.words{width:100%;border-collapse:separate;border-spacing:0 8px}
+.table-wrap{overflow-x:auto}
+.words th{text-align:left;font-family:var(--display);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);padding:0 14px}
+.words td{background:var(--paper);padding:12px 14px;vertical-align:top;font-size:.95rem}
+.words td:first-child{border-radius:999px 0 0 999px;padding-left:12px}
+.words td:last-child{border-radius:0 26px 26px 0;color:var(--ink-soft)}
+.words .say{font-weight:700;font-family:var(--display);font-size:1.02rem}
+.words .fam-dot{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:var(--on);vertical-align:middle}
+.words .fam-dot .ico{width:18px;height:18px}
+.words .plc{font-size:.85rem;border:2px dashed color-mix(in srgb,var(--c) 60%,var(--line));border-radius:999px;padding:2px 10px;white-space:nowrap;display:inline-block}
+
+/* home preview */
+.preview{background:var(--paper);border-radius:64px 64px 64px 14px;padding:clamp(18px,3.5vw,40px);display:grid;gap:26px;position:relative;overflow:hidden}
+.preview::after{content:"Example team";position:absolute;top:22px;right:30px;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-family:var(--display);font-weight:700;color:var(--ink-soft)}
+.teambar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.teambar .team-orb{width:52px;height:52px;border-radius:50%;background:var(--team);color:var(--on-team);display:grid;place-items:center}
+.teambar b{font-family:var(--display);font-size:1.25rem;display:block}
+.teambar span{color:var(--ink-soft);font-size:.92rem}
+.teambar .saved{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:.88rem;color:var(--ink-soft)}
+.teambar .saved i{width:10px;height:10px;border-radius:50%;background:var(--reteach)}
+.home-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.orbit{width:100%;max-width:470px;height:auto;justify-self:center;overflow:visible}
+.orbit .ring{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round}
+.orbit text{font-family:var(--display)}
+.side{display:grid;gap:14px;min-width:0}
+.resume{display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--sky);border-radius:999px;padding:10px 22px 10px 10px}
+.resume .r-orb{width:48px;height:48px;border-radius:50%;background:var(--check);color:var(--on-check);display:grid;place-items:center}
+.resume b{font-family:var(--display);display:block}
+.resume span{font-size:.88rem;opacity:.8}
+.meet{display:flex;gap:14px;align-items:center;border-radius:999px 30px 30px 999px;padding:10px 20px 10px 10px}
+.meet .m-orb{width:48px;height:48px;border-radius:50%;background:var(--c);color:var(--on);display:grid;place-items:center;flex:none}
+.meet b{font-family:var(--display);display:block}
+.meet span{font-size:.88rem;color:var(--ink-soft)}
+.plans{display:grid;gap:10px}
+.plan{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--sky);border-radius:999px 26px 26px 999px;padding:8px 18px 8px 8px}
+.plan .p-orb{width:42px;height:42px;border-radius:50%;background:var(--learn);color:var(--on-learn);display:grid;place-items:center}
+.plan .p-orb .ico{width:20px;height:20px}
+.plan b{display:block;font-weight:700;overflow-wrap:anywhere}
+.plan span{font-size:.82rem;color:var(--ink-soft)}
+.plan .pips b:nth-child(1){--c:var(--learn)} .plan .pips b:nth-child(2){--c:var(--check)}
+.plan .pips b:nth-child(3){--c:var(--reteach)} .plan .pips b:nth-child(4){--c:var(--stretch)}
+.side h4{font-size:1.05rem}
+
+/* shapes */
+.shapes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.shape{background:var(--paper);border-radius:30px;padding:18px;display:grid;gap:12px}
+.shape .demo-shape{height:90px;display:grid;place-items:center}
+.shape b{font-family:var(--display)}
+.shape span{font-size:.88rem;color:var(--ink-soft)}
+
+footer{padding-block:30px 60px;color:var(--ink-soft);font-size:.9rem}
+
+@media (max-width:980px){
+  .families{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .families .fam:last-child{grid-column:1/-1}
+  .hero-grid,.pattern,.home-grid{grid-template-columns:minmax(0,1fr)}
+  .shapes{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .families,.shapes{grid-template-columns:minmax(0,1fr)}
+  .preview{border-radius:36px 36px 36px 12px}
+  .preview::after{position:static;display:block}
+  .teambar .saved{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<!-- Icon set: one drawing per idea, 24px grid, 2px rounded stroke. Each icon takes its family's color where it appears. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-learn" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle class="fill" cx="12" cy="12" r="1.8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 3h6v3H9z"/><path d="m8.5 13.5 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-reteach" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M6 21v-4h4"/></symbol>
+    <symbol id="i-stretch" viewBox="0 0 24 24"><path d="M3 21h5v-5h5v-5h4"/><path d="M15 3h6v6"/><path d="m21 3-7 7"/></symbol>
+    <symbol id="i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14a5 5 0 0 1 5.3 5"/></symbol>
+    <symbol id="i-standard" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2z"/><path d="M5 20a2 2 0 0 0 2 2h12v-4"/><path d="m12 6.6 1 2.1 2.2.3-1.6 1.5.4 2.2-2-1.1-2 1.1.4-2.2L8.8 9l2.2-.3z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="6"/><circle class="fill" cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-goal" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/></symbol>
+    <symbol id="i-results" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V6"/><path d="M17 16V9"/></symbol>
+    <symbol id="i-score" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 10h18M9 4v16"/><path d="m12.5 15 1.6 1.6 3.4-3.6"/></symbol>
+    <symbol id="i-recheck" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 3h6v3H9z"/><path d="M9 14a3 3 0 1 0 1-2.2"/><path d="M9 10v2h2"/></symbol>
+    <symbol id="i-practice" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-meeting" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><circle class="fill" cx="8" cy="15" r="1.4"/><circle class="fill" cx="12" cy="15" r="1.4"/></symbol>
+    <symbol id="i-norms" viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.3 1.3L7.5 4.6M3.5 12l1.3 1.3 2.7-2.7M3.5 18l1.3 1.3 2.7-2.7"/></symbol>
+    <symbol id="i-resource" viewBox="0 0 24 24"><path d="M20.5 11.5 12 20a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 17.5a2 2 0 0 1-3-3L15 7"/></symbol>
+    <symbol id="i-plan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-30 12 12)"/><circle class="fill" cx="19.5" cy="6" r="1.6"/></symbol>
+    <symbol id="i-glossary" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-5 4v-4H4z"/><path d="m7.5 13 2.2-5.5 2.3 5.5M8.3 11.2h2.8"/><circle cx="15.5" cy="11.5" r="1.6"/><path d="M17.1 10v3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3 4v5h5"/><path d="M12 8v4.5l3 2"/></symbol>
+    <symbol id="i-guide" viewBox="0 0 24 24"><path d="M12 3c.8 4.3 2.7 6.2 7 7-4.3.8-6.2 2.7-7 7-.8-4.3-2.7-6.2-7-7 4.3-.8 6.2-2.7 7-7z"/><path d="M19 16v4M17 18h4"/></symbol>
+    <symbol id="i-listen" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/><path d="M18.2 6.5a8 8 0 0 1 0 11"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path class="fill" d="M10 8.5v7l6-3.5z"/></symbol>
+    <symbol id="i-done" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-half" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-empty" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5" class="fill"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="12" r="8.5" stroke-dasharray="2 3.4"/><circle class="fill" cx="18" cy="6" r="1.8"/><circle class="fill" cx="6" cy="18" r="1.8"/></symbol>
+    <symbol id="i-unit" viewBox="0 0 24 24"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 12h4"/></symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="inks" aria-hidden="true">
+    <span style="width:380px;height:380px;background:var(--learn);left:-140px;top:-120px"></span>
+    <span style="width:260px;height:260px;background:var(--check);left:180px;top:120px"></span>
+    <span style="width:220px;height:220px;background:var(--reteach);right:12%;top:-60px"></span>
+    <span style="width:180px;height:180px;background:var(--stretch);right:-40px;bottom:-30px"></span>
+    <span style="width:150px;height:150px;background:var(--team);right:30%;bottom:-70px"></span>
+  </div>
+  <div class="wrap hero-grid">
+    <div style="display:grid;gap:18px">
+      <span class="eyebrow">PLC Launchpad · design language</span>
+      <h1>Color tells you where you are. Icons tell you what it is.</h1>
+      <p class="lede">These rules come before any screen. Every page in Launchpad uses the same five colors, the same icons and the same way of explaining PLC words, so a teacher learns them once and can read every screen at a glance.</p>
+    </div>
+    <ul class="rules">
+      <li class="f-learn"><span class="dot"><svg class="ico"><use href="#i-learn"/></svg></span><div><b>One color, one meaning</b><span>Blue is always question 1. It never decorates anything else.</span></div></li>
+      <li class="f-check"><span class="dot"><svg class="ico"><use href="#i-check"/></svg></span><div><b>Every idea has an icon</b><span>The same drawing in the menu, on cards, in buttons and in the glossary.</span></div></li>
+      <li class="f-reteach"><span class="dot"><svg class="ico"><use href="#i-glossary"/></svg></span><div><b>Plain words first, PLC term second</b><span>Teach the real term without making anyone decode it.</span></div></li>
+      <li class="f-team"><span class="dot"><svg class="ico"><use href="#i-plan"/></svg></span><div><b>Circles for the big ideas</b><span>Questions are circles, actions are capsules, help is a speech bubble.</span></div></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">1 · Color means a question</span>
+      <h2>Five color families</h2>
+      <p>DuFour's four questions each own a color, and the team owns a fifth. Anything that belongs to a question wears its color, from the menu to the smallest status dot. Gray and navy are for things that belong to no family, like search and save.</p>
+    </div>
+    <div class="families">
+      <article class="fam tint f-learn">
+        <div class="disc"><svg class="ico"><use href="#i-learn"/></svg><i>1</i></div>
+        <h3>Learn</h3><p class="q">What must every student learn?</p>
+        <ul><li><svg class="ico"><use href="#i-standard"/></svg>Must-learn skills</li><li><svg class="ico"><use href="#i-target"/></svg>"I can" statements</li><li><svg class="ico"><use href="#i-unit"/></svg>Units and lessons</li></ul>
+        <span class="swatch"><b></b>Blue</span>
+      </article>
+      <article class="fam tint f-check">
+        <div class="disc"><svg class="ico"><use href="#i-check"/></svg><i>2</i></div>
+        <h3>Check</h3><p class="q">How will we know they learned it?</p>
+        <ul><li><svg class="ico"><use href="#i-goal"/></svg>Team goal</li><li><svg class="ico"><use href="#i-check"/></svg>Team checks</li><li><svg class="ico"><use href="#i-score"/></svg>How we score it</li><li><svg class="ico"><use href="#i-results"/></svg>Results</li></ul>
+        <span class="swatch"><b></b>Orange</span>
+      </article>
+      <article class="fam tint f-reteach">
+        <div class="disc"><svg class="ico"><use href="#i-reteach"/></svg><i>3</i></div>
+        <h3>Reteach</h3><p class="q">What if a student hasn't learned it yet?</p>
+        <ul><li><svg class="ico"><use href="#i-reteach"/></svg>Reteach plan</li><li><svg class="ico"><use href="#i-recheck"/></svg>Re-check</li><li><svg class="ico"><use href="#i-practice"/></svg>What worked for us</li></ul>
+        <span class="swatch"><b></b>Green</span>
+      </article>
+      <article class="fam tint f-stretch">
+        <div class="disc"><svg class="ico"><use href="#i-stretch"/></svg><i>4</i></div>
+        <h3>Stretch</h3><p class="q">What if a student already knows it?</p>
+        <ul><li><svg class="ico"><use href="#i-stretch"/></svg>Stretch activities</li><li><svg class="ico"><use href="#i-resource"/></svg>Stretch materials</li></ul>
+        <span class="swatch"><b></b>Gold</span>
+      </article>
+      <article class="fam tint f-team">
+        <div class="disc"><svg class="ico"><use href="#i-team"/></svg></div>
+        <h3>Team</h3><p class="q">How do we work together?</p>
+        <ul><li><svg class="ico"><use href="#i-team"/></svg>Members</li><li><svg class="ico"><use href="#i-norms"/></svg>Team agreements</li><li><svg class="ico"><use href="#i-meeting"/></svg>Meetings</li></ul>
+        <span class="swatch"><b></b>Purple</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">2 · Icons for quick reference</span>
+      <h2>One drawing per idea</h2>
+      <p>Each icon appears wherever its idea does: the menu, card headers, buttons, the glossary and the narrated tours. Family icons take their family's color.</p>
+    </div>
+    <div class="icons" id="iconGrid"></div>
+    <h3 style="margin:30px 0 14px">Tools that belong to no family</h3>
+    <div class="icons neutral" id="toolGrid"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">3 · Plain words, then the real term</span>
+      <h2>Say it simply. Then name it.</h2>
+      <p>Every screen leads with an everyday question. The official PLC term sits right under it in a dashed chip. Tap the chip for a short definition, an example and a narrated explanation. Teachers learn the vocabulary as they use it.</p>
+    </div>
+    <div class="pattern">
+      <div class="demo tint f-check">
+        <div class="row">
+          <span class="num"><svg class="ico"><use href="#i-check"/></svg></span>
+          <div style="display:grid;gap:10px">
+            <h3>How will we know they learned it?</h3>
+            <p>Plan one short check that every teacher on the team gives the same way, around the same day.</p>
+            <div><button class="term" type="button" id="termBtn" aria-expanded="true" aria-controls="termDef"><span class="tag">PLC term</span>Common formative assessment (CFA)</button></div>
+            <div class="def" id="termDef">
+              <b>Common formative assessment</b>
+              <p><b>Common</b> means every teacher on the team gives the same check. <b>Formative</b> means it happens during learning, while there's still time to help, not as a final grade.</p>
+              <p><i>Example:</i> a 4-question exit ticket every 9th-grade class takes on Thursday.</p>
+              <div class="acts"><button class="pill" type="button" id="hearBtn"><svg class="ico"><use href="#i-listen"/></svg>Hear it explained</button><button class="pill soft" type="button"><svg class="ico"><use href="#i-glossary"/></svg>Open in glossary</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="anatomy">
+        <li><div><b>Family icon in a circle</b><br><span>Shows which question you're on before you read a word.</span></div></li>
+        <li><div><b>A question anyone can answer</b><br><span>Written the way a teammate would ask it across the table.</span></div></li>
+        <li><div><b>One sentence on what to do</b><br><span>An action, not a definition.</span></div></li>
+        <li><div><b>The PLC term chip</b><br><span>Dashed border, family color, always labeled "PLC term". The same chip in every place a term appears.</span></div></li>
+        <li><div><b>Definition, example, voice</b><br><span>Short enough to read in ten seconds, with a narrated version for anyone who'd rather listen.</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">4 · Progress you can see</span>
+      <h2>Fill the circle</h2>
+      <p>Status is always a circle that fills, in the color of the question it belongs to. It works without color too: the center shows a dot, a dash or a check.</p>
+    </div>
+    <div class="status-row">
+      <div class="status f-check"><span class="tok" style="--p:0"><i><svg class="ico"><use href="#i-empty"/></svg></i></span><div><b>Not started</b><span>Empty ring</span></div></div>
+      <div class="status f-check"><span class="tok" style="--p:50"><i><svg class="ico"><use href="#i-half"/></svg></i></span><div><b>Started</b><span>Half full</span></div></div>
+      <div class="status f-check"><span class="tok done" style="--p:100"><i><svg class="ico"><use href="#i-done"/></svg></i></span><div><b>Ready</b><span>Full, with a check</span></div></div>
+    </div>
+    <div class="pip-demo">
+      <span class="pips plan" style="display:inline-flex"><b class="on" style="--c:var(--learn)"></b><b class="on" style="--c:var(--check)"></b><b class="half" style="--c:var(--reteach)"></b><b style="--c:var(--stretch)"></b></span>
+      <p><b>Four dots, four questions.</b> Every plan carries this mini orbit, so you can see at a glance how far a plan has come: here, questions 1 and 2 are done, 3 is under way and 4 hasn't started.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">5 · Shapes</span>
+      <h2>Each shape has a job</h2>
+      <p>Custom shapes do more than look good. They tell you what you can do with something before you read it.</p>
+    </div>
+    <div class="shapes">
+      <div class="shape f-learn"><div class="demo-shape"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="var(--learn)"/><circle cx="40" cy="40" r="36" fill="none" stroke="var(--paper)" stroke-width="5" stroke-dasharray="4 6" transform="scale(.82) translate(8.8 8.8)"/></svg></div><b>Circle</b><span>A question, a person or a status. The big ideas.</span></div>
+      <div class="shape"><div class="demo-shape"><span class="pill" style="font-size:1rem;padding:12px 20px 12px 12px"><svg class="ico"><use href="#i-play"/></svg>Start the check</span></div><b>Capsule</b><span>Something you can press: an action or a list item that opens.</span></div>
+      <div class="shape f-reteach"><div class="demo-shape"><div class="def tint" style="width:100%;padding:12px 16px;font-size:.9rem">New to this? Try a hands-on model.</div></div><b>Speech bubble</b><span>Help and guidance from Zava, your plan guide. The flat corner points to who's talking.</span></div>
+      <div class="shape f-check"><div class="demo-shape"><div class="tint" style="width:100%;height:80px;border-radius:40px 40px 40px 10px;border:2px solid var(--check)"></div></div><b>Station</b><span>A whole step of a plan, tinted with its question's color.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">6 · Word list</span>
+      <h2>What Launchpad says, and the PLC term it teaches</h2>
+      <p>This replaces the jargon on Launchpad's current screens. The left column is what a teacher sees first. The PLC term appears next to it in a chip, so it's always learned, never hidden.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="words">
+        <thead><tr><th scope="col">Family</th><th scope="col">Launchpad says</th><th scope="col">PLC term</th><th scope="col">What it means</th></tr></thead>
+        <tbody id="wordRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">7 · Put together</span>
+      <h2>The team home screen</h2>
+      <p>The sidebar of six links becomes one orbit. Your team sits at the center, and each question is a planet you can open. It's the same place, the same colors and the same icons every time you arrive.</p>
+    </div>
+    <div class="preview">
+      <div class="teambar">
+        <span class="team-orb"><svg class="ico"><use href="#i-team"/></svg></span>
+        <div><b>Engineering 9 · Rose &amp; Patel</b><span>Introduction to Engineering Design · 4 teachers</span></div>
+        <span class="saved"><i aria-hidden="true"></i>Saved online</span>
+      </div>
+      <div class="home-grid">
+        <svg class="orbit" viewBox="0 0 520 520" role="img" aria-label="The four questions around the team, with how much each has">
+          <circle class="ring" cx="260" cy="260" r="198"/>
+          <circle cx="260" cy="260" r="86" fill="var(--ink)"/>
+          <text x="260" y="238" text-anchor="middle" font-size="13" fill="var(--sky)" opacity=".75" style="font-family:var(--body)">Our promise</text>
+          <text x="260" y="266" text-anchor="middle" font-size="21" font-weight="800" fill="var(--sky)">Every student</text>
+          <text x="260" y="290" text-anchor="middle" font-size="21" font-weight="800" fill="var(--sky)">learns</text>
+          <g id="planets"></g>
+        </svg>
+        <div class="side">
+          <div class="resume"><span class="r-orb"><svg class="ico"><use href="#i-check"/></svg></span><div><b>Pick up where you left off</b><span>Sketching quick check · scoring guide</span></div></div>
+          <div class="meet tint f-team"><span class="m-orb"><svg class="ico"><use href="#i-meeting"/></svg></span><div><b>Next team meeting · Thu, Nov 19</b><span>3 agenda items · bring sketching results</span></div></div>
+          <h4>Our plans</h4>
+          <div class="plans">
+            <div class="plan"><span class="p-orb"><svg class="ico"><use href="#i-plan"/></svg></span><div><b>I can sketch an object in three views</b><span>B2.1 · Sketching</span></div><span class="pips"><b class="on"></b><b class="on"></b><b class="half"></b><b></b></span></div>
+            <div class="plan"><span class="p-orb"><svg class="ico"><use href="#i-plan"/></svg></span><div><b>I can measure to the nearest 1/16 inch</b><span>B7.3 · Measurement</span></div><span class="pips"><b class="on"></b><b class="half"></b><b></b><b></b></span></div>
+            <div class="plan"><span class="p-orb"><svg class="ico"><use href="#i-plan"/></svg></span><div><b>I can follow the design process to solve a problem</b><span>B6.1 · Design process</span></div><span class="pips"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">PLC Launchpad design language · draft for review · team, plans and meeting shown above are examples.</div></footer>
+
+<script>
+(() => {
+const svg = (id, cls = 'ico') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+
+const FAMILY_ICONS = [
+  ['learn', 'learn', 'Learn', 'Question 1 and everything about what students must learn'],
+  ['learn', 'standard', 'Must-learn skill', 'An essential standard your team chose'],
+  ['learn', 'target', '"I can" statement', 'The skill in student words'],
+  ['learn', 'unit', 'Unit or lesson', 'Where the skill is taught'],
+  ['check', 'check', 'Team check', 'The same short check every class takes'],
+  ['check', 'goal', 'Team goal', 'How many students will show it, by when'],
+  ['check', 'score', 'How we score it', 'What counts as "got it"'],
+  ['check', 'results', 'Results', 'What the check showed'],
+  ['reteach', 'reteach', 'Reteach', 'Extra time, a new way to teach it'],
+  ['reteach', 'recheck', 'Re-check', 'A second check after reteaching'],
+  ['reteach', 'practice', 'What worked for us', 'Teaching moves teachers share'],
+  ['stretch', 'stretch', 'Stretch', 'Going deeper for students who got it'],
+  ['team', 'team', 'Team members', 'Who is on the team'],
+  ['team', 'norms', 'Team agreements', 'How the team works together'],
+  ['team', 'meeting', 'Meetings', 'Agendas, notes and decisions']
+];
+const TOOLS = [
+  ['home', 'Team home', 'The orbit'], ['plan', 'Plan', 'One skill, start to finish'], ['guide', 'Zava, plan guide', 'Help as you go'],
+  ['listen', 'Hear it', 'Narrated explanation'], ['play', 'Watch the tour', 'Animated walkthrough'], ['glossary', 'PLC words', 'The glossary'],
+  ['resource', 'Resources', 'Links and files'], ['history', 'Version history', 'Earlier saves'], ['settings', 'Settings', 'Team and course setup']
+];
+document.getElementById('iconGrid').innerHTML = FAMILY_ICONS.map(([f, i, n, d]) =>
+  `<div class="icon-card f-${f}"><span class="badge">${svg(i)}</span><b>${n}</b><small>${d}</small></div>`).join('');
+document.getElementById('toolGrid').innerHTML = TOOLS.map(([i, n, d]) =>
+  `<div class="icon-card"><span class="badge">${svg(i)}</span><b>${n}</b><small>${d}</small></div>`).join('');
+
+const WORDS = [
+  ['learn', 'standard', 'Must-learn skill', 'Essential standard', 'One of the few skills your team agrees every student must master, no matter whose class they\'re in.'],
+  ['learn', 'standard', 'Big standard · one skill inside it', 'Broad standard · specific indicator', 'The state groups skills under a big standard. You can choose the whole thing or just one skill inside it.'],
+  ['learn', 'target', '"I can" statement', 'Learning target', 'The skill rewritten in words a student understands.'],
+  ['learn', 'target', 'Facts to know · something to make', 'Knowledge target · product target', 'Kinds of "I can" statements: knowing something, or creating something that shows it.'],
+  ['check', 'check', 'Team check', 'Common formative assessment (CFA)', 'The same short check every teacher gives during learning, while there\'s still time to help.'],
+  ['check', 'goal', 'Team goal', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date.'],
+  ['check', 'results', 'Where students started', 'Baseline', 'How students did before teaching, so you can see growth.'],
+  ['check', 'score', 'What counts as "got it"', 'Proficiency · scoring agreement', 'The score or criteria the team agrees means a student has learned the skill.'],
+  ['check', 'score', 'Scoring practice together', 'Calibration', 'Teachers score the same student work and talk until they score it the same way.'],
+  ['check', 'results', 'Not scored yet', 'Awaiting evidence', 'A student row with missing scores or details.'],
+  ['check', 'results', 'Hidden to protect privacy', 'Withheld', 'Team results appear once at least 5 students from 3 teachers are scored.'],
+  ['reteach', 'reteach', 'Reteach time', 'Intervention (Tier 2)', 'Extra small-group time with a different approach for students who haven\'t learned it yet.'],
+  ['reteach', 'recheck', 'Re-check', 'Follow-up assessment', 'A second short check after reteaching, to see if it worked.'],
+  ['reteach', 'practice', 'What worked for us', 'Shared instructional practices', 'Teaching moves teachers share after seeing whose students did best.'],
+  ['stretch', 'stretch', 'Stretch', 'Extension / enrichment', 'Going deeper with the same skill for students who already know it.'],
+  ['team', 'norms', 'Team agreements', 'Norms', 'How your team agrees to work together, like starting on time and assuming good intent.'],
+  ['team', 'team', 'Team lead · subject lead', 'PLC team lead · subject coordinator', 'The people who organize a team\'s work and a subject\'s teams.'],
+  ['team', 'meeting', 'Asking questions together', 'Collective inquiry', 'Looking at evidence as a team to find out what works, instead of guessing.'],
+  ['team', 'plan', 'Plan for one skill', 'PLC plan · learning cycle', 'One skill taken through all four questions, from choosing it to stretching students who got it.']
+];
+document.getElementById('wordRows').innerHTML = WORDS.map(([f, i, say, term, what]) =>
+  `<tr class="f-${f}"><td><span class="fam-dot">${svg(i)}</span></td><td class="say">${say}</td><td><span class="plc">${term}</span></td><td>${what}</td></tr>`).join('');
+
+/* home preview planets */
+const P = [
+  ['learn', 'Learn', '3 skills', 82, 120, 120, 1],
+  ['check', 'Check', '2 checks', 60, 400, 120, 2],
+  ['reteach', 'Reteach', '1 group', 35, 400, 400, 3],
+  ['stretch', 'Stretch', '1 plan', 20, 120, 400, 4]
+];
+document.getElementById('planets').innerHTML = P.map(([f, word, count, pct, x, y, n]) => {
+  const C = 2 * Math.PI * 66;
+  return `<g><circle cx="${x}" cy="${y}" r="66" fill="none" stroke="var(--line)" stroke-width="6"/>
+    <circle cx="${x}" cy="${y}" r="66" fill="none" stroke="var(--${f})" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" transform="rotate(-90 ${x} ${y})"/>
+    <circle cx="${x}" cy="${y}" r="55" fill="var(--paper)" stroke="var(--${f})" stroke-width="3"/>
+    <svg x="${x - 15}" y="${y - 36}" width="30" height="30" class="ico" style="color:var(--${f})"><use href="#i-${f}"/></svg>
+    <text x="${x}" y="${y + 12}" text-anchor="middle" font-size="17" font-weight="800" fill="var(--ink)">${word}</text>
+    <text x="${x}" y="${y + 31}" text-anchor="middle" font-size="13" fill="var(--ink-soft)" style="font-family:var(--body)">${count}</text>
+    <circle cx="${x + 46}" cy="${y - 42}" r="14" fill="var(--${f})"/>
+    <text x="${x + 46}" y="${y - 37}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--on-${f})">${n}</text></g>`;
+}).join('');
+
+/* term chip demo */
+const btn = document.getElementById('termBtn'), def = document.getElementById('termDef');
+btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') !== 'true'; btn.setAttribute('aria-expanded', String(open)); def.hidden = !open; });
+document.getElementById('hearBtn').addEventListener('click', () => {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(new SpeechSynthesisUtterance('A common formative assessment is a short check every teacher on the team gives the same way, during learning, while there is still time to help. Common means everyone gives the same check. Formative means it shapes what you teach next.'));
+});
+})();
+</script>
