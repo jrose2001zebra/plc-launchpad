@@ -1,407 +1,315 @@
 <title>PLC Launchpad</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
-<style>/* PLC Launchpad 1.0
-   Layout: one orbit hub (home) and a "flight path" for each plan. Color always means a family:
-   learn (Q1) blue · check (Q2) orange · reteach (Q3) green · stretch (Q4) gold · team purple.
-   Navy/gray are for tools that belong to no family. Circles = big ideas and status, capsules = actions,
-   speech bubbles = guidance, tinted stations = plan steps. */
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>/* PLC Launchpad 2.0
+   Layout: a launchpad homepage with four doors (Plans, Meetings, Assessments & Results, Team settings).
+   Each door opens a plain page; plan work happens one question per screen. Lots of white space,
+   one soft color per door, friendly rounded type. */
 :root{
-  --sky:#E9EFF7; --paper:#FFFFFF; --ink:#14213D; --ink-soft:#4C5876; --line:#C7D2E3; --wash:#F3F6FB;
-  --learn:#4467D8; --check:#DD7A45; --reteach:#25957B; --stretch:#C29330; --team:#8B66C4; --alert:#C2334D;
-  --on-learn:#FFFFFF; --on-check:#14213D; --on-reteach:#FFFFFF; --on-stretch:#14213D; --on-team:#FFFFFF;
-  --blend:multiply; --shadow:0 10px 30px -18px rgba(20,33,61,.45);
-  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
-  --body:"Atkinson Hyperlegible","Verdana","Segoe UI",system-ui,sans-serif;
+  --bg:#F6F7F9; --card:#FFFFFF; --ink:#1F2733; --soft:#6B7380; --line:#E3E6EB; --wash:#F1F3F6;
+  --plans:#3E7BFA; --meet:#E08A3C; --assess:#8A63C6; --set:#6B7380; --good:#2BA37E; --warn:#D9822B; --alert:#C2334D;
+  /* names used by shared components */
+  --learn:var(--plans); --check:var(--assess); --reteach:var(--good); --stretch:var(--plans); --team:var(--meet);
+  --on:#FFFFFF;
+  --font:"Nunito","Segoe UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757; --wash:#121A2F;
-  --learn:#8CA2F2; --check:#EE9C70; --reteach:#62C4A8; --stretch:#E2BF62; --team:#B89AE8; --alert:#FF7C93;
-  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
-  --blend:screen; --shadow:0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}}
+  --bg:#13161B; --card:#1C2027; --ink:#E9ECF1; --soft:#9AA3B0; --line:#2C323C; --wash:#22272F;
+  --plans:#7FA6FF; --meet:#F0AA6A; --assess:#B79AEA; --set:#9AA3B0; --good:#5CCAA5; --warn:#F0AA6A; --alert:#FF7C93;
+  --on:#13161B; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --sky:#0D1424; --paper:#17203A; --ink:#EEF2FA; --ink-soft:#A7B2CD; --line:#2B3757; --wash:#121A2F;
-  --learn:#8CA2F2; --check:#EE9C70; --reteach:#62C4A8; --stretch:#E2BF62; --team:#B89AE8; --alert:#FF7C93;
-  --on-learn:#0D1424; --on-check:#0D1424; --on-reteach:#0D1424; --on-stretch:#0D1424; --on-team:#0D1424;
-  --blend:screen; --shadow:0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}
+  --bg:#13161B; --card:#1C2027; --ink:#E9ECF1; --soft:#9AA3B0; --line:#2C323C; --wash:#22272F;
+  --plans:#7FA6FF; --meet:#F0AA6A; --assess:#B79AEA; --set:#9AA3B0; --good:#5CCAA5; --warn:#F0AA6A; --alert:#FF7C93;
+  --on:#13161B; color-scheme:dark}
 
 *{box-sizing:border-box}
-html,body{min-height:100%}
-body{margin:0;background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.55;overflow-x:hidden}
-h1,h2,h3,h4{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
-h1{font-size:clamp(2rem,4.4vw,3.2rem);font-weight:800;letter-spacing:-.025em}
-h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:800;letter-spacing:-.015em}
-h3{font-size:1.2rem;font-weight:700}
-h4{font-size:1rem;font-weight:700}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.55;overflow-x:hidden}
+h1,h2,h3,h4{margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(1.7rem,3.6vw,2.4rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.35rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:800}
+h4{font-size:1rem;font-weight:800}
 p{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:3px solid var(--learn);outline-offset:3px;border-radius:12px}
-[hidden]{display:none!important}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.ico{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:3px solid var(--plans);outline-offset:3px;border-radius:10px}
+.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ico .fill{fill:currentColor;stroke:none}
-.muted{color:var(--ink-soft)}
-.small{font-size:.88rem}
-.eyebrow{font-family:var(--display);font-weight:700;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
-.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--soft)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-/* families */
-.f-learn{--c:var(--learn);--on:var(--on-learn)} .f-check{--c:var(--check);--on:var(--on-check)}
-.f-reteach{--c:var(--reteach);--on:var(--on-reteach)} .f-stretch{--c:var(--stretch);--on:var(--on-stretch)}
-.f-team{--c:var(--team);--on:var(--on-team)} .f-tool{--c:var(--ink);--on:var(--sky)}
-.tint{background:color-mix(in srgb,var(--c) 9%,var(--paper))}
-.orb{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:var(--on)}
-.orb.lg{width:64px;height:64px}.orb.lg .ico{width:30px;height:30px}
-.orb.sm{width:32px;height:32px}.orb.sm .ico{width:17px;height:17px}
-.orb.soft{background:color-mix(in srgb,var(--c) 15%,var(--paper));color:var(--c)}
+/* areas: each door and its pages share one color */
+.a-plans,.f-learn,.f-stretch{--k:var(--plans)} .a-meet,.f-team{--k:var(--meet)} .a-assess,.f-check{--k:var(--assess)}
+.a-set,.f-tool{--k:var(--set)} .f-reteach{--k:var(--good)}
+.f-learn,.f-stretch,.f-team,.f-check,.f-tool,.f-reteach,.a-plans,.a-meet,.a-assess,.a-set{--c:var(--k)}
 
-/* ---------- shell ---------- */
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--sky)}
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--sky) 88%,transparent);backdrop-filter:blur(12px);
+/* ---------- top bar ---------- */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.12rem;white-space:nowrap}
-.team-pill{display:flex;align-items:center;gap:8px;border:0;background:color-mix(in srgb,var(--team) 14%,var(--paper));color:var(--ink);border-radius:999px;padding:5px 14px 5px 5px;font-weight:700;font-size:.9rem;max-width:280px}
-.team-pill .orb{width:30px;height:30px}.team-pill .orb .ico{width:16px;height:16px}
-.team-pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.nav a{display:flex;align-items:center;gap:7px;text-decoration:none;font-weight:700;font-size:.9rem;padding:7px 13px 7px 8px;border-radius:999px;border:2px solid transparent;color:var(--ink)}
-.nav a .ico{width:19px;height:19px;color:var(--c)}
-.nav a:hover{border-color:var(--line)}
-.nav a[aria-current="page"]{background:var(--paper);border-color:var(--c);box-shadow:var(--shadow)}
-.status-dot{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-soft);white-space:nowrap}
-.status-dot i{width:9px;height:9px;border-radius:50%;background:var(--reteach)}
-.status-dot.saving i{background:var(--stretch)} .status-dot.error i{background:var(--alert)}
-.timer-pill{display:flex;align-items:center;gap:10px;background:var(--team);color:var(--on-team);border-radius:999px;padding:5px 6px 5px 14px;font-weight:700;font-size:.9rem;text-decoration:none}
-.timer-pill b{font-variant-numeric:tabular-nums;font-family:var(--display);font-size:1.05rem}
-.timer-pill span.go{background:var(--paper);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:.8rem}
-main{max-width:1240px;margin:0 auto;padding-block:18px 70px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-block:10px 24px}
-.page-head .lead{display:grid;gap:8px;max-width:62ch}
-.page-head p{color:var(--ink-soft);font-size:1.05rem}
-.demo-banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--paper);border:2px dashed var(--line);border-radius:999px;padding:8px 10px 8px 18px;font-size:.9rem;margin-bottom:14px}
-.demo-banner b{font-family:var(--display)}
+.top-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding-block:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-weight:800;font-size:1.08rem;white-space:nowrap}
+.team-name{border:0;background:none;color:var(--soft);font-weight:700;font-size:.95rem;padding:4px 8px;border-radius:10px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-name:hover{background:var(--wash);color:var(--ink)}
+.top .spacer{flex:1}
+.status-dot{display:flex;align-items:center;gap:7px;font-size:.85rem;color:var(--soft);white-space:nowrap}
+.status-dot i{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.status-dot.saving i{background:var(--warn)} .status-dot.error i{background:var(--alert)}
+.timer-pill{display:flex;align-items:center;gap:8px;background:var(--meet);color:var(--on);border-radius:999px;padding:6px 14px;font-weight:800;font-size:.9rem;text-decoration:none}
+.timer-pill b{font-variant-numeric:tabular-nums}
+main{max-width:1080px;margin:0 auto;padding-block:10px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.crumbs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.92rem;color:var(--soft);margin-bottom:14px}
+.crumbs a{text-decoration:none;font-weight:700;color:var(--soft)}
+.crumbs a:hover{color:var(--ink);text-decoration:underline}
+.crumbs .ico{width:14px;height:14px}
+.page-head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px}
+.page-head .lead{display:grid;gap:6px;max-width:60ch}
+.page-head p{color:var(--soft)}
+.demo-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:8px 8px 8px 14px;font-size:.88rem;color:var(--soft);margin-bottom:18px}
 .demo-banner .btn{margin-left:auto}
 
 /* ---------- buttons ---------- */
-.btn{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:11px 18px;font-weight:700;text-decoration:none;font-size:.95rem;line-height:1.2;background:var(--ink);color:var(--sky);white-space:nowrap}
-.btn .ico{width:19px;height:19px}
-.btn.lead-orb{padding:7px 20px 7px 7px}
-.btn.lead-orb .orb{width:34px;height:34px}.btn.lead-orb .orb .ico{width:18px;height:18px}
-.btn.fam{background:var(--c);color:var(--on)}
-.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
-.btn.ghost:hover{border-color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:11px 20px;font-weight:800;text-decoration:none;font-size:.97rem;line-height:1.2;background:var(--k,var(--plans));color:var(--on);white-space:nowrap}
+.btn .ico{width:18px;height:18px}
+.btn.big{padding:14px 26px;font-size:1.05rem}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--soft)}
 .btn.soft{background:var(--wash);color:var(--ink)}
-.btn.sm{padding:7px 13px;font-size:.86rem}
-.btn.danger{background:transparent;color:var(--alert);border:2px solid color-mix(in srgb,var(--alert) 40%,var(--line))}
+.btn.fam{background:color-mix(in srgb,var(--k) 14%,var(--card));color:var(--ink)}
+.btn.sm{padding:7px 14px;font-size:.88rem}
+.btn.danger{background:transparent;color:var(--alert);border:1.5px solid color-mix(in srgb,var(--alert) 35%,var(--line))}
 .btn:disabled{opacity:.45;cursor:default}
-.icon-btn{border:0;background:transparent;width:36px;height:36px;border-radius:50%;display:inline-grid;place-items:center;color:var(--ink-soft)}
+.btn.lead-orb .orb{display:none}
+.icon-btn{border:0;background:transparent;width:34px;height:34px;border-radius:50%;display:inline-grid;place-items:center;color:var(--soft)}
 .icon-btn:hover{background:var(--wash);color:var(--ink)}
+.linkish{border:0;background:none;padding:0;color:var(--k,var(--plans));font-weight:800;cursor:pointer;text-decoration:none}
+.linkish:hover{text-decoration:underline}
+.link-quiet{color:var(--soft);font-weight:700;font-size:.95rem;text-decoration:none}
+.link-quiet:hover{color:var(--ink);text-decoration:underline}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .row.end{justify-content:flex-end}
 .spacer{flex:1}
 
-/* ---------- cards ---------- */
-.card{background:var(--paper);border-radius:34px;padding:22px 24px;display:grid;gap:14px;align-content:start;min-width:0}
-.card.bubble{border-radius:34px 34px 34px 8px}
-.card.tint{background:color-mix(in srgb,var(--c) 9%,var(--paper))}
-.card.station{border-radius:56px 56px 56px 14px;padding:clamp(20px,3.4vw,40px);position:relative;overflow:hidden}
-.card.station::after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-130px;top:-150px;background:var(--c);opacity:.1;pointer-events:none}
-.card-head{display:flex;gap:14px;align-items:center}
-.card-head .grow{min-width:0;flex:1;display:grid;gap:2px}
+/* ---------- cards & lists ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;display:grid;gap:14px;align-content:start;min-width:0}
+.card.tint{background:var(--card)}
+.card-head{display:flex;gap:12px;align-items:center}
+.card-head .grow{flex:1;min-width:0;display:grid;gap:2px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .stack{display:grid;gap:14px;align-content:start;min-width:0}
-.empty{border:2px dashed var(--line);border-radius:30px;padding:22px;text-align:center;color:var(--ink-soft);display:grid;gap:10px;justify-items:center}
+.empty{border:1.5px dashed var(--line);border-radius:18px;padding:24px;text-align:center;color:var(--soft);display:grid;gap:10px;justify-items:center}
+.orb{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--k,var(--set)) 15%,var(--card));color:var(--k,var(--set))}
+.orb.sm{width:32px;height:32px}.orb.sm .ico{width:16px;height:16px}
+.orb.lg{width:52px;height:52px}.orb.lg .ico{width:24px;height:24px}
+.list{display:grid;gap:8px}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--wash);border-radius:14px;padding:10px 14px;text-decoration:none;border:0;text-align:left;width:100%}
+a.li:hover{background:color-mix(in srgb,var(--k,var(--plans)) 9%,var(--wash))}
+.li b{display:block;font-weight:700;overflow-wrap:anywhere}
+.li .sub{display:block;font-size:.85rem;color:var(--soft)}
+.li.todo.done b{text-decoration:line-through;opacity:.6}
+.check-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;background:transparent;color:#fff;padding:0}
+.check-circle[aria-pressed="true"]{background:var(--good);border-color:var(--good)}
+.check-circle .ico{width:14px;height:14px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--ink);display:grid;place-items:center;font-weight:800;font-size:.78rem;flex:none}
+.privacy{display:flex;gap:8px;align-items:flex-start;font-size:.86rem;color:var(--soft)}
+.privacy .ico{width:16px;height:16px;margin-top:3px}
+
+/* ---------- home: the launchpad ---------- */
+.hello{display:grid;gap:4px;margin:8px 0 26px}
+.hello h1{font-size:clamp(1.8rem,4vw,2.6rem)}
+.hello p{color:var(--soft);font-size:1.1rem}
+.doors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.door{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0;border-top:5px solid var(--k)}
+.door-head{display:flex;gap:12px;align-items:center}
+.door-head h2{font-size:1.2rem}
+.door .acts{display:grid;gap:8px}
+.act{display:block;border-radius:14px;padding:10px 12px;background:var(--wash);font-weight:800;font-size:.95rem;text-decoration:none;border:0;text-align:left;width:100%}
+.act:hover{background:color-mix(in srgb,var(--k) 12%,var(--wash))}
+.act small{display:block;font-weight:600;color:var(--soft);font-size:.84rem}
+.act.main{background:var(--k);color:var(--on)}
+.act.main small{color:color-mix(in srgb,var(--on) 85%,transparent)}
+.act.main:hover{background:color-mix(in srgb,var(--k) 88%,var(--ink))}
+.home-foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* ---------- plan checklist ---------- */
+.plan-q{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 8px}
+.plan-q h3{display:flex;gap:12px;align-items:center;padding:12px 12px 6px}
+.plan-q h3 .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--plans) 14%,var(--card));color:var(--plans);font-size:.95rem;flex:none}
+.plan-q h3 .n.done{background:var(--good);color:#fff}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 12px;border-radius:14px;text-decoration:none}
+.task:hover{background:var(--wash)}
+.task .tick{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.task .tick.half{border-color:var(--plans);background:linear-gradient(90deg,var(--plans) 50%,transparent 50%)}
+.task .tick.on{background:var(--good);border-color:var(--good);color:#fff}
+.task .tick .ico{width:13px;height:13px}
+.task b{font-weight:700}
+.task .next{font-size:.8rem;font-weight:800;color:var(--plans);background:color-mix(in srgb,var(--plans) 12%,var(--card));padding:2px 10px;border-radius:999px}
+.task .go{color:var(--soft)}
+.plan-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.plan-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;display:grid;gap:10px;text-decoration:none}
+.plan-card:hover{border-color:var(--plans)}
+.plan-card b{font-size:1.08rem}
+.bar{height:8px;border-radius:999px;background:var(--wash);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--k,var(--plans));border-radius:999px}
+
+/* ---------- one question per screen ---------- */
+.focus{max-width:760px;margin:0 auto;display:grid;gap:18px}
+.q-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--soft);font-size:.92rem;font-weight:700}
+.q-dots{display:flex;gap:6px}
+.q-dots a{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.q-dots a.on{background:var(--good)} .q-dots a.cur{background:var(--k);width:24px;border-radius:999px}
+.q-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(22px,4vw,40px);display:grid;gap:22px}
+.q-card .ask{font-size:clamp(1.5rem,3.2vw,2.1rem);font-weight:800;line-height:1.2}
+.q-card .hint{color:var(--soft);font-size:1.03rem;margin-top:-12px}
+.q-foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:18px}
+.done-note{display:flex;gap:6px;align-items:center;justify-content:flex-end;font-size:.88rem;color:var(--soft)}
+.done-note .ico{width:15px;height:15px;color:var(--good)}
+.st-body{display:grid;gap:20px}
+
+/* "What does this mean?" and tips, folded away */
+.term{display:inline-flex;gap:6px;align-items:center;border:0;background:none;padding:0;color:var(--soft);font-weight:700;font-size:.9rem;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px;cursor:pointer}
+.term .tag{display:none}
+.term[aria-expanded="true"]{color:var(--ink)}
+.def{background:var(--wash);border-radius:14px;padding:12px 16px;display:grid;gap:8px;max-width:60ch;font-size:.95rem}
+details.zava{background:var(--wash);border-radius:14px;padding:10px 14px}
+details.zava>summary{display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:700;list-style:none;font-size:.92rem;color:var(--soft)}
+details.zava>summary::-webkit-details-marker{display:none}
+details.zava>summary .z{display:none}
+details.zava[open]>summary{margin-bottom:8px}
+details.zava .say{display:grid;gap:8px}
+.example{background:var(--card);border-radius:12px;padding:10px 14px;font-size:.93rem}
+details.talk-box{border-top:1px dashed var(--line);padding-top:12px}
+details.talk-box>summary{display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:700;list-style:none;font-size:.92rem;color:var(--soft)}
+details.talk-box>summary::-webkit-details-marker{display:none}
+details.talk-box>summary .orb{display:none}
+details.talk-box[open]>summary{margin-bottom:10px}
 
 /* ---------- forms ---------- */
 .field{display:grid;gap:6px;min-width:0}
-.field>label,.field>.lbl{font-weight:700;font-size:.95rem}
-.field .help{font-size:.85rem;color:var(--ink-soft)}
+.field>label,.field>.lbl{font-weight:800;font-size:.97rem}
+.field .help{font-size:.87rem;color:var(--soft)}
 input[type=text],input[type=email],input[type=number],input[type=date],input[type=url],input[type=search],select,textarea{
-  width:100%;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:10px 14px;min-width:0}
-textarea{min-height:84px;resize:vertical;border-radius:20px;line-height:1.5}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c,var(--learn));box-shadow:0 0 0 4px color-mix(in srgb,var(--c,var(--learn)) 20%,transparent)}
+  width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;min-width:0}
+textarea{min-height:90px;resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--k,var(--plans));box-shadow:0 0 0 3px color-mix(in srgb,var(--k,var(--plans)) 18%,transparent)}
 .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .fields .wide{grid-column:1/-1}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 13px;font-weight:700;font-size:.88rem;display:inline-flex;gap:6px;align-items:center}
-.chip[aria-pressed="true"]{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:var(--on,var(--sky))}
-.chip small{font-weight:400;opacity:.8}
-.privacy{display:flex;gap:8px;align-items:flex-start;font-size:.84rem;color:var(--ink-soft)}
-.privacy .ico{width:17px;height:17px;margin-top:2px}
-
-/* ---------- PLC term chip ---------- */
-.term{display:inline-flex;align-items:center;gap:8px;border:2px dashed color-mix(in srgb,var(--c,var(--ink)) 65%,var(--ink));background:transparent;border-radius:999px;padding:4px 13px 4px 5px;font-size:.86rem;font-weight:700;text-align:left}
-.term .tag{background:var(--c,var(--ink));color:var(--on,var(--sky));border-radius:999px;padding:1px 8px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.term[aria-expanded="true"]{background:var(--paper);border-style:solid}
-.def{background:var(--paper);border-radius:22px 22px 22px 6px;padding:14px 18px;display:grid;gap:10px;max-width:60ch}
-.def b{font-family:var(--display)}
-
-/* ---------- Zava ---------- */
-.zava{display:flex;gap:12px;align-items:flex-start}
-.zava .z{flex:none;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--sky);display:grid;place-items:center}
-.zava .z .ico{width:20px;height:20px}
-.zava .say{background:var(--paper);border-radius:6px 24px 24px 24px;padding:12px 16px;display:grid;gap:8px;min-width:0}
-.zava .say b{font-family:var(--display);font-size:.86rem;letter-spacing:.04em}
-.example{background:var(--wash);border-radius:16px;padding:10px 14px;font-size:.92rem}
-
-/* ---------- status token + pips ---------- */
-.tok{flex:none;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p,0)*1%),color-mix(in srgb,var(--c) 18%,var(--paper)) 0);display:grid;place-items:center}
-.tok i{width:34px;height:34px;border-radius:50%;background:var(--paper);display:grid;place-items:center;color:var(--c);font-style:normal}
-.tok.done i{background:var(--c);color:var(--on)}
-.tok .ico{width:18px;height:18px}
-.pips{display:inline-flex;gap:5px;align-items:center}
-.pips b{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--c)}
-.pips b.on{background:var(--c)}
-.pips b.half{background:linear-gradient(90deg,var(--c) 50%,transparent 50%)}
-
-/* ---------- home ---------- */
-.home{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px;align-items:start}
-.welcome{background:var(--ink);color:var(--sky);border-radius:46px 46px 46px 12px;padding:24px 26px;display:grid;gap:14px;position:relative;overflow:hidden}
-.welcome::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-80px;bottom:-120px;background:var(--team);opacity:.35}
-.welcome h2{font-size:clamp(1.4rem,2.6vw,1.9rem)}
-.welcome p{color:color-mix(in srgb,var(--sky) 78%,transparent)}
-.welcome .quote{background:color-mix(in srgb,var(--sky) 10%,transparent);border-radius:16px 16px 16px 4px;padding:10px 14px;font-style:italic}
-.welcome .btn.ghost{color:var(--sky);border-color:color-mix(in srgb,var(--sky) 35%,transparent)}
-.welcome .btn.light{background:var(--sky);color:var(--ink)}
-.welcome>*{position:relative;z-index:1}
-.orbit-wrap{position:relative;display:grid;justify-items:center;gap:8px}
-.orbit{width:100%;max-width:520px;height:auto;overflow:visible}
-.orbit .ring{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round}
-.orbit text{font-family:var(--display)}
-.planet{cursor:pointer}
-.planet .face{transition:transform .3s cubic-bezier(.3,1.6,.5,1);transform-box:fill-box;transform-origin:center}
-.planet:hover .face,.planet:focus-visible .face{transform:scale(1.07)}
-.planet:focus-visible{outline:none}
-.planet:focus-visible .track{stroke:var(--ink)}
-.moon{transform-origin:260px 260px}
-.list{display:grid;gap:10px}
-.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--wash);border-radius:999px 26px 26px 999px;padding:7px 16px 7px 7px;text-decoration:none;border:0;text-align:left;width:100%}
-.li:hover{box-shadow:0 0 0 2px var(--c,var(--line))}
-.li b{display:block;font-weight:700;overflow-wrap:anywhere}
-.li span.sub{display:block;font-size:.82rem;color:var(--ink-soft)}
-.li.todo.done b{text-decoration:line-through;opacity:.6}
-.check-circle{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--c);display:grid;place-items:center;background:transparent;color:var(--on);padding:0}
-.check-circle[aria-pressed="true"]{background:var(--c)}
-.check-circle .ico{width:16px;height:16px}
-.invite{border-radius:34px 34px 34px 8px;padding:20px 22px;display:grid;gap:12px;background:color-mix(in srgb,var(--reteach) 12%,var(--paper));border:2px solid color-mix(in srgb,var(--reteach) 45%,transparent)}
-.invite .vs{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.vs-bar{display:grid;gap:4px;min-width:0;flex:1}
-.vs-bar .bar{height:10px;border-radius:999px;background:var(--wash);overflow:hidden}
-.vs-bar .bar i{display:block;height:100%;border-radius:999px;background:var(--c)}
-.vs-bar span{font-size:.82rem;color:var(--ink-soft);display:flex;justify-content:space-between}
-
-/* ---------- plans list ---------- */
-.plan-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
-.plan-card{background:var(--paper);border-radius:40px 40px 40px 10px;padding:22px;display:grid;gap:12px;text-decoration:none;border:2px solid transparent}
-.plan-card:hover{border-color:var(--learn)}
-.plan-card .tag{font-size:.8rem;color:var(--ink-soft)}
-.plan-card b{font-family:var(--display);font-size:1.15rem;line-height:1.2}
-
-/* ---------- plan flight path ---------- */
-.plan-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:26px;align-items:start}
-.path{position:sticky;top:84px;background:var(--paper);border-radius:40px;padding:20px 18px;display:grid;gap:4px;max-height:calc(100vh - 110px);overflow:auto}
-.path h3{font-size:1.05rem;padding:0 6px 10px;line-height:1.25}
-.path .fam-label{display:flex;gap:8px;align-items:center;font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c);padding:10px 6px 4px}
-.path .fam-label .ico{width:17px;height:17px}
-.step-link{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;text-decoration:none;padding:5px 8px 5px 5px;border-radius:999px;position:relative}
-.step-link .tok{width:34px;height:34px}.step-link .tok i{width:24px;height:24px}.step-link .tok .ico{width:13px;height:13px}
-.step-link span{font-size:.92rem;font-weight:700;line-height:1.25}
-.step-link:hover{background:var(--wash)}
-.step-link[aria-current="step"]{background:color-mix(in srgb,var(--c) 14%,var(--paper))}
-.step-link[aria-current="step"] span{color:var(--ink)}
-.step-link.here::after{content:"Stopped here";position:absolute;right:8px;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--team);background:color-mix(in srgb,var(--team) 12%,var(--paper));padding:2px 7px;border-radius:999px}
-.st-head{display:flex;gap:18px;align-items:flex-start;position:relative;z-index:1}
-.st-head .grow{display:grid;gap:10px;min-width:0}
-.st-head h2{font-size:clamp(1.5rem,3vw,2.2rem)}
-.st-head p.what{color:var(--ink-soft);font-size:1.05rem;max-width:60ch}
-.st-body{display:grid;gap:20px;position:relative;z-index:1}
-.st-foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:1;border-top:2px dashed var(--line);padding-top:18px}
-.talk{background:var(--paper);border-radius:28px;padding:16px 18px;display:grid;gap:10px}
-.talk .card-head .orb{width:34px;height:34px}.talk .card-head .orb .ico{width:18px;height:18px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:700;font-size:.9rem;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--k,var(--plans));border-color:var(--k,var(--plans));color:var(--on)}
+.chip small{font-weight:600;opacity:.8}
 
 /* standards picker */
-.std-tools{display:flex;gap:10px;flex-wrap:wrap}
-.std-tools input{flex:1;min-width:200px}
-.std-list{display:grid;gap:8px;max-height:460px;overflow:auto;padding:2px}
-.std{background:var(--paper);border-radius:22px;padding:10px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;border:2px solid transparent;text-align:left}
+.std-tools{display:flex;gap:10px}
+.std-tools input{flex:1}
+.std-list{display:grid;gap:6px;max-height:420px;overflow:auto;padding:2px}
+.std{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;text-align:left}
 .std.broad{background:var(--wash)}
-.std[aria-pressed="true"]{border-color:var(--learn);background:color-mix(in srgb,var(--learn) 10%,var(--paper))}
-.std .code{font-family:var(--display);font-weight:800;color:var(--learn);font-size:.9rem;min-width:52px}
-.std .kind{display:block;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
-.std.child{margin-left:28px}
-.chosen{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb,var(--learn) 12%,var(--paper));border-radius:24px;padding:14px 16px}
+.std.child{margin-left:24px}
+.std[aria-pressed="true"]{border-color:var(--plans);background:color-mix(in srgb,var(--plans) 8%,var(--card))}
+.std .code{font-weight:800;color:var(--plans);font-size:.9rem;min-width:50px}
+.std .kind{display:block;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);font-weight:800}
+.chosen{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb,var(--plans) 8%,var(--card));border-radius:16px;padding:14px 16px}
+.chosen .eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.eyebrow{font-size:.8rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 
-/* targets */
+/* "I can" statements, check items */
 .target-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start}
-.letter{width:38px;height:38px;border-radius:50%;background:var(--learn);color:var(--on-learn);display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.letter{width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--plans) 14%,var(--card));color:var(--plans);display:grid;place-items:center;font-weight:800}
 .letter.sm{width:26px;height:26px;font-size:.8rem}
-
-/* check builder */
-.item-row{display:grid;grid-template-columns:auto minmax(0,1fr) 110px 120px auto;gap:10px;align-items:start;background:var(--paper);border-radius:24px;padding:12px}
-.item-row .n{width:32px;height:32px;border-radius:50%;background:var(--check);color:var(--on-check);display:grid;place-items:center;font-family:var(--display);font-weight:800}
-.item-row textarea{min-height:60px}
-.goal-sentence{font-family:var(--display);font-size:clamp(1.15rem,2.2vw,1.5rem);font-weight:700;line-height:1.3;background:var(--paper);border-radius:28px 28px 28px 8px;padding:18px 22px}
-.goal-sentence mark{background:color-mix(in srgb,var(--check) 22%,transparent);color:inherit;border-radius:8px;padding:0 4px}
+.item-row{display:grid;grid-template-columns:auto minmax(0,1fr) 100px 150px auto;gap:10px;align-items:start;background:var(--wash);border-radius:16px;padding:12px}
+.item-row .n{width:30px;height:30px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:800;color:var(--assess)}
+.item-row textarea{min-height:56px}
+.goal-sentence{font-size:clamp(1.1rem,2.2vw,1.35rem);font-weight:800;line-height:1.4;background:var(--wash);border-radius:16px;padding:16px 20px}
+.goal-sentence mark{background:color-mix(in srgb,var(--assess) 18%,transparent);color:inherit;border-radius:6px;padding:0 4px}
 
 /* scores */
-.score-wrap{overflow-x:auto;background:var(--paper);border-radius:24px;padding:6px}
-table.scores{border-collapse:separate;border-spacing:0;width:100%;min-width:520px}
-table.scores th,table.scores td{padding:6px 8px;text-align:center;font-size:.9rem}
-table.scores th{font-family:var(--display);font-size:.8rem;color:var(--ink-soft);font-weight:700;position:sticky;top:0;background:var(--paper)}
+.score-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px}
+table.scores{border-collapse:collapse;width:100%;min-width:520px}
+table.scores th,table.scores td{padding:7px 8px;text-align:center;font-size:.92rem}
+table.scores th{font-size:.8rem;color:var(--soft);font-weight:800;background:var(--wash)}
 table.scores td:first-child,table.scores th:first-child{text-align:left}
-table.scores input{width:64px;text-align:center;padding:6px;border-radius:12px}
+table.scores tr+tr td{border-top:1px solid var(--line)}
+table.scores input{width:62px;text-align:center;padding:6px;border-radius:10px}
 table.scores input.sid{width:120px;text-align:left}
-table.scores tr:nth-child(even) td{background:var(--wash)}
-.got{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.82rem;border-radius:999px;padding:2px 9px}
-.got.yes{background:color-mix(in srgb,var(--reteach) 18%,transparent);color:color-mix(in srgb,var(--reteach) 70%,var(--ink))}
-.got.no{background:color-mix(in srgb,var(--check) 16%,transparent);color:color-mix(in srgb,var(--check) 70%,var(--ink))}
-.got.wait{background:var(--wash);color:var(--ink-soft)}
-
-/* results */
-.big-ring{display:grid;place-items:center;position:relative;width:170px;height:170px;flex:none}
-.big-ring svg{position:absolute;inset:0}
-.big-ring b{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1}
-.big-ring span{font-size:.8rem;color:var(--ink-soft)}
-.bars{display:grid;gap:14px}
-.barrow{display:grid;grid-template-columns:auto minmax(0,1fr) 54px;gap:12px;align-items:center}
-.barrow .track{height:16px;border-radius:999px;background:var(--wash);position:relative;overflow:visible}
-.barrow .track i{display:block;height:100%;border-radius:999px;background:var(--c)}
-.barrow .track .goal{position:absolute;top:-5px;bottom:-5px;width:3px;border-radius:3px;background:var(--ink)}
-.barrow .lab{font-size:.86rem;color:var(--ink-soft);grid-column:2/4;margin-top:-8px}
-.locked{display:flex;gap:14px;align-items:center;background:var(--wash);border-radius:26px;padding:16px 18px}
+.got{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:.85rem;border-radius:999px;padding:2px 10px}
+.got .ico{width:13px;height:13px}
+.got.yes{background:color-mix(in srgb,var(--good) 16%,transparent);color:color-mix(in srgb,var(--good) 75%,var(--ink))}
+.got.no{background:color-mix(in srgb,var(--warn) 16%,transparent);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
+.got.wait{background:var(--wash);color:var(--soft);font-weight:700}
 .teacher-dots{display:flex;gap:8px;flex-wrap:wrap}
 .tdot{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 12px 4px 4px;background:var(--wash);font-size:.86rem;font-weight:700}
-.tdot i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--ink);font-style:normal;font-size:.72rem}
-.tdot.in i{background:var(--check);color:var(--on-check)}
-.avatar{width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--team) 22%,var(--paper));color:var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:.78rem;flex:none}
+.tdot i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-style:normal;font-size:.72rem}
+.tdot.in i{background:var(--good);color:#fff}
+
+/* results */
+.big-ring{display:grid;place-items:center;position:relative;width:150px;height:150px;flex:none}
+.big-ring svg{position:absolute;inset:0}
+.big-ring b{font-size:2.1rem;font-weight:800;line-height:1}
+.big-ring span{font-size:.82rem;color:var(--soft)}
+.bars{display:grid;gap:14px}
+.barrow{display:grid;grid-template-columns:auto minmax(0,1fr) 54px;gap:12px;align-items:center}
+.barrow .track{height:14px;border-radius:999px;background:var(--wash);position:relative}
+.barrow .track i{display:block;height:100%;border-radius:999px}
+.barrow .track .goal{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:3px;background:var(--ink)}
+.barrow .lab{font-size:.87rem;color:var(--soft);grid-column:2/4;margin-top:-8px}
+.locked{display:flex;gap:14px;align-items:center;background:var(--wash);border-radius:16px;padding:16px 18px}
+.card.bubble{background:var(--wash);border:0}
+.card.bubble .eyebrow{color:var(--assess)!important}
+
+/* invitations & shared strategies */
+.invite{border-radius:20px;padding:20px 22px;display:grid;gap:12px;background:color-mix(in srgb,var(--good) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--good) 40%,var(--line))}
+.invite .eyebrow{color:var(--good)!important}
+.invite .vs{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.vs-bar{display:grid;gap:4px;min-width:0;flex:1}
+.vs-bar .bar i{background:var(--good)}
+.vs-bar span{font-size:.84rem;color:var(--soft);display:flex;justify-content:space-between}
+.strat{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;display:grid;gap:12px}
+.strat .who{display:flex;gap:10px;align-items:center;font-size:.9rem;color:var(--soft)}
+.strat blockquote{margin:0;font-size:1.03rem}
+.strat .proof{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;font-weight:800;color:color-mix(in srgb,var(--good) 75%,var(--ink));background:color-mix(in srgb,var(--good) 12%,transparent);padding:3px 11px;border-radius:999px}
+.strat .proof .ico{width:15px;height:15px}
 
 /* meetings */
-.meet-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
-.clock{display:grid;place-items:center;position:relative;width:150px;height:150px;flex:none}
+.meet-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;align-items:start}
+.clock{display:grid;place-items:center;position:relative;width:140px;height:140px;flex:none}
 .clock svg{position:absolute;inset:0}
-.clock b{font-family:var(--display);font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums}
-.clock span{font-size:.78rem;color:var(--ink-soft);margin-top:-6px}
-.agenda-item{background:var(--paper);border-radius:28px;padding:14px 18px;display:grid;gap:10px}
-.agenda-item .card-head{gap:12px}
-.agenda-item .mins{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-soft);font-size:.86rem;white-space:nowrap}
+.clock b{font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums}
+.clock span{font-size:.8rem;color:var(--soft);margin-top:-4px}
+.agenda-item{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:10px}
+.agenda-item .mins{font-weight:800;color:var(--meet);white-space:nowrap;font-size:.9rem}
+.agenda-item textarea{min-height:60px}
 .attend{display:flex;gap:8px;flex-wrap:wrap}
-.attend .chip[aria-pressed="true"]{background:var(--team);border-color:var(--team);color:var(--on-team)}
 .todo-row{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px auto;gap:8px;align-items:center}
-.meeting-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--paper);border-radius:999px 28px 28px 999px;padding:8px 18px 8px 8px;text-decoration:none}
-.meeting-row .date{width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--team) 14%,var(--paper));display:grid;place-items:center;text-align:center;line-height:1;font-family:var(--display);font-weight:800;color:var(--team)}
-.meeting-row .date small{display:block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
-
-/* strategies */
-.strat{background:var(--paper);border-radius:34px 34px 34px 8px;padding:20px 22px;display:grid;gap:12px}
-.strat .who{display:flex;gap:10px;align-items:center;font-size:.88rem;color:var(--ink-soft)}
-.strat blockquote{margin:0;font-size:1.02rem;line-height:1.55}
-.strat .proof{display:inline-flex;gap:8px;align-items:center;font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--reteach) 75%,var(--ink));background:color-mix(in srgb,var(--reteach) 14%,transparent);padding:3px 11px;border-radius:999px}
-
-/* dialog */
-dialog{border:0;border-radius:36px 36px 36px 10px;padding:0;background:var(--paper);color:var(--ink);max-width:min(560px,calc(100vw - 32px));width:100%;box-shadow:0 30px 80px -30px rgba(0,0,0,.6)}
-dialog::backdrop{background:rgba(13,20,36,.55)}
-dialog form{display:grid;gap:16px;padding:26px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sky);padding:10px 18px;border-radius:999px;font-weight:700;font-size:.92rem;z-index:50;box-shadow:var(--shadow)}
+.meeting-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 16px 10px 10px;text-decoration:none}
+.meeting-row:hover{border-color:var(--meet)}
+.meeting-row .date{width:50px;height:50px;border-radius:12px;background:color-mix(in srgb,var(--meet) 14%,var(--card));display:grid;place-items:center;text-align:center;line-height:1;font-weight:800;color:var(--meet)}
+.meeting-row .date small{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
 
 /* glossary */
-.words{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.word{background:var(--paper);border-radius:28px 28px 28px 8px;padding:18px 20px;display:grid;gap:10px}
-.word h3{font-size:1.1rem}
+.words{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.word{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;display:grid;gap:8px}
+.word .plc{font-size:.85rem;color:var(--soft);font-weight:700}
 
-@media (max-width:1020px){
-  .home,.meet-layout{grid-template-columns:minmax(0,1fr)}
-  .plan-layout{grid-template-columns:minmax(0,1fr)}
-  .path{position:static;max-height:none;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
-  .path h3,.path .fam-label{grid-column:1/-1}
-  .step-link.here::after{display:none}
-}
-@media (max-width:720px){
-  .nav a span{display:none}
-  .nav a{padding:7px}
-  .grid2,.grid3,.fields{grid-template-columns:minmax(0,1fr)}
+/* dialog, toast */
+dialog{border:0;border-radius:22px;padding:0;background:var(--card);color:var(--ink);max-width:min(540px,calc(100vw - 32px));width:100%;box-shadow:0 30px 80px -30px rgba(0,0,0,.5)}
+dialog::backdrop{background:rgba(20,24,32,.45)}
+dialog form{display:grid;gap:16px;padding:26px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:800;font-size:.93rem;z-index:50}
+
+@media (max-width:980px){.doors{grid-template-columns:repeat(2,minmax(0,1fr))}.meet-layout{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .doors,.grid2,.grid3,.fields{grid-template-columns:minmax(0,1fr)}
   .item-row{grid-template-columns:auto minmax(0,1fr)}
   .item-row>*:nth-child(n+3){grid-column:2}
   .todo-row{grid-template-columns:minmax(0,1fr)}
-  .card.station{border-radius:36px 36px 36px 12px}
-  .st-head{flex-direction:column}
-  .brand span{display:none}
-  .team-pill{max-width:180px}
+  .team-name{max-width:150px}
 }
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-
-/* ===================== 1.1 · calmer color, one thing at a time ===================== */
-/* Color identifies a family through icons and light tints; solid blocks are kept for small marks only. */
-.orb{background:color-mix(in srgb,var(--c) 15%,var(--paper));color:var(--c)}
-.btn.fam{background:color-mix(in srgb,var(--c) 16%,var(--paper));color:var(--ink)}
-.btn.fam .ico{color:var(--c)}
-.btn.big{padding:14px 26px;font-size:1.05rem}
-.btn.big .ico{width:21px;height:21px}
-.card.tint{background:color-mix(in srgb,var(--c) 5%,var(--paper))}
-.card.station::after{display:none}
-.nav a .ico{opacity:.85}
-.nav a[aria-current="page"]{box-shadow:none;border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
-.team-pill{background:var(--paper)}
-.demo-banner{border-radius:22px;padding:6px 8px 6px 14px;font-size:.85rem;border-width:1.5px}
-.linkish{border:0;background:none;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-weight:700;cursor:pointer}
-.link-quiet{color:var(--ink-soft);font-weight:700;font-size:.92rem;text-decoration:none}
-.link-quiet:hover{color:var(--ink);text-decoration:underline}
-
-/* home: one next action */
-.next-card{background:var(--paper);border-radius:44px 44px 44px 12px;padding:clamp(22px,4vw,44px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:28px;align-items:center;border:2px solid color-mix(in srgb,var(--c) 30%,var(--line))}
-.next-main{display:grid;gap:14px;min-width:0}
-.next-title{font-size:clamp(1.8rem,3.6vw,2.7rem)}
-.next-main .fam-line{display:flex;gap:10px;align-items:center;color:var(--ink-soft)}
-.next-main .fam-line .orb{width:34px;height:34px}.next-main .fam-line .orb .ico{width:18px;height:18px}
-.quote{background:var(--wash);border-radius:16px 16px 16px 4px;padding:10px 14px;font-style:italic;color:var(--ink-soft)}
-.next-orbit{display:grid;justify-items:center;gap:6px}
-.next-orbit .orbit{max-width:340px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
-.tile{display:flex;gap:12px;align-items:center;background:var(--paper);border-radius:999px 26px 26px 999px;padding:8px 18px 8px 8px;text-decoration:none}
-.tile:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 45%,transparent)}
-.tile b{display:block}.tile span.sub{display:block;font-size:.84rem;color:var(--ink-soft)}
-.home-foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.start-list{display:grid;gap:12px;counter-reset:s}
-.start-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--paper);border-radius:999px 30px 30px 999px;padding:10px 18px 10px 10px}
-.start-item .n{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;background:var(--wash)}
-.start-item.done .n{background:var(--reteach);color:var(--on-reteach)}
-.start-item.done b{text-decoration:line-through;opacity:.6}
-
-/* plan: focused step */
-.focus{max-width:900px;margin:0 auto;display:grid;gap:16px}
-.strip{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.strip-mid{flex:1;min-width:220px;display:grid;gap:6px;justify-items:center;text-align:center}
-.dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
-.dots a{width:14px;height:14px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--c) 75%,var(--paper));background:var(--paper)}
-.dots a.on{background:var(--c);border-color:var(--c)}
-.dots a.half{background:linear-gradient(90deg,var(--c) 50%,var(--paper) 50%)}
-.dots a.cur{width:22px;height:22px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
-.dots i{width:10px}
-.step-q{font-size:clamp(1.6rem,3.4vw,2.4rem)}
-.fam-text{color:var(--c)}
-.st-foot{border-top:1.5px solid var(--line)}
-.done-note{display:flex;gap:6px;align-items:center;justify-content:flex-end}
-.done-note .ico{width:16px;height:16px;color:var(--reteach)}
-details.zava{background:var(--paper);border-radius:22px;padding:10px 14px}
-details.zava>summary{display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:700;list-style:none;font-size:.95rem}
-details.zava>summary::-webkit-details-marker{display:none}
-details.zava>summary .z{width:32px;height:32px}
-details.zava>summary .z .ico{width:17px;height:17px}
-details.zava[open]>summary{margin-bottom:10px}
-details.zava .say{background:var(--wash);border-radius:6px 20px 20px 20px}
-details.talk-box{background:var(--paper);border-radius:22px;padding:10px 14px}
-details.talk-box>summary{display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:700;list-style:none;font-size:.95rem}
-details.talk-box>summary::-webkit-details-marker{display:none}
-details.talk-box[open]>summary{margin-bottom:12px}
-details.talk-box .list{margin-bottom:10px}
-.steps-dialog{display:grid;gap:4px;max-height:60vh;overflow:auto}
-.steps-dialog .fam-label{display:flex;gap:8px;align-items:center;font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--c);padding:10px 4px 4px}
-.steps-dialog .fam-label .ico{width:17px;height:17px}
-@media (max-width:820px){.next-card{grid-template-columns:minmax(0,1fr)}.next-orbit{order:-1}.next-orbit .orbit{max-width:260px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <div id="app"><p style="padding:40px;font-family:system-ui">Loading PLC Launchpad…</p></div>
 <script type="application/json" id="catalogs">{"engineering":{"source":"https://www.cde.ca.gov/ci/ct/sf/documents/enginearchit.pdf","publisher":"California Department of Education","title":"CTE Model Curriculum Standards: Engineering and Architecture","retrieved":"2026-11-06","standards":[{"id":"ca-cte-ea-B1.0","code":"B1.0","text":"Communicate and interpret information clearly in industry-standard visual and written formats.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.1","code":"B1.1","text":"Explain the classification and use of various components, symbols, abbreviations, and media common to technical drawings.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.2","code":"B1.2","text":"Describe the current industry standards for illustration and layout.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.3","code":"B1.3","text":"Draw flat layouts of a variety of objects by using the correct drafting tools, techniques, and media.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.4","code":"B1.4","text":"Organize and complete an assembly drawing using information collected from detailed drawings.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B1.5","code":"B1.5","text":"Create reports and data sheets for writing specifications.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.0","code":"B2.0","text":"Demonstrate the sketching process used in concept development.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.1","code":"B2.1","text":"Understand the process of producing proportional two- and three-dimensional sketches and designs.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.2","code":"B2.2","text":"Apply sketching techniques to a variety of architectural and engineering models.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B2.3","code":"B2.3","text":"Present conceptual ideas, analysis, and design concepts using freehand graphic communication techniques.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.0","code":"B3.0","text":"Identify the fundamentals of the theory, measurement, control, and applications of electrical energy, including alternating and direct currents.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.1","code":"B3.1","text":"Understand the characteristics of alternating current (AC) and how it is generated; the characteristics of the sine wave; and of AC, tuned, and resonant circuits; and the nature of the frequency spectrum.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.2","code":"B3.2","text":"Analyze relationships between voltage, current, resistance, and power related to direct current (DC) circuits.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.3","code":"B3.3","text":"Calculate, construct, measure, and interpret both AC and DC circuits.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.4","code":"B3.4","text":"Understand how electrical control and protection devices are used in electrical systems.","pathway":"Engineering Technology","page":17},{"id":"ca-cte-ea-B3.5","code":"B3.5","text":"Calculate loads, currents, and circuit-operating parameters.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.6","code":"B3.6","text":"Classify and use various electrical components, symbols, abbreviations, media, and standards of electrical drawings.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.7","code":"B3.7","text":"Analyze, repair, or measure electrical and electronic systems, circuits, or components using appropriate electronic instruments.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B3.8","code":"B3.8","text":"Predict the effects of circuit conditions on the basis of measurements and calculations of voltage, current, resistance, and power.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.0","code":"B4.0","text":"Understand the concepts of physics that are fundamental to engineering technology.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.1","code":"B4.1","text":"Describe Newton\u2019s laws and how they affect and define the movement of objects.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.2","code":"B4.2","text":"Explain how the laws of conservation of energy and momentum provide a way to predict and describe the movement of objects.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.3","code":"B4.3","text":"Compare the effects and applications of heat transfer and thermal dynamic processes.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.4","code":"B4.4","text":"Explore the fundamentals and properties of waveforms and how waveforms may be used to carry energy.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B4.5","code":"B4.5","text":"Analyze how electric and magnetic phenomena are related and know common practical applications.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.0","code":"B5.0","text":"Understand how the principles of force, work, rate, power, energy, and resistance relate to mechanical, electrical, fluid, and thermal engineering systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.1","code":"B5.1","text":"Differentiate between scalars and vectors.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.2","code":"B5.2","text":"Solve problems by using the concept of vectoring to predict resultants.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.3","code":"B5.3","text":"Compare and explore the six simple machines and their applications.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.4","code":"B5.4","text":"Evaluate how energy is transferred and predict the effects of resistance in mechanical, electrical, fluid, and thermal systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B5.5","code":"B5.5","text":"Formulate and solve problems by using the appropriate units applied in mechanical, electrical, fluid, and thermal engineering systems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.0","code":"B6.0","text":"Employ the design process to solve analysis and design problems.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.1","code":"B6.1","text":"Understand the steps in the design process.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.2","code":"B6.2","text":"Determine what information and principles are relevant to a problem and its analysis.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.3","code":"B6.3","text":"Choose between alternate solutions in solving a problem and be able to justify the choices made in determining a solution.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.4","code":"B6.4","text":"Translate word problems into mathematical statements when appropriate.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.5","code":"B6.5","text":"Demonstrate the process of developing multiple details, within design constraints, into a single solution.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.6","code":"B6.6","text":"Construct a prototype from plans and test it.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B6.7","code":"B6.7","text":"Evaluate and redesign a prototype on the basis of collected test data.","pathway":"Engineering Technology","page":18},{"id":"ca-cte-ea-B7.0","code":"B7.0","text":"Understand industrial engineering processes, including the use of tools and equipment, methods of measurement, and quality assurance.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.1","code":"B7.1","text":"Know the structure and processes of a quality assurance cycle.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.2","code":"B7.2","text":"Describe the major manufacturing processes.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.3","code":"B7.3","text":"Use tools, fasteners, and joining systems employed in selected engineering processes.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.4","code":"B7.4","text":"Estimate and measure the size of objects in both Standard International and United States units.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.5","code":"B7.5","text":"Apply appropriate geometric dimensioning and tolerancing (GD&T) practices.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B7.6","code":"B7.6","text":"Calibrate precision measurement tools and instruments to measure objects.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.0","code":"B8.0","text":"Understand fundamental control system design and develop systems that complete preprogrammed tasks.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.1","code":"B8.1","text":"Identify the elements and processes necessary to develop a controlled system that performs a task.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.2","code":"B8.2","text":"Demonstrate the use of sensors for data collection and process correction in controlled systems.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.3","code":"B8.3","text":"Perform tests, collect data, analyze relationships, and display data in a simulated or modeled system using appropriate tools and technology.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.4","code":"B8.4","text":"Program a computing device to control systems or process.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.5","code":"B8.5","text":"Use motors, solenoids, and similar devices as output mechanisms in controlled systems.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B8.6","code":"B8.6","text":"Assemble input, processing, and output devices to create controlled systems capable of accurately completing a preprogrammed task.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.0","code":"B9.0","text":"Understand the fundamentals of systems and market influences on products as they are developed and released to production.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.1","code":"B9.1","text":"Understand the process of product development.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B9.2","code":"B9.2","text":"Understand decision matrices and the use of graphic tools in illustrating the development of a product and the processes involved.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.0","code":"B10.0","text":"Design and construct a culminating project effectively using engineering technology.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.1","code":"B10.1","text":"Use methods and techniques for employing all engineering technology equipment appropriately.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.2","code":"B10.2","text":"Apply conventional engineering technology processes and procedures accurately, appropriately, and safely.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B10.3","code":"B10.3","text":"Apply the concepts of engineering technology to the tools, equipment, projects, and procedures of the Engineering Technology Pathway.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.0","code":"B11.0","text":"Understand the methods of creating both written and digital portfolios.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.1","code":"B11.1","text":"Develop a binder or digital portfolio representative of student work for presentation.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-B11.2","code":"B11.2","text":"Give an effective oral presentation of a portfolio.","pathway":"Engineering Technology","page":19},{"id":"ca-cte-ea-C1.0","code":"C1.0","text":"Understand historical and current events related to engineering design and their effects on society.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C1.1","code":"C1.1","text":"Know historical and current events that have relevance to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C1.2","code":"C1.2","text":"Interpret the development of graphic language in relation to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.0","code":"C2.0","text":"Understand the effective use of engineering design equipment.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.1","code":"C2.1","text":"Employ engineering design equipment using the appropriate methods and techniques.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.2","code":"C2.2","text":"Apply conventional engineering design equipment procedures accurately, appropriately, and safely.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C2.3","code":"C2.3","text":"Apply the concepts of engineering design to the tools, equipment, projects, and procedures of the Engineering Design Pathway.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.0","code":"C3.0","text":"Understand the sketching process used in concept development.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.1","code":"C3.1","text":"Apply sketching techniques to a variety of architectural models.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.2","code":"C3.2","text":"Produce proportional two- and three-dimensional sketches and designs.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C3.3","code":"C3.3","text":"Present conceptual ideas, analysis, and design concepts using freehand, graphic, communication techniques.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.0","code":"C4.0","text":"Understand measurement systems as they apply to engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.1","code":"C4.1","text":"Know how the various measurement systems are used in engineering drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C4.2","code":"C4.2","text":"Understand the degree of accuracy necessary for engineering design.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.0","code":"C5.0","text":"Use proper projection techniques to develop orthographic drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.1","code":"C5.1","text":"Understand the concepts and procedures necessary for producing drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.2","code":"C5.2","text":"Develop multiview drawings using the orthographic projection process.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.3","code":"C5.3","text":"Understand the various techniques for viewing objects.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.4","code":"C5.4","text":"Use the concepts of geometric construction in the development of design drawings.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C5.5","code":"C5.5","text":"Apply pictorial drawings derived from orthographic multiview drawings and sketches.","pathway":"Engineering Design","page":20},{"id":"ca-cte-ea-C6.0","code":"C6.0","text":"Understand the applications and functions of sectional views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C6.1","code":"C6.1","text":"Understand the function of sectional views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C6.2","code":"C6.2","text":"Clarify hidden features of an object using a sectional view and appropriate cutting planes.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.0","code":"C7.0","text":"Understand the applications and functions of auxiliary views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.1","code":"C7.1","text":"Understand the function of auxiliary views.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C7.2","code":"C7.2","text":"Use auxiliary views to clarify the true shape and size of an object.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.0","code":"C8.0","text":"Understand and apply proper dimensioning standards to drawings.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.1","code":"C8.1","text":"Know a variety of drafting applications and understand the proper dimensioning standards for each.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C8.2","code":"C8.2","text":"Apply dimension to various objects and features.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.0","code":"C9.0","text":"Understand the tolerance relationships between mating parts.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.1","code":"C9.1","text":"Understand what constitutes mating parts in engineering design.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.2","code":"C9.2","text":"Interpret geometric tolerancing symbols in a drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C9.3","code":"C9.3","text":"Use tolerancing in an engineering drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.0","code":"C10.0","text":"Understand the methods of applying text to a drawing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.1","code":"C10.1","text":"Describe the processes of lettering and/or text editing.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.2","code":"C10.2","text":"Implement standard methods of title block creation and use.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.3","code":"C10.3","text":"Develop drawings using notes and specifications.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C10.4","code":"C10.4","text":"Plan, prepare, and interpret drawings and models through traditional drafting or computer-aided design (CAD) techniques.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.0","code":"C11.0","text":"Understand the methods of creating both written and digital portfolios.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.1","code":"C11.1","text":"Develop a binder or digital portfolio representative of completed work for presentation.","pathway":"Engineering Design","page":21},{"id":"ca-cte-ea-C11.2","code":"C11.2","text":"Give an effective oral presentation of a portfolio.","pathway":"Engineering Design","page":21}]},"history":{"title":"United States History and Geography","area":"History\u2013Social Science","level":"Grade 11","catalogId":"ca-hss-us-history-11","standards":[{"id":"ca-hss-11-1-1","code":"HSS-11.1.1","title":"Enlightenment and democratic ideas","pathway":"Founding of the nation","text":"Describe how Enlightenment thought and emerging ideas about democracy shaped the setting for the founding of the United States.","example":"Read Locke on consent and an excerpt from the Declaration of Independence. Identify one shared idea about who gives a government its authority.","source":"https://www2.cde.ca.gov/cacs/id/web/4541"},{"id":"ca-hss-11-1-2","code":"HSS-11.1.2","title":"Natural rights and the Bill of Rights","pathway":"Founding of the nation","text":"Analyze the ideas behind the American Revolution, including the founders\u2019 belief in God-given rights, and the debates over writing and ratifying the Constitution and adding the Bill of Rights.","example":"Compare a Federalist and an Anti-Federalist argument about a bill of rights. Use evidence from each to explain why the issue mattered during ratification.","source":"https://www2.cde.ca.gov/cacs/id/web/4542"}]},"algebra":{"title":"Algebra I","standards":[{"id":"math-algebra-0","code":"A-REI.3","text":"Solve linear equations and inequalities with one unknown, including equations with letter coefficients.","example":"Solve ax + 4 = 16 for x when a is nonzero.","source":"https://www2.cde.ca.gov/cacs/id/web/563","pathway":"Algebra I"},{"id":"math-algebra-1","code":"A-REI.10","text":"Interpret the graph of a two-variable equation as all ordered pairs that satisfy it.","example":"Which of (2, 5) and (3, 5) lies on y = 2x + 1?","source":"https://www2.cde.ca.gov/cacs/id/web/570","pathway":"Algebra I"}]},"integrated":{"title":"Mathematics I","standards":[{"id":"math-integrated-0","code":"A-REI.3.1","text":"Solve absolute-value equations and inequalities, graph the solutions, and interpret them in context.","example":"A part must be within 0.2 mm of 10 mm. Graph the acceptable lengths.","source":"https://www2.cde.ca.gov/cacs/id/web/727","pathway":"Mathematics I"},{"id":"math-integrated-1","code":"A-REI.12","text":"Graph linear inequalities as half-planes and identify where their solution regions overlap.","example":"Shade the region satisfying y > x and y \u2264 4. Which boundary is dashed?","source":"https://www2.cde.ca.gov/cacs/id/web/732","pathway":"Mathematics I"}]},"calculus":{"title":"Calculus","standards":[{"id":"math-calculus-0","code":"Calculus.4.2","text":"Interpret a derivative as an instantaneous rate of change and apply it in context.","example":"For a cart at position s(t) = 3t\u00b2 meters, find its velocity at 2 seconds.","source":"https://www2.cde.ca.gov/cacs/id/web/4748","pathway":"Calculus"},{"id":"math-calculus-1","code":"Calculus.5.0","text":"Explain the chain rule, justify it, and apply it to differentiate composite functions.","example":"Differentiate (3x\u00b2 + 1)\u2074 and explain the factor 6x.","source":"https://www2.cde.ca.gov/cacs/id/web/4751","pathway":"Calculus"}]},"art":{"standards":[{"code":"Prof.VA:Cr1.1","pathway":"Creating","text":"Use multiple approaches to begin creative endeavors.","source":"https://www2.cde.ca.gov/cacs/id/web/31055","id":"ca-arts-Cr1.1"},{"code":"Prof.VA:Cr1.2","pathway":"Creating","text":"Shape an artistic investigation of an aspect of present day life using a contemporary practice of art or design.","source":"https://www2.cde.ca.gov/cacs/id/web/31068","id":"ca-arts-Cr1.2"},{"code":"Prof.VA:Cr2.1","pathway":"Creating","text":"Engage in making a work of art or design without having a preconceived plan.","source":"https://www2.cde.ca.gov/cacs/id/web/31081","id":"ca-arts-Cr2.1"},{"code":"Prof.VA:Cr2.2","pathway":"Creating","text":"Explain how traditional and nontraditional materials may impact human health and the environment and demonstrate safe handling of materials, tools, and equipment.","source":"https://www2.cde.ca.gov/cacs/id/web/31094","id":"ca-arts-Cr2.2"},{"code":"Prof.VA:Cr2.3","pathway":"Creating","text":"Collaboratively develop a proposal for an installation, artwork, or space design that transforms the perception and experience of a particular place.","source":"https://www2.cde.ca.gov/cacs/id/web/31107","id":"ca-arts-Cr2.3"},{"code":"Prof.VA:Cr3","pathway":"Creating","text":"Apply relevant criteria from traditional and contemporary cultural contexts to examine, reflect on, and plan revisions for works of art and design in progress.","source":"https://www2.cde.ca.gov/cacs/id/web/31120","id":"ca-arts-Cr3"},{"code":"Prof.VA:Pr4","pathway":"Presenting","text":"Analyze, select, and curate artifacts and/or artworks for presentation and preservation.","source":"https://www2.cde.ca.gov/cacs/id/web/31133","id":"ca-arts-Pr4"},{"code":"Prof.VA:Pr5","pathway":"Presenting","text":"Analyze and evaluate the reasons and ways an exhibition is presented.","source":"https://www2.cde.ca.gov/cacs/arts?c2=3&page=3","id":"ca-arts-Pr5"},{"code":"Prof.VA:Pr6","pathway":"Presenting","text":"Analyze and describe the impact that an exhibition or collection has on personal awareness of social, cultural, or political beliefs and understandings.","source":"https://www2.cde.ca.gov/cacs/id/web/31159","id":"ca-arts-Pr6"},{"code":"Prof.VA:Re7.1","pathway":"Responding","text":"Hypothesize ways in which art influences perception and understanding of human experiences.","source":"https://www2.cde.ca.gov/cacs/id/web/31172","id":"ca-arts-Re7.1"},{"code":"Prof.VA:Re7.2","pathway":"Responding","text":"Analyze how one\u2019s understanding of the world is affected by experiencing visual imagery.","source":"https://www2.cde.ca.gov/cacs/id/web/31185","id":"ca-arts-Re7.2"},{"code":"Prof.VA:Re8","pathway":"Responding","text":"Interpret an artwork or collection of works, supported by relevant and sufficient evidence found in the work and its various contexts.","source":"https://www2.cde.ca.gov/cacs/id/web/31198","id":"ca-arts-Re8"},{"code":"Prof.VA:Re9","pathway":"Responding","text":"Establish relevant criteria in order to evaluate a work of art or collection of works.","source":"https://www2.cde.ca.gov/cacs/id/web/31211","id":"ca-arts-Re9"},{"code":"Prof.VA:Cn10","pathway":"Connecting","text":"Document the process of developing early stage ideas to fully elaborated ideas.","source":"https://www2.cde.ca.gov/cacs/id/web/31224","id":"ca-arts-Cn10"},{"code":"Prof.VA:Cn11","pathway":"Connecting","text":"Describe how knowledge of culture, traditions, and history may influence personal responses to art.","source":"https://www2.cde.ca.gov/cacs/id/web/31237","id":"ca-arts-Cn11"}]}}</script>
@@ -531,8 +439,8 @@ const WORDS = [
   ['learn', 'Big standard · one skill inside it', 'Broad standard · specific indicator', 'The state groups skills under a big standard. You can pick the whole thing, or just one skill inside it, which is usually easier to teach and check.', 'B2.0 is the big standard on sketching. B2.1 is one skill inside it.'],
   ['learn', '"I can" statement', 'Learning target', 'The skill rewritten in words a student understands, usually starting with "I can". Each one should be something a short check can see.', '"I can sketch the front, top and side views of a simple object."'],
   ['learn', 'Why this skill made the cut', 'Endurance · leverage · readiness', 'Three tests for a must-learn skill: it lasts beyond this year (endurance), it is used in other subjects (leverage), and students need it for what comes next (readiness).', 'Measuring is used in math and science too, so it has leverage.'],
-  ['check', 'Proficiency score', 'Proficiency', 'The percentage on the team check that shows a student has learned the skill. A student at or above it is proficient. The team agrees on it before anyone sees results.', '75% on the team check, or 6 of 8 points.'],
-  ['check', 'Team check', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
+  ['check', 'Proficiency score', 'Proficiency', 'The percentage on the common assessment that shows a student has learned the skill. A student at or above it is proficient. The team agrees on it before anyone sees results.', '75% on the common assessment, or 6 of 8 points.'],
+  ['check', 'Common assessment', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
   ['check', 'SMART goal (team goal)', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date. SMART stands for specific, measurable, attainable, results-oriented and time-bound.', 'By Dec 3, 80% of our students will score 75% or higher on the sketching check.'],
   ['check', 'Where students started', 'Baseline', 'How students did before the teaching, so the team can see growth.', '40% of students were proficient on the pre-check.'],
   ['check', 'Scoring practice together', 'Calibration', 'Teachers score the same few pieces of student work, then talk until they score them the same way.', 'Everyone scores three sketches, then compares.'],
@@ -556,15 +464,15 @@ function termChip(name, fam) {
   const w = term(name); if (!w) return '';
   const id = 'def-' + Math.random().toString(36).slice(2, 8);
   return `<span class="f-${fam || w[0]}" style="display:grid;gap:8px;justify-items:start">
-    <button type="button" class="term" aria-expanded="false" aria-controls="${id}" data-act="toggleTerm"><span class="tag">PLC term</span>${esc(w[2])}</button>
+    <button type="button" class="term" aria-expanded="false" aria-controls="${id}" data-act="toggleTerm"><span class="tag">PLC term</span>What does "${esc(w[2])}" mean?</button>
     <span class="def" id="${id}" hidden><b>${esc(w[2])}</b><span>${esc(w[3])}</span>${w[4] ? `<span class="example"><i>Example:</i> ${esc(w[4])}</span>` : ''}
       <span class="row"><button type="button" class="btn sm" data-act="say" data-text="${esc(w[2] + '. ' + w[3] + (w[4] ? ' For example: ' + w[4] : ''))}">${icon('listen')}Hear it</button>
-      <a class="btn sm ghost" href="#words">${icon('glossary')}All PLC words</a></span></span></span>`;
+      <a class="btn sm ghost" href="#help">${icon('glossary')}All PLC words</a></span></span></span>`;
 }
 
 /* Zava's help is folded away until someone asks for it, so each step shows only what to do. */
 function zava(text, example, fam = 'learn') {
-  return `<details class="zava f-${fam}"><summary><span class="z" aria-hidden="true">${icon('guide')}</span><span>Need help? Tips${example ? ' and an example' : ''} from Zava, your plan guide</span></summary>
+  return `<details class="zava f-${fam}"><summary><span class="z" aria-hidden="true">${icon('guide')}</span><span>Need a tip${example ? ' or an example' : ''}?</span></summary>
     <div class="say"><span>${text}</span>${example ? `<div class="example"><i>Example:</i> ${example}</div>` : ''}
     <span><button type="button" class="btn sm soft" data-act="say" data-text="${esc(String(text).replace(/<[^>]+>/g, ''))}">${icon('listen')}Listen</button></span></div></details>`;
 }
@@ -584,11 +492,11 @@ const STEPS = [
   { key: 'targets', fam: 'learn', label: 'Write "I can" statements', icon: 'target', minutes: 15,
     q: 'What will students say they can do?', what: 'Rewrite the skill in student words. Most plans need one to three "I can" statements.', term: 'Learning target' },
   { key: 'gotit', fam: 'learn', label: 'Set the proficiency score', icon: 'score', minutes: 10,
-    q: 'What score shows a student is proficient?', what: 'Agree on the percentage a student needs on the team check. Decide it before anyone sees results.', term: 'Proficiency' },
-  { key: 'build', fam: 'check', label: 'Build the team check', icon: 'check', minutes: 25,
-    q: 'What will be on the team check?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
+    q: 'What score shows a student is proficient?', what: 'Agree on the percentage a student needs on the common assessment. Decide it before anyone sees results.', term: 'Proficiency' },
+  { key: 'build', fam: 'check', label: 'Build the common assessment', icon: 'check', minutes: 25,
+    q: 'What will be on the common assessment?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
   { key: 'goal', fam: 'check', label: 'Set our SMART goal', icon: 'goal', minutes: 10,
-    q: 'What is our SMART goal?', what: 'Say what share of students will be proficient on the team check, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
+    q: 'What is our SMART goal?', what: 'Say what share of students will be proficient on the common assessment, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
   { key: 'scores', fam: 'check', label: 'Enter scores', icon: 'score', minutes: 15,
     q: 'How did your students do?', what: 'Each teacher enters their own classes. Your team only ever sees totals.', term: 'Evidence of learning' },
   { key: 'results', fam: 'check', label: 'Look at results together', icon: 'results', minutes: 20,
@@ -897,15 +805,9 @@ function sampleState() {
   return s;
 }
 
-/* PLC Launchpad 1.0 · shell, routing, binding, home, plans, tour */
+/* PLC Launchpad 2.0 · shell, routing, binding, the launchpad homepage, plans list */
 
-const NAV = [
-  ['home', 'Home', 'home', 'tool'],
-  ['meetings', 'Team time', 'meeting', 'team'],
-  ['results', 'Results', 'results', 'check'],
-  ['worked', 'What worked', 'practice', 'reteach'],
-  ['team', 'Team', 'team', 'team']
-];
+const AREAS = { home: 'a-plans', plans: 'a-plans', plan: 'a-plans', meetings: 'a-meet', meeting: 'a-meet', assess: 'a-assess', worked: 'a-assess', settings: 'a-set', help: 'a-set' };
 
 function route() {
   const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'home';
@@ -915,38 +817,50 @@ function route() {
 const go = hash => { if (location.hash === '#' + hash) render(); else location.hash = hash; };
 
 function shell() {
-  const r = route();
-  const nav = NAV.map(([k, label, ic, fam]) => {
-    const cur = r.page === k || (k === 'home' && (r.page === 'plan' || r.page === 'plans')) || (k === 'meetings' && r.page === 'meeting');
-    return `<a href="#${k}" class="f-${fam}" ${cur ? 'aria-current="page"' : ''}>${icon(ic)}<span>${label}</span></a>`;
-  }).join('');
   const m = runningMeeting();
   return `<header class="top"><div class="top-in">
-    <a class="brand" href="#home" aria-label="PLC Launchpad home"><svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="8" fill="var(--ink)"/><ellipse cx="17" cy="17" rx="15" ry="6.5" fill="none" stroke="var(--check)" stroke-width="2.5" transform="rotate(-30 17 17)"/><circle cx="29" cy="10" r="3" fill="var(--learn)"/></svg><span>PLC Launchpad</span></a>
-    <button class="team-pill f-team" type="button" data-act="switchTeam" title="Switch team"><span class="orb">${icon('team')}</span><span>${esc(S.team.name)}</span></button>
-    ${m ? `<a class="timer-pill" href="#meeting-${m.id}">${icon('clock')}Team time <b data-timer>--:--</b><span class="go">Open</span></a>` : ''}
-    <nav class="nav" aria-label="Main">${nav}</nav>
+    <a class="brand" href="#home" aria-label="PLC Launchpad home"><svg width="28" height="28" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="8" fill="var(--plans)"/><ellipse cx="17" cy="17" rx="15" ry="6.5" fill="none" stroke="var(--meet)" stroke-width="2.5" transform="rotate(-30 17 17)"/></svg>PLC Launchpad</a>
+    <button class="team-name" type="button" data-act="switchTeam" title="Switch team">${esc(S.team.name)}</button>
+    <span class="spacer"></span>
+    ${m ? `<a class="timer-pill" href="#meeting-${m.id}">${icon('clock')}Meeting <b data-timer>--:--</b></a>` : ''}
     <span class="status-dot" id="saveStatus"><i></i><span></span></span>
   </div></header>`;
 }
 
+/* "Home › Plans › …" so you always know where you are and how to get back. */
+function crumbs(r) {
+  const out = [['Home', 'home']];
+  const p = r.a && planById(r.a);
+  const short = t => (t.length > 46 ? t.slice(0, 45) + '…' : t);
+  if (r.page === 'plans') out.push(['Plans']);
+  if (r.page === 'plan' && p) { out.push(['Plans', 'plans']); if (r.b) { out.push([short(planTitle(p)), 'plan-' + p.id]); out.push([step(r.b)?.label || '']); } else out.push([short(planTitle(p))]); }
+  if (r.page === 'meetings') out.push(['Meetings']);
+  if (r.page === 'meeting') { const m = S.meetings.find(x => x.id === r.a); out.push(['Meetings', 'meetings'], [m ? fmtDate(m.date, { weekday: 'long', month: 'short', day: 'numeric' }) : 'Meeting']); }
+  if (r.page === 'assess') { out.push(['Assessments & Results', r.a ? 'assess' : null]); if (p && r.b) out.push([{ build: 'Common assessment', scores: 'Enter scores', results: 'Team results' }[r.b] || '']); }
+  if (r.page === 'worked') out.push(['Assessments & Results', 'assess'], ['What worked for us']);
+  if (r.page === 'settings') out.push(['Team settings']);
+  if (r.page === 'help') out.push(['Help and PLC words']);
+  if (out.length === 1) return '';
+  return `<nav class="crumbs" aria-label="You are here">${out.map(([label, href], i) => (i ? icon('arrow') : '') + (href ? `<a href="#${href}">${esc(label)}</a>` : `<span aria-current="page">${esc(label)}</span>`)).join('')}</nav>`;
+}
+
 function render() {
   const r = route();
-  const views = { home: viewHome, plans: viewPlans, plan: viewPlan, meetings: viewMeetings, meeting: viewMeeting, results: viewResults, worked: viewWorked, team: viewTeam, words: viewWords };
+  const views = { home: viewHome, plans: viewPlans, plan: viewPlan, meetings: viewMeetings, meeting: viewMeeting, assess: viewAssess, worked: viewWorked, settings: viewTeam, help: viewWords };
   const view = views[r.page] || viewHome;
   const scrollY = window.scrollY, focusId = document.activeElement?.id;
   const sameView = render.last === r.raw;
-  document.getElementById('app').innerHTML = shell() + `<main id="main">${APP.demo ? demoBanner() : ''}${view(r)}</main>`;
+  document.getElementById('app').innerHTML = shell() + `<main id="main" class="${AREAS[r.page] || 'a-plans'}">${APP.demo && r.page === 'home' ? demoBanner() : ''}${crumbs(r)}${view(r)}</main>`;
   setStatus(APP.status);
   tickTimer();
   if (sameView) { window.scrollTo(0, scrollY); if (focusId) document.getElementById(focusId)?.focus(); }
   else window.scrollTo(0, 0);
   render.last = r.raw;
-  const titles = { home: 'Home', plans: 'Plans', plan: 'Plan', meetings: 'Team time', meeting: 'Team time', results: 'Results', worked: 'What worked for us', team: 'Team', words: 'PLC words' };
+  const titles = { home: 'Home', plans: 'Plans', plan: 'Plan', meetings: 'Meetings', meeting: 'Meeting', assess: 'Assessments & Results', worked: 'What worked for us', settings: 'Team settings', help: 'Help' };
   document.title = (titles[r.page] || 'Home') + ' · PLC Launchpad';
 }
 function demoBanner() {
-  return `<div class="demo-banner">${icon('spark')}<span><b>You're looking at an example team.</b> Try anything; it only saves in this browser.</span><button class="btn sm" data-act="startOwnTeam">Start our own team</button></div>`;
+  return `<div class="demo-banner">${icon('spark')}<span>This is an example team. Try anything; it only saves in this browser.</span><button class="btn sm ghost" data-act="startOwnTeam">Start our own team</button></div>`;
 }
 
 /* ---------- binding: inputs with data-bind write straight into the workspace ---------- */
@@ -967,8 +881,6 @@ function walk(obj, path) {
   return [o, parts[parts.length - 1]];
 }
 function setPath(obj, path, val) { const [o, k] = walk(obj, path); if (o) o[k] = val; }
-function getPath(obj, path) { const [o, k] = walk(obj, path); return o ? o[k] : undefined; }
-
 document.addEventListener('input', e => {
   const el = e.target;
   if (el.matches('[data-bind]')) {
@@ -981,8 +893,6 @@ document.addEventListener('input', e => {
   }
   if (el.matches('[data-filter]')) refreshLive(el.dataset.filter, el);
 });
-document.addEventListener('change', e => { if (e.target.matches('[data-bind][data-rerender]')) render(); });
-
 const LIVE = {};
 function refreshLive(name, el) { (LIVE[name] || (() => {}))(el); }
 
@@ -996,7 +906,6 @@ document.addEventListener('click', e => {
 });
 ACT.toggleTerm = b => { const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); document.getElementById(b.getAttribute('aria-controls')).hidden = !open; };
 ACT.say = b => voice.say(b.dataset.text);
-ACT.go = b => go(b.dataset.to);
 
 ACT.switchTeam = async () => {
   if (APP.mode === 'cloud' && APP.directory) {
@@ -1009,8 +918,8 @@ ACT.switchTeam = async () => {
     return;
   }
   const teams = store.get('lp-teams') || [];
-  const fd = await ask(`<h2>Teams in this browser</h2><p class="muted">When Launchpad runs on your school's Google site, your team list comes from the school directory instead.</p>
-    <div class="field"><label for="teamPick">Open</label><select id="teamPick" name="team"><option value="demo" ${APP.teamKey === 'demo' ? 'selected' : ''}>Example team</option>${teams.map(t => `<option value="${esc(t.key)}" ${t.key === APP.teamKey ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
+  const fd = await ask(`<h2>Switch team</h2><p class="muted">On your school's Google site, this list comes from the school directory.</p>
+    <div class="field"><label for="teamPick">Team</label><select id="teamPick" name="team"><option value="demo" ${APP.teamKey === 'demo' ? 'selected' : ''}>Example team</option>${teams.map(t => `<option value="${esc(t.key)}" ${t.key === APP.teamKey ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
     <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Open team</button></div>`);
   if (fd) { store.set('lp-current-team', fd.get('team')); location.hash = 'home'; location.reload(); }
 };
@@ -1023,117 +932,81 @@ ACT.startOwnTeam = async () => {
   const key = 't' + Date.now().toString(36);
   const teams = store.get('lp-teams') || []; teams.push({ key, name: fd.get('name') }); store.set('lp-teams', teams);
   store.set('plc-launchpad-1:' + key, blankState(fd.get('name'), fd.get('course'), [fd.get('cat')]));
-  store.set('lp-current-team', key); location.hash = 'team'; location.reload();
+  store.set('lp-current-team', key); location.hash = 'settings'; location.reload();
 };
 
 /* ---------- who's using this device ---------- */
 async function needMe(reason) {
   if (ME && member(ME)) return true;
-  if (!S.members.length) { toast('Add your team members first.'); go('team'); return false; }
-  const fd = await ask(`<h2>Which teacher are you?</h2><p class="muted">${esc(reason || 'Launchpad uses this to show your own classes and invitations.')}</p>
+  if (!S.members.length) { toast('Add your team members first.'); go('settings'); return false; }
+  const fd = await ask(`<h2>Which teacher are you?</h2><p class="muted">${esc(reason || 'Launchpad uses this to show your own classes.')}</p>
     <div class="chips">${S.members.map(m => `<label class="chip"><input type="radio" name="me" value="${m.id}" required> ${esc(m.name)}</label>`).join('')}</div>
-    ${privacyNote('This is remembered on this device only.')}
     <div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">That's me</button></div>`);
   if (!fd) return false;
   setMe(fd.get('me')); render(); return true;
 }
 ACT.whoAmI = async () => { ME = null; await needMe(); };
 
-/* ================================================================ HOME */
-/* Home shows one next action. Everything else waits in small tiles until it's needed. */
+/* ================================================================ HOME: the launchpad */
 function viewHome() {
-  if (!S.members.length || !S.plans.length) return gettingStarted();
   const p = activePlan(), last = lastMeeting(), running = runningMeeting(), me = member(ME);
-  const invites = invitationsFor(ME), todos = openTodos();
-  const finished = planDone(p), n = nextStep(p), idx = STEPS.indexOf(n), fam = FAMILIES[n.fam];
-  const eyebrow = running ? 'Team time is running' : last ? `Welcome back${me ? ', ' + esc(me.name) : ''} · your team last met ${esc(fmtDate(last.date))}` : 'Your next step';
-  const main = finished
-    ? `<span class="eyebrow">This plan is finished</span><h1 class="next-title">Nice work. Ready for the next skill?</h1>
-       <div class="row"><button class="btn big" data-act="newPlan">${icon('plus')}Start the next plan</button><a class="link-quiet" href="#plan-${p.id}-wrap">Look back at this plan</a></div>`
-    : `<span class="eyebrow">${eyebrow}</span>
-       <h1 class="next-title">Step ${idx + 1} of ${STEPS.length}: ${esc(n.label)}</h1>
-       <div class="fam-line"><span class="orb f-${n.fam}">${icon(n.fam)}</span><span>Question ${fam.n} · ${esc(fam.q)}</span></div>
-       ${last && last.nextTime && !running ? `<p class="quote">Last time you said: "Next time we'll ${esc(last.nextTime.replace(/^next time we'?ll\s*/i, ''))}"</p>` : ''}
-       <div class="row"><a class="btn big" href="#plan-${p.id}-${n.key}">Continue${icon('arrow')}</a>
-         ${running ? `<a class="btn ghost" href="#meeting-${running.id}">${icon('clock')}Back to team time</a>` : `<button class="btn ghost" data-act="startMeeting">${icon('meeting')}Start team time</button>`}</div>`;
-  const tiles = [
-    todos.length && ['#meetings', 'team', 'norms', plural(todos.length, 'open to-do'), 'From your team meetings'],
-    invites.length && ['#worked', 'reteach', 'practice', plural(invites.length, 'invitation') + ' for you', 'Share what worked in your class'],
-    S.strategies.length && !invites.length && ['#worked', 'reteach', 'practice', plural(S.strategies.length, 'shared idea'), 'What worked for us'],
-    ['#plans', 'learn', 'plan', S.plans.length > 1 ? plural(S.plans.length, 'plan') : 'Plans', S.plans.length > 1 ? 'Switch plans or start another' : 'Start another plan']
-  ].filter(Boolean);
-  return `<section class="next-card f-${finished ? 'learn' : n.fam}">
-      <div class="next-main">${main}</div>
-      <div class="next-orbit">${orbitSVG(p)}<p class="small muted" style="text-align:center">${esc(planTitle(p))}</p></div>
-    </section>
-    <div class="tiles">${tiles.map(([href, f, ic, title, sub]) => `<a class="tile f-${f}" href="${href}"><span class="orb">${icon(ic)}</span><span><b>${title}</b><span class="sub">${sub}</span></span></a>`).join('')}</div>
-    <div class="home-foot">${me ? `<button class="btn sm ghost" data-act="whoAmI">${icon('person')}You're ${esc(me.name)}</button>` : `<button class="btn sm ghost" data-act="whoAmI">${icon('person')}Which teacher are you?</button>`}
-      <button class="btn sm ghost" data-act="tour">${icon('play')}How Launchpad works</button><a class="btn sm ghost" href="#words">${icon('glossary')}PLC words</a></div>`;
-}
+  const todos = openTodos(), invites = invitationsFor(ME);
+  const act = (href, label, sub, main) => `<a class="act ${main ? 'main' : ''}" href="${href}">${label}${sub ? `<small>${sub}</small>` : ''}</a>`;
+  const actBtn = (actName, label, sub, main) => `<button type="button" class="act ${main ? 'main' : ''}" data-act="${actName}">${label}${sub ? `<small>${sub}</small>` : ''}</button>`;
 
-/* A new team gets three things to do, in order. */
-function gettingStarted() {
-  const items = [
-    [S.members.length > 0, 'Add your team', 'Who teaches this course with you', '#team', 'Add teachers'],
-    [S.plans.length > 0, 'Start your first plan', 'One must-learn skill, taken step by step', null, 'Start a plan'],
-    [S.meetings.length > 0, 'Hold your first team time', 'Launchpad keeps your notes and where you stopped', null, 'Start team time']
-  ];
-  const nextIdx = items.findIndex(x => !x[0]);
-  return `<section class="next-card f-learn"><div class="next-main">
-      <span class="eyebrow">Getting started</span><h1 class="next-title">Three things, in order</h1>
-      <p class="muted">Launchpad walks your team through DuFour's four PLC questions, one step at a time.</p>
-      <div class="start-list">${items.map(([done, title, sub, href, cta], i) => `<div class="start-item ${done ? 'done' : ''}"><span class="n">${done ? icon('done') : i + 1}</span><span><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span>
-        ${!done && i === nextIdx ? (href ? `<a class="btn" href="${href}">${cta}</a>` : `<button class="btn" data-act="${i === 1 ? 'newPlan' : 'startMeeting'}">${cta}</button>`) : ''}</div>`).join('')}</div>
-      <div><button class="btn sm ghost" data-act="tour">${icon('play')}Watch: how Launchpad works (90 seconds)</button></div>
-    </div><div class="next-orbit">${S.plans[0] ? orbitSVG(S.plans[0]) : ''}</div></section>`;
-}
+  let plans;
+  if (!S.plans.length) plans = actBtn('newPlan', 'Build your first plan', 'We\'ll walk you through it, one question at a time', true);
+  else if (p && !planDone(p)) { const n = nextStep(p); plans = act(`#plan-${p.id}-${n.key}`, 'Continue: ' + esc(trimTo(planTitle(p), 38)), 'Next up: ' + esc(n.label), true) + actBtn('newPlan', '+ Build a new plan'); }
+  else plans = actBtn('newPlan', 'Build a new plan', 'One question at a time', true);
+  if (S.plans.length) plans += act('#plans', `All our plans (${S.plans.length})`);
 
-function orbitSVG(p) {
-  const pos = { learn: [125, 125], check: [395, 125], reteach: [395, 395], stretch: [125, 395] };
-  const C = 2 * Math.PI * 70;
-  const planets = Object.entries(FAMILIES).map(([f, info]) => {
-    const [x, y] = pos[f], v = famProgress(p, f);
-    const first = STEPS.find(s => s.fam === f && stepState(p, s.key) < 100) || STEPS.find(s => s.fam === f);
-    const label = `Question ${info.n}, ${info.word}: ${info.q} ${v}% done. Open ${first.label}.`;
-    return `<a href="#plan-${p.id}-${first.key}" class="planet" aria-label="${esc(label)}"><g class="face">
-      <circle class="track" cx="${x}" cy="${y}" r="70" fill="none" stroke="var(--line)" stroke-width="7"/>
-      <circle cx="${x}" cy="${y}" r="70" fill="none" stroke="var(--${f})" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - v / 100)}" transform="rotate(-90 ${x} ${y})"/>
-      <circle cx="${x}" cy="${y}" r="58" fill="var(--paper)" stroke="var(--${f})" stroke-width="3"/>
-      <svg x="${x - 15}" y="${y - 40}" width="30" height="30" viewBox="0 0 24 24" class="ico" style="color:var(--${f})">${ICONS[f]}</svg>
-      <text x="${x}" y="${y + 10}" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink)">${info.word}</text>
-      <text x="${x}" y="${y + 30}" text-anchor="middle" font-size="13" fill="var(--ink-soft)" style="font-family:var(--body)">${v >= 100 ? 'Done' : v > 0 ? v + '% done' : 'Not started'}</text>
-      <circle cx="${x + 50}" cy="${y - 46}" r="15" fill="var(--${f})"/>
-      <text x="${x + 50}" y="${y - 41}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--on-${f})">${info.n}</text></g></a>`;
+  let meet = running ? act(`#meeting-${running.id}`, 'Back to today\'s meeting', 'The timer is running', true)
+    : actBtn('startMeeting', 'Start this week\'s meeting', '45 minutes · agenda ready', true);
+  meet += act('#meetings', 'Past meetings and notes', last ? 'Last met ' + esc(fmtDate(last.date)) : '');
+  if (todos.length) meet += act('#meetings', `To-dos (${todos.length})`);
+
+  let assess;
+  if (!p) assess = actBtn('newPlan', 'Start a plan first', 'Each plan has one common assessment', true);
+  else if (!p.check.items.length) assess = act(`#assess-${p.id}-build`, 'Build the common assessment', esc(trimTo(planTitle(p), 40)), true);
+  else { const inCount = S.members.filter(m => stats(p, { teacherId: m.id }).n).length; assess = act(`#assess-${p.id}-scores`, 'Enter scores', `${esc(p.check.name || 'Common assessment')} · ${inCount} of ${S.members.length} teachers done`, true); }
+  assess += act('#assess', 'Our common assessments', 'Build, edit or print');
+  if (p && p.scores.length) assess += act(`#assess-${p.id}-results`, 'Team results');
+  assess += act('#worked', 'What worked for us', invites.length ? `${plural(invites.length, 'invitation')} for you` : '');
+
+  const settings = act('#settings', 'Our team members') + act('#settings', 'Our norms') + act('#settings', 'Standards we use');
+
+  const door = (cls, ic, title, inner) => `<section class="door ${cls}"><div class="door-head"><span class="orb">${icon(ic)}</span><h2>${title}</h2></div><div class="acts">${inner}</div></section>`;
+  const welcome = last ? `${me ? 'Welcome back, ' + esc(me.name) : 'Welcome back'}` : 'Welcome to PLC Launchpad';
+  return `<div class="hello"><h1>${welcome}</h1><p>What are we doing today?</p></div>
+    <div class="doors">
+      ${door('a-plans', 'plan', 'Plans', plans)}
+      ${door('a-meet', 'meeting', 'Meetings', meet)}
+      ${door('a-assess', 'check', 'Assessments &amp; Results', assess)}
+      ${door('a-set', 'settings', 'Team settings', settings)}
+    </div>
+    <div class="home-foot"><a class="btn sm ghost" href="#help">${icon('glossary')}Help and PLC words</a>
+      ${S.members.length ? `<button class="btn sm ghost" data-act="whoAmI">${icon('person')}${me ? 'You\'re ' + esc(me.name) : 'Which teacher are you?'}</button>` : ''}</div>`;
+}
+const trimTo = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
+
+/* ================================================================ PLANS */
+function viewPlans() {
+  const cards = S.plans.map(p => {
+    const s = p.standardIds.length && standardById(p.standardIds[0]);
+    const done = STEPS.filter(x => stepState(p, x.key) === 100).length, n = nextStep(p);
+    return `<a class="plan-card" href="#plan-${p.id}"><span class="small muted">${s ? esc(s.code) : 'No skill chosen yet'}</span><b>${esc(planTitle(p))}</b>
+      <div class="bar"><i style="width:${Math.round((100 * done) / STEPS.length)}%"></i></div>
+      <span class="small muted">${planDone(p) ? 'Finished' : `${done} of ${STEPS.length} steps done · next: ${esc(n.label)}`}</span></a>`;
   }).join('');
-  const t = planTitle(p), lines = wrapText(t, 16, 3);
-  return `<svg class="orbit" viewBox="0 0 520 520" role="group" aria-label="This plan's four questions">
-    <circle class="ring" cx="260" cy="260" r="191"/>
-    <g class="moon"><circle cx="260" cy="69" r="8" fill="var(--team)"/><animateTransform attributeName="transform" type="rotate" from="0 260 260" to="360 260 260" dur="40s" repeatCount="indefinite"/></g>
-    <circle cx="260" cy="260" r="84" fill="var(--ink)"/>
-    <text x="260" y="${236 - (lines.length - 1) * 9}" text-anchor="middle" font-size="12" fill="var(--sky)" opacity=".7" style="font-family:var(--body);letter-spacing:.1em">THIS PLAN</text>
-    ${lines.map((l, i) => `<text x="260" y="${262 - (lines.length - 1) * 9 + i * 20}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--sky)">${esc(l)}</text>`).join('')}
-    ${planets}</svg>`;
+  return `<div class="page-head"><div class="lead"><h1>Our plans</h1><p>Each plan takes one must-learn skill through DuFour's four questions.</p></div>
+    <button class="btn" data-act="newPlan">${icon('plus')}Build a new plan</button></div>
+    ${S.plans.length ? `<div class="plan-cards">${cards}</div>` : `<div class="empty"><b>No plans yet</b><button class="btn" data-act="newPlan">Build your first plan</button></div>`}`;
 }
-function wrapText(text, width, maxLines) {
-  const words = String(text).replace(/^I can /i, 'I can ').split(/\s+/), lines = [];
-  let cur = '';
-  for (const w of words) {
-    if ((cur + ' ' + w).trim().length > width && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
-    if (lines.length === maxLines) break;
-  }
-  if (lines.length < maxLines && cur) lines.push(cur);
-  if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, '') + '…';
-  return lines;
-}
+ACT.newPlan = () => { const p = blankPlan(); S.plans.push(p); S.activePlanId = p.id; save(); go(`plan-${p.id}-skill`); };
 
-function planRow(p) {
-  const s = p.standardIds.length && standardById(p.standardIds[0]);
-  const n = nextStep(p);
-  return `<a class="li f-learn" href="#plan-${p.id}-${n.key}"><span class="orb sm">${icon('plan')}</span><span><b>${esc(planTitle(p))}</b><span class="sub">${s ? esc(s.code) + ' · ' : ''}${planDone(p) ? 'Finished' : 'Next: ' + esc(n.label)}</span></span>${pipHTML(p)}</a>`;
-}
 function todoRow(t) {
   const owner = t.ownerId === 'all' ? 'Everyone' : memberName(t.ownerId);
-  return `<div class="li todo f-team ${t.done ? 'done' : ''}"><button type="button" class="check-circle" aria-pressed="${!!t.done}" aria-label="Mark done: ${esc(t.text)}" data-act="toggleTodo" data-meeting="${t.meetingId}" data-id="${t.id}">${t.done ? icon('done') : ''}</button>
+  return `<div class="li todo ${t.done ? 'done' : ''}"><button type="button" class="check-circle" aria-pressed="${!!t.done}" aria-label="Mark done: ${esc(t.text)}" data-act="toggleTodo" data-meeting="${t.meetingId}" data-id="${t.id}">${t.done ? icon('done') : ''}</button>
     <span><b>${esc(t.text)}</b><span class="sub">${esc(owner)}${t.due ? ' · by ' + esc(fmtDate(t.due)) : ''}</span></span><span></span></div>`;
 }
 ACT.toggleTodo = b => {
@@ -1141,130 +1014,82 @@ ACT.toggleTodo = b => {
   if (!t) return; t.done = !t.done; save(); render(); if (t.done) toast('To-do done.');
 };
 
-ACT.newPlan = () => {
-  const p = blankPlan(); S.plans.push(p); S.activePlanId = p.id; save(); go(`plan-${p.id}-skill`);
-};
-
-/* ================================================================ PLANS */
-function viewPlans() {
-  const cards = S.plans.map(p => {
-    const s = p.standardIds.length && standardById(p.standardIds[0]);
-    const n = nextStep(p), active = p.id === S.activePlanId;
-    return `<div class="plan-card f-learn"><div class="row"><span class="orb sm">${icon('plan')}</span><span class="tag spacer">${s ? esc(s.code) : 'No skill chosen yet'}</span>${active ? `<span class="chip" aria-pressed="true" style="--c:var(--team);--on:var(--on-team)">On home screen</span>` : ''}</div>
-      <b>${esc(planTitle(p))}</b>${pipHTML(p)}<span class="small muted">${planDone(p) ? 'Finished' : 'Next step: ' + esc(n.label)}</span>
-      <div class="row"><a class="btn sm fam" href="#plan-${p.id}-${n.key}">${planDone(p) ? 'Open' : 'Continue'}${icon('arrow')}</a>
-      ${active ? '' : `<button class="btn sm ghost" data-act="makeActive" data-id="${p.id}">Show on home</button>`}</div></div>`;
-  }).join('');
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Plans</span><h1>One plan for each must-learn skill</h1>
-    <p>Each plan takes one skill through the four questions. Most teams work on one or two at a time.</p></div>
-    <button class="btn fam f-learn lead-orb" data-act="newPlan"><span class="orb" style="background:var(--paper);color:var(--learn)">${icon('plus')}</span>Start a new plan</button></div>
-    ${S.plans.length ? `<div class="plan-cards">${cards}</div>` : `<div class="empty">${icon('plan')}<b>No plans yet</b><button class="btn fam f-learn" data-act="newPlan">Start your first plan</button></div>`}`;
-}
-ACT.makeActive = b => { S.activePlanId = b.dataset.id; save(); render(); toast('This plan now shows on the home screen.'); };
-
-/* ================================================================ TOUR */
-ACT.tour = () => {
-  const CH = [
-    ['center', 'A PLC is a team of teachers who share one promise: every student will learn. Launchpad keeps your team\'s work for each must-learn skill in one plan.'],
-    ['learn', 'Question one, in blue: what must every student learn? You choose one skill from your state standards and write it as an I can statement.'],
-    ['check', 'Question two, in orange: how will we know they learned it? Every teacher gives the same short check. Each teacher enters their own scores, and the team only sees totals.'],
-    ['reteach', 'Question three, in green: what if a student hasn\'t learned it yet? You plan reteaching with a new approach, then check again.'],
-    ['stretch', 'Question four, in gold: what if a student already knows it? You plan a way to stretch them further.'],
-    ['team', 'Your team time, in purple, keeps the agenda, notes and to-dos. When you end a meeting, Launchpad remembers where you stopped, so next week starts right there.'],
-    ['share', 'When your students do better than the team on a skill, Launchpad invites you to share what you did. Sharing is always your choice.']
-  ];
-  const svg = `<svg viewBox="0 0 520 340" style="width:100%;height:auto;display:block" aria-hidden="true">
-    <circle cx="260" cy="170" r="120" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 8"/>
-    <g data-tour="center"><circle cx="260" cy="170" r="54" fill="var(--ink)"/><text x="260" y="166" text-anchor="middle" font-size="14" font-weight="800" fill="var(--sky)" style="font-family:var(--display)">Every student</text><text x="260" y="186" text-anchor="middle" font-size="14" font-weight="800" fill="var(--sky)" style="font-family:var(--display)">learns</text></g>
-    ${[['learn', 175, 85, 1], ['check', 345, 85, 2], ['reteach', 345, 255, 3], ['stretch', 175, 255, 4]].map(([f, x, y]) => `<g data-tour="${f}" class="tour-p"><circle cx="${x}" cy="${y}" r="38" fill="var(--${f})"/><svg x="${x - 16}" y="${y - 16}" width="32" height="32" viewBox="0 0 24 24" class="ico" style="color:var(--on-${f})">${ICONS[f]}</svg></g>`).join('')}
-    <g data-tour="team" class="tour-p"><circle cx="460" cy="170" r="30" fill="var(--team)"/><svg x="446" y="156" width="28" height="28" viewBox="0 0 24 24" class="ico" style="color:var(--on-team)">${ICONS.meeting}</svg></g>
-    <g data-tour="share" class="tour-p"><circle cx="60" cy="170" r="30" fill="var(--reteach)"/><svg x="46" y="156" width="28" height="28" viewBox="0 0 24 24" class="ico" style="color:var(--on-reteach)">${ICONS.practice}</svg></g>
-  </svg>`;
-  ask(`<div class="row"><h2 class="spacer">How Launchpad works</h2><button type="button" class="icon-btn" data-cancel aria-label="Close">${icon('close')}</button></div>
-    <div style="background:var(--wash);border-radius:28px;padding:10px">${svg}</div>
-    <p id="tourCap" aria-live="polite" style="min-height:4.6em">Press play for a narrated tour. It takes about 90 seconds.</p>
-    <div class="row"><button type="button" class="btn fam f-check lead-orb" id="tourPlay"><span class="orb" style="background:var(--paper);color:var(--check)">${icon('play')}</span><span>Play</span></button><span class="small muted spacer" id="tourStep">7 short parts</span></div>`, {
-    onOpen(d) {
-      let i = -1, playing = false, token = 0;
-      const paint = () => $$('[data-tour]', d).forEach(g => { const on = i < 0 || g.dataset.tour === CH[i][0] || g.dataset.tour === 'center'; g.style.opacity = on ? 1 : 0.18; g.style.transition = 'opacity .5s'; });
-      const stepTo = n => {
-        const my = ++token;
-        if (n >= CH.length) { playing = false; $('#tourPlay span:last-child', d).textContent = 'Play again'; i = -1; paint(); return; }
-        i = n; paint();
-        $('#tourCap', d).textContent = CH[n][1]; $('#tourStep', d).textContent = `Part ${n + 1} of ${CH.length}`;
-        voice.say(CH[n][1], () => { if (playing && my === token) setTimeout(() => stepTo(n + 1), 400); });
-      };
-      $('#tourPlay', d).addEventListener('click', () => {
-        if (playing) { playing = false; token++; voice.stop(); $('#tourPlay span:last-child', d).textContent = 'Play'; return; }
-        playing = true; $('#tourPlay span:last-child', d).textContent = 'Pause'; stepTo(i < 0 ? 0 : i);
-      });
-      d.addEventListener('close', () => { token++; voice.stop(); });
-    }
-  });
-};
-
 /* PLC Launchpad 1.0 · the plan flight path and its eleven steps */
 
-/* One step at a time: a slim progress strip, one question, one main button. */
+/* A plan opens as a checklist of the four questions. Each item opens one question on its own screen. */
+const GROUPS = [
+  ['learn', 1, 'What must every student learn?'],
+  ['check', 2, 'How will we know they learned it?'],
+  ['reteach', 3, 'What if a student isn\'t proficient yet?'],
+  ['stretch', 4, 'What if a student is already proficient?']
+];
 function viewPlan(r) {
   const p = planById(r.a);
-  if (!p) return `<div class="empty">${icon('plan')}<b>That plan isn't here anymore.</b><a class="btn" href="#home">Back to home</a></div>`;
+  if (!p) return `<div class="empty"><b>That plan isn't here anymore.</b><a class="btn" href="#plans">See our plans</a></div>`;
   if (S.activePlanId !== p.id) { S.activePlanId = p.id; save(); }
-  const st = step(r.b) || nextStep(p);
-  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1], fam = FAMILIES[st.fam];
-  const done = stepState(p, st.key) === 100;
-  const talk = p.talk[st.key] || [];
-  const meeting = runningMeeting();
-  const dots = STEPS.map((s, i) => {
-    const v = stepState(p, s.key), gap = i > 0 && STEPS[i - 1].fam !== s.fam ? '<i></i>' : '';
-    return `${gap}<a class="f-${s.fam} ${v === 100 ? 'on' : v > 0 ? 'half' : ''} ${s.key === st.key ? 'cur' : ''}" href="#plan-${p.id}-${s.key}" title="Step ${i + 1}: ${esc(s.label)}" aria-label="Step ${i + 1}: ${esc(s.label)}${v === 100 ? ', done' : ''}"></a>`;
+  if (r.b && step(r.b)) return stepScreen(p, step(r.b), 'plan');
+  const n = nextStep(p), s = p.standardIds.length && standardById(p.standardIds[0]);
+  const task = st => { const v = stepState(p, st.key); return `<a class="task" href="#plan-${p.id}-${st.key}"><span class="tick ${v === 100 ? 'on' : v > 0 ? 'half' : ''}">${v === 100 ? icon('done') : ''}</span><b>${esc(st.label)}</b>${st.key === n.key && !planDone(p) ? '<span class="next">Next up</span>' : `<span class="go">${icon('arrow')}</span>`}</a>`; };
+  const groups = GROUPS.map(([fam, num, q]) => {
+    const steps = STEPS.filter(x => x.fam === fam && x.key !== 'wrap');
+    const done = steps.every(x => stepState(p, x.key) === 100);
+    return `<section class="plan-q"><h3><span class="n ${done ? 'done' : ''}">${done ? icon('done') : num}</span>${esc(q)}</h3>${steps.map(task).join('')}</section>`;
   }).join('');
-  const body = (STEP_VIEWS[st.key] || (() => ''))(p);
-  return `<div class="focus">
-    <div class="strip">
-      <a class="btn sm ghost" href="#home">${icon('back')}Home</a>
-      <div class="strip-mid"><span class="small"><b>Step ${idx + 1} of ${STEPS.length}</b> · ${esc(planTitle(p))}</span><div class="dots" aria-label="Plan steps">${dots}</div></div>
-      <button class="btn sm ghost" data-act="allSteps">${icon('norms')}All steps</button>
-    </div>
-    <section class="card station tint f-${st.fam}" aria-labelledby="stepTitle">
-      <div class="st-head"><span class="orb lg">${icon(st.icon)}</span><div class="grow">
-        <span class="eyebrow fam-text">Question ${fam.n} · ${fam.word} · ${esc(fam.q)}</span>
-        <h1 class="step-q" id="stepTitle">${esc(st.q)}</h1><p class="what">${esc(st.what)}</p>
-        <div class="row" style="align-items:flex-start">${termChip(st.term, st.fam)}<button type="button" class="btn sm ghost" data-act="say" data-text="${esc(st.q + ' ' + st.what)}">${icon('listen')}Read this to me</button></div>
-      </div></div>
-      <div class="st-body">${body}</div>
-      <details class="talk-box f-team" ${talk.length ? '' : ''}><summary><span class="orb sm">${icon('note')}</span>Team notes for this step${talk.length ? ` (${talk.length})` : ''}${meeting ? ' · saved to today\'s meeting too' : ''}</summary>
-        <div class="list">${talk.map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}</div>
-        <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm" data-act="addTalk">${icon('plus')}Add note</button></div>
+  const wrap = step('wrap');
+  return `<div class="page-head"><div class="lead"><span class="small muted">${s ? esc(s.code) + ' · ' + esc(trimTo(s.text, 90)) : 'New plan'}</span><h1>${esc(planTitle(p))}</h1></div>
+    ${planDone(p) ? '' : `<a class="btn big" href="#plan-${p.id}-${n.key}">Continue: ${esc(n.label)}${icon('arrow')}</a>`}</div>
+    <div class="stack">${groups}<section class="plan-q"><h3><span class="n ${stepState(p, 'wrap') === 100 ? 'done' : ''}">${stepState(p, 'wrap') === 100 ? icon('done') : icon('goal')}</span>Finish</h3>${task(wrap)}</section></div>
+    <div class="row" style="margin-top:18px"><button class="btn sm ghost" data-act="renamePlan">Rename plan</button><button class="btn sm danger" data-act="deletePlan">Delete plan</button></div>`;
+}
+ACT.renamePlan = async () => {
+  const p = planById(route().a);
+  const fd = await ask(`<h2>Rename plan</h2><div class="field"><label for="pn">Plan name</label><input id="pn" name="t" type="text" value="${esc(planTitle(p))}"></div><div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Save</button></div>`);
+  if (fd) { p.title = String(fd.get('t')).trim(); save(); render(); }
+};
+ACT.deletePlan = async () => {
+  if (!await ask(`<h2>Delete this plan?</h2><p class="muted">Its assessment, scores and notes go with it. Version history keeps earlier saves.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep it</button><button class="btn danger">Delete plan</button></div>`)) return;
+  S.plans = S.plans.filter(x => x.id !== route().a); if (!planById(S.activePlanId)) S.activePlanId = S.plans[0]?.id || null; save(); go('plans');
+};
+
+/* One question per screen. ctx 'plan' walks the steps in order; ctx 'assess' returns to Assessments & Results. */
+function stepScreen(p, st, ctx) {
+  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1], fam = FAMILIES[st.fam];
+  const done = stepState(p, st.key) === 100, talk = p.talk[st.key] || [], meeting = runningMeeting();
+  const dots = STEPS.map((x, i) => `<a href="#plan-${p.id}-${x.key}" class="${x.key === st.key ? 'cur' : stepState(p, x.key) === 100 ? 'on' : ''}" title="Step ${i + 1}: ${esc(x.label)}" aria-label="Step ${i + 1}: ${esc(x.label)}"></a>`).join('');
+  const top = ctx === 'plan'
+    ? `<div class="q-top"><span>Question ${fam.n} · Step ${idx + 1} of ${STEPS.length}</span><span class="q-dots">${dots}</span></div>`
+    : `<div class="q-top"><span>${esc(trimTo(planTitle(p), 60))}</span></div>`;
+  const back = ctx === 'plan' ? `#plan-${p.id}` : '#assess';
+  const main = ctx === 'plan'
+    ? `<button class="btn big" data-act="saveNext" data-step="${st.key}">${next ? 'Save and continue' : 'Finish'}${icon('arrow')}</button>`
+    : `<button class="btn big" data-act="saveBack" data-step="${st.key}">Save${icon('done')}</button>`;
+  return `<div class="focus">${top}
+    <section class="q-card" aria-labelledby="stepTitle">
+      <h1 class="ask" id="stepTitle">${esc(st.q)}</h1>
+      <p class="hint">${esc(st.what)}</p>
+      <div>${termChip(st.term, st.fam)}</div>
+      <div class="st-body">${(STEP_VIEWS[st.key] || (() => ''))(p)}</div>
+      <details class="talk-box"><summary>${icon('note')}Team notes${talk.length ? ` (${talk.length})` : ''}${meeting ? ' · also saved to today\'s meeting' : ''}</summary>
+        <div class="list" style="margin-bottom:10px">${talk.map(n => `<div class="li"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:600">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}</div>
+        <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm soft" data-act="addTalk">Add note</button></div>
       </details>
-      <div class="st-foot">
-        ${prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}Back</a>` : ''}
+      <div class="q-foot">
+        ${ctx === 'plan' && prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}Back</a>` : ''}
         <span class="spacer"></span>
-        <a class="link-quiet" href="#home">Finish later</a>
-        <button class="btn big" data-act="saveNext" data-step="${st.key}">${next ? (done ? 'Next step' : 'Save and continue') : (done ? 'Back to home' : 'Finish this plan')}${icon('arrow')}</button>
+        <a class="link-quiet" href="${back}">${ctx === 'plan' ? 'Back to plan' : 'Back to Assessments & Results'}</a>
+        ${main}
       </div>
-      ${done ? `<p class="small muted done-note">${icon('done')}This step is done. <button type="button" class="linkish" data-act="undoStep" data-step="${st.key}">Mark it not done</button></p>` : ''}
+      ${done ? `<p class="done-note">${icon('done')}Done. <button type="button" class="linkish" data-act="undoStep" data-step="${st.key}">Mark not done</button></p>` : ''}
     </section></div>`;
 }
+const markDone = (p, key) => { if (!p.steps[key]?.done) p.steps[key] = { ...(p.steps[key] || {}), done: true, at: new Date().toISOString() }; save(); };
 ACT.saveNext = b => {
-  const p = planById(route().a), key = b.dataset.step;
-  if (!p.steps[key]?.done) p.steps[key] = { ...(p.steps[key] || {}), done: true, at: new Date().toISOString() };
-  save();
+  const p = planById(route().a), key = b.dataset.step; markDone(p, key);
   const next = STEPS[STEPS.indexOf(step(key)) + 1];
-  if (next) { toast('Saved. Step ' + (STEPS.indexOf(next) + 1) + ': ' + next.label); go(`plan-${p.id}-${next.key}`); }
-  else { toast('Plan finished. Well done!'); go('home'); }
+  if (next) { toast('Saved'); go(`plan-${p.id}-${next.key}`); } else { toast('Plan finished. Well done!'); go(`plan-${p.id}`); }
 };
+ACT.saveBack = b => { const p = planById(route().a); markDone(p, b.dataset.step); toast('Saved'); go('assess'); };
 ACT.undoStep = b => { const p = planById(route().a); p.steps[b.dataset.step] = { done: false }; save(); render(); };
-ACT.allSteps = () => {
-  const p = planById(route().a), cur = step(route().b) || nextStep(p);
-  let html = '';
-  for (const [f, info] of Object.entries(FAMILIES)) {
-    html += `<div class="fam-label f-${f}">${icon(f)}Question ${info.n} · ${info.word}</div>`;
-    for (const s of STEPS.filter(s => s.fam === f)) html += `<a class="step-link f-${f}" href="#plan-${p.id}-${s.key}" data-close ${s.key === cur.key ? 'aria-current="step"' : ''}>${tokHTML(stepState(p, s.key), s.icon)}<span>${STEPS.indexOf(s) + 1}. ${esc(s.label)}</span></a>`;
-  }
-  ask(`<div class="row"><h2 class="spacer">All steps</h2><button type="button" class="icon-btn" data-cancel aria-label="Close">${icon('close')}</button></div><div class="steps-dialog">${html}</div>`,
-    { onOpen: d => $$('[data-close]', d).forEach(a => a.addEventListener('click', () => d.close())) });
-};
 ACT.addTalk = () => {
   const input = $('#talkInput'), text = input.value.trim(); if (!text) { input.focus(); return; }
   const r = route(), p = planById(r.a), key = (step(r.b) || nextStep(p)).key;
@@ -1313,7 +1138,7 @@ ACT.toggleStd = b => {
   const p = planById(route().a), id = b.dataset.id;
   p.standardIds = p.standardIds.includes(id) ? p.standardIds.filter(x => x !== id) : [id];
   APP.pickSkill = false;
-  save(); render(); if (p.standardIds.length) toast('Skill chosen. When you\'re ready, press Save and continue.');
+  save(); render(); if (p.standardIds.length) toast('Skill chosen.');
 };
 ACT.pickSkill = () => { APP.pickSkill = true; render(); setTimeout(() => $('#stdSearch')?.focus(), 30); };
 ACT.toggleWhy = b => { const p = planById(route().a), v = b.dataset.v; p.why = p.why.includes(v) ? p.why.filter(x => x !== v) : [...p.why, v]; save(); render(); };
@@ -1362,7 +1187,7 @@ STEP_VIEWS.gotit = p => {
 };
 ACT.setGotIt = b => { const p = planById(route().a); p.gotIt = Number(b.dataset.v); save(); render(); };
 ACT.setScoreAs = b => { const p = planById(route().a); p.scoreAs = b.dataset.v; save(); render(); };
-const gotItPoints = p => { const m = maxPoints(p); return m ? `That's ${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the team check${p.scoreAs === 'letter' ? `, a ${letterGrade(Number(p.gotIt) || 0)} or better` : ''}.` : 'Once the team check has points, Launchpad shows how many points that is.'; };
+const gotItPoints = p => { const m = maxPoints(p); return m ? `That's ${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the common assessment${p.scoreAs === 'letter' ? `, a ${letterGrade(Number(p.gotIt) || 0)} or better` : ''}.` : 'Once the common assessment has points, Launchpad shows how many points that is.'; };
 LIVE.gotit = () => { const el = $('#gotItPoints'); if (el) el.textContent = gotItPoints(planById(route().a)); };
 
 /* ------------------------------------------------------------ 4 the check */
@@ -1398,14 +1223,14 @@ STEP_VIEWS.goal = p => `${zava('A good goal is a stretch but reachable. If you g
   <div class="field"><span class="lbl">Our team goal</span><p class="goal-sentence" id="goalSentence">${goalSentence(p)}</p></div>`;
 function goalSentence(p) {
   const d = p.goal.date ? fmtDate(p.goal.date, { month: 'long', day: 'numeric' }) : '<mark>a date</mark>';
-  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will score <mark>${esc(p.gotIt)}% or higher</mark> on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our team check'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
+  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will score <mark>${esc(p.gotIt)}% or higher</mark> on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our common assessment'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
 }
 LIVE.goal = () => { const el = $('#goalSentence'); if (el) el.innerHTML = goalSentence(planById(route().a)); };
 
 /* --------------------------------------------------------------- 6 scores */
 STEP_VIEWS.scores = p => scoresView(p, 'first');
 function scoresView(p, kind) {
-  if (!p.check.items.length) return `<div class="empty">${icon('check')}<b>Build the team check first</b><span>Scores are entered for each question on the check.</span><a class="btn fam f-check" href="#plan-${p.id}-build">Build the team check</a></div>`;
+  if (!p.check.items.length) return `<div class="empty">${icon('check')}<b>Build the common assessment first</b><span>Scores are entered for each question on the check.</span><a class="btn fam f-check" href="#plan-${p.id}-build">Build the common assessment</a></div>`;
   const me = member(ME);
   const entry = S.members.map(m => { const st = stats(p, { kind, teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${esc(m.name)} · ${st.n ? plural(st.n, 'student') : 'not yet'}</span>`; }).join('');
   if (!me) return `<div class="teacher-dots">${entry}</div><div class="empty">${icon('person')}<b>Which teacher are you?</b><span>You enter scores for your own classes only.</span><button class="btn" data-act="whoAmI">Choose your name</button></div>`;
@@ -1577,8 +1402,8 @@ function viewMeetings() {
   const running = runningMeeting();
   const past = S.meetings.filter(m => m.endedAt).sort((a, b) => (a.date < b.date ? 1 : -1));
   const todos = openTodos();
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team time</span><h1>Your weekly 45 minutes</h1>
-    <p>Start team time when you sit down together. Launchpad builds the agenda from where you stopped, keeps your notes and to-dos, and remembers where you ended.</p></div>
+  return `<div class="page-head"><div class="lead"><h1>Meetings</h1>
+    <p>Start a meeting when your team sits down together. Launchpad builds the agenda from where you stopped and keeps your notes and to-dos.</p></div>
     ${running ? `<a class="btn fam f-team lead-orb" href="#meeting-${running.id}"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('clock')}</span>Back to today's meeting</a>`
       : `<button class="btn fam f-team lead-orb" data-act="startMeeting"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('play')}</span>Start team time</button>`}</div>
     <div class="meet-layout"><div class="stack">
@@ -1704,18 +1529,25 @@ ACT.endMeeting = async () => {
   save(); toast('Saved. Next week starts where you stopped.'); go('home');
 };
 
-/* ================================================================ RESULTS */
-function viewResults() {
-  const withScores = S.plans.filter(p => p.scores.length);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Results</span><h1>How our students are doing</h1>
-    <p>Totals for each plan's team check. Each teacher's own classes are visible only to them.</p></div></div>
-    ${privacyNote(`Team results stay hidden until at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored, so no one class can be singled out.`)}
-    <div class="stack" style="margin-top:16px">${withScores.length ? withScores.map(p => {
-      const team = stats(p), mine = ME ? stats(p, { teacherId: ME }) : null;
-      return `<div class="stack"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3 class="spacer">${esc(planTitle(p))}</h3><a class="btn sm fam f-check" href="#plan-${p.id}-results">Open results step</a><a class="btn sm ghost" href="#plan-${p.id}-scores">Enter scores</a></div>
-        <div class="teacher-dots">${S.members.map(m => { const st = stats(p, { teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${st.n ? 'Scores in' : 'Waiting'}</span>`; }).join('')}</div>
-        ${resultsPanel(p, team, mine)}</div>`;
-    }).join('') : `<div class="empty">${icon('results')}<b>No scores yet</b><span>Scores are entered in step 6 of each plan.</span></div>`}</div>`;
+/* ===================================================== ASSESSMENTS & RESULTS */
+function viewAssess(r) {
+  if (r.a && r.b && planById(r.a) && ['build', 'scores', 'results'].includes(r.b)) return stepScreen(planById(r.a), step(r.b), 'assess');
+  const invites = invitationsFor(ME);
+  const cards = S.plans.map(p => {
+    const ready = p.check.items.length > 0, team = stats(p);
+    const status = !ready ? 'Not built yet' : `${plural(p.check.items.length, 'question')} · ${maxPoints(p)} points${p.check.date ? ' · given ' + esc(fmtDate(p.check.date)) : ''}`;
+    return `<section class="card"><div class="card-head"><span class="orb">${icon('check')}</span><div class="grow"><h3>${esc(p.check.name || 'Common assessment')}</h3><span class="small muted">${esc(trimTo(planTitle(p), 70))}</span></div></div>
+      <p class="small muted">${status}</p>
+      ${ready ? `<div class="teacher-dots">${S.members.map(m => { const st = stats(p, { teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${st.n ? 'Scores in' : 'Waiting'}</span>`; }).join('')}</div>` : ''}
+      ${ready && teamUnlocked(team) ? `<p><b>${team.pct}% proficient</b> <span class="muted small">(${esc(p.gotIt)}% or higher) · goal ${esc(p.goal.target || '?')}%</span></p>` : ''}
+      <div class="row">${ready ? `<a class="btn" href="#assess-${p.id}-scores">Enter scores</a><a class="btn ghost" href="#assess-${p.id}-results">Team results</a><a class="btn ghost" href="#assess-${p.id}-build">Edit assessment</a>`
+        : `<a class="btn" href="#assess-${p.id}-build">Build the assessment</a>`}</div></section>`;
+  }).join('');
+  return `<div class="page-head"><div class="lead"><h1>Assessments &amp; Results</h1><p>Each plan has one common assessment. Build it, enter your scores, then look at the results together.</p></div></div>
+    ${invites.length ? `<div class="stack" style="margin-bottom:18px">${invites.slice(0, 1).map(inviteCard).join('')}</div>` : ''}
+    ${S.plans.length ? `<div class="grid2">${cards}</div>` : `<div class="empty"><b>No plans yet</b><span>Each plan gets one common assessment.</span><button class="btn" data-act="newPlan">Build your first plan</button></div>`}
+    <a class="li" href="#worked" style="margin-top:18px"><span class="orb">${icon('practice')}</span><span><b>What worked for us</b><span class="sub">Teaching strategies your teammates shared${S.strategies.length ? ' · ' + S.strategies.length : ''}</span></span>${icon('arrow')}</a>
+    <div style="margin-top:14px">${privacyNote(`Team results stay hidden until at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored. Each teacher's own classes are visible only to them.`)}</div>`;
 }
 
 /* ============================================================ WHAT WORKED */
@@ -1742,7 +1574,7 @@ function stratCard(s) {
 function viewWorked() {
   const invites = invitationsFor(ME);
   const byPlan = S.plans.map(p => [p, S.strategies.filter(s => s.planId === p.id)]).filter(([, l]) => l.length);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">What worked for us</span><h1>Teaching moves our team shares</h1>
+  return `<div class="page-head"><div class="lead"><h1>What worked for us</h1>
     <p>When a teacher's students do better than the team on a skill, Launchpad invites them to share what they did. Sharing is always a choice, and you decide whether your name shows.</p></div>${termChip('Shared instructional practice', 'reteach')}</div>
     ${invites.length ? `<div class="stack" style="margin-bottom:26px">${invites.map(inviteCard).join('')}</div>` : ''}
     ${byPlan.length ? byPlan.map(([p, list]) => `<div class="stack" style="margin-bottom:26px"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3>${esc(planTitle(p))}</h3></div><div class="grid2">${list.map(stratCard).join('')}</div></div>`).join('')
@@ -1774,8 +1606,8 @@ ACT.unshare = async b => {
 function viewTeam() {
   const roles = ['Teacher', 'Team lead', 'Coach', 'Administrator'];
   const cats = Object.entries(APP.catalogs);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team</span><h1>Our team</h1><p>Who's on the team, how you work together, and which standards you use.</p></div>
-    <a class="btn ghost" href="#words">${icon('glossary')}PLC words</a></div>
+  return `<div class="page-head"><div class="lead"><h1>Team settings</h1><p>Who's on the team, how you work together, and which standards you use.</p></div>
+    </div>
     <div class="grid2" style="align-items:start">
       <div class="stack">
         <div class="card f-team"><div class="card-head"><span class="orb sm">${icon('team')}</span><h3 class="grow">Team details</h3></div>
@@ -1817,7 +1649,7 @@ ACT.resetDemo = async () => {
 
 /* ================================================================ PLC WORDS */
 function viewWords() {
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">PLC words</span><h1>Plain words, real terms</h1>
+  return `<div class="page-head"><div class="lead"><h1>Help and PLC words</h1>
     <p>Launchpad uses everyday words on every screen, with the PLC term right beside them. Here they all are in one place.</p></div></div>
     ${Object.entries({ ...FAMILIES, team: { n: '', word: 'Team', q: 'How do we work together?' } }).map(([f, info]) => `<div class="stack" style="margin-bottom:28px">
       <div class="row f-${f}"><span class="orb">${icon(f)}</span><h2 style="font-size:1.4rem">${info.n ? info.n + ' · ' : ''}${info.word}</h2><span class="muted">${esc(info.q)}</span></div>

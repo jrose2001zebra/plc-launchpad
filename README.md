@@ -15,15 +15,15 @@ Created by John Rose.
 
 ## How the app is organized
 
-- **Home** is the orbit: this plan's four questions around the team, with where you stopped last week,
-  open to-dos, invitations to share and your plans.
-- **Plans** take one must-learn skill through 11 steps across the four questions (Learn, Check, Reteach, Stretch).
-- **Team time** runs your weekly meeting: timer, attendance, an agenda built from where you stopped,
-  notes, decisions, to-dos, and "where did we stop / next time we'll…" at the end.
-- **Results** show team totals only. Each teacher sees their own classes; team results stay hidden
-  until at least 5 students from 3 teachers are scored.
-- **What worked for us** collects teaching strategies. A teacher whose students beat the team on a skill
-  is invited to share; sharing, and showing their name, is always their choice.
-- **Team** holds members, team agreements and standards. **PLC words** is the glossary.
+The homepage is a launchpad with four doors:
 
-Color always means a family: blue Learn, orange Check, green Reteach, gold Stretch, purple Team.
+- **Plans:** continue the current plan, build a new one, or see all plans. A plan opens as a checklist of
+  DuFour's four questions; each item opens one question on its own screen with **Save and continue**.
+- **Meetings:** start this week's 45-minute meeting (agenda, notes, decisions, to-dos, where you stopped),
+  past meetings and to-dos.
+- **Assessments & Results:** enter scores, build or edit each plan's common assessment, team results,
+  and **What worked for us**. Team totals stay hidden until 5 students from 3 teachers are scored; a teacher
+  whose students beat the team on a skill is invited to share what they did, and chooses whether to.
+- **Team settings:** members, norms and standards.
+
+Help and PLC words are one link below the doors.

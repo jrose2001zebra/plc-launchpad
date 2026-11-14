@@ -1,65 +1,79 @@
 /* PLC Launchpad 1.0 · the plan flight path and its eleven steps */
 
-/* One step at a time: a slim progress strip, one question, one main button. */
+/* A plan opens as a checklist of the four questions. Each item opens one question on its own screen. */
+const GROUPS = [
+  ['learn', 1, 'What must every student learn?'],
+  ['check', 2, 'How will we know they learned it?'],
+  ['reteach', 3, 'What if a student isn\'t proficient yet?'],
+  ['stretch', 4, 'What if a student is already proficient?']
+];
 function viewPlan(r) {
   const p = planById(r.a);
-  if (!p) return `<div class="empty">${icon('plan')}<b>That plan isn't here anymore.</b><a class="btn" href="#home">Back to home</a></div>`;
+  if (!p) return `<div class="empty"><b>That plan isn't here anymore.</b><a class="btn" href="#plans">See our plans</a></div>`;
   if (S.activePlanId !== p.id) { S.activePlanId = p.id; save(); }
-  const st = step(r.b) || nextStep(p);
-  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1], fam = FAMILIES[st.fam];
-  const done = stepState(p, st.key) === 100;
-  const talk = p.talk[st.key] || [];
-  const meeting = runningMeeting();
-  const dots = STEPS.map((s, i) => {
-    const v = stepState(p, s.key), gap = i > 0 && STEPS[i - 1].fam !== s.fam ? '<i></i>' : '';
-    return `${gap}<a class="f-${s.fam} ${v === 100 ? 'on' : v > 0 ? 'half' : ''} ${s.key === st.key ? 'cur' : ''}" href="#plan-${p.id}-${s.key}" title="Step ${i + 1}: ${esc(s.label)}" aria-label="Step ${i + 1}: ${esc(s.label)}${v === 100 ? ', done' : ''}"></a>`;
+  if (r.b && step(r.b)) return stepScreen(p, step(r.b), 'plan');
+  const n = nextStep(p), s = p.standardIds.length && standardById(p.standardIds[0]);
+  const task = st => { const v = stepState(p, st.key); return `<a class="task" href="#plan-${p.id}-${st.key}"><span class="tick ${v === 100 ? 'on' : v > 0 ? 'half' : ''}">${v === 100 ? icon('done') : ''}</span><b>${esc(st.label)}</b>${st.key === n.key && !planDone(p) ? '<span class="next">Next up</span>' : `<span class="go">${icon('arrow')}</span>`}</a>`; };
+  const groups = GROUPS.map(([fam, num, q]) => {
+    const steps = STEPS.filter(x => x.fam === fam && x.key !== 'wrap');
+    const done = steps.every(x => stepState(p, x.key) === 100);
+    return `<section class="plan-q"><h3><span class="n ${done ? 'done' : ''}">${done ? icon('done') : num}</span>${esc(q)}</h3>${steps.map(task).join('')}</section>`;
   }).join('');
-  const body = (STEP_VIEWS[st.key] || (() => ''))(p);
-  return `<div class="focus">
-    <div class="strip">
-      <a class="btn sm ghost" href="#home">${icon('back')}Home</a>
-      <div class="strip-mid"><span class="small"><b>Step ${idx + 1} of ${STEPS.length}</b> · ${esc(planTitle(p))}</span><div class="dots" aria-label="Plan steps">${dots}</div></div>
-      <button class="btn sm ghost" data-act="allSteps">${icon('norms')}All steps</button>
-    </div>
-    <section class="card station tint f-${st.fam}" aria-labelledby="stepTitle">
-      <div class="st-head"><span class="orb lg">${icon(st.icon)}</span><div class="grow">
-        <span class="eyebrow fam-text">Question ${fam.n} · ${fam.word} · ${esc(fam.q)}</span>
-        <h1 class="step-q" id="stepTitle">${esc(st.q)}</h1><p class="what">${esc(st.what)}</p>
-        <div class="row" style="align-items:flex-start">${termChip(st.term, st.fam)}<button type="button" class="btn sm ghost" data-act="say" data-text="${esc(st.q + ' ' + st.what)}">${icon('listen')}Read this to me</button></div>
-      </div></div>
-      <div class="st-body">${body}</div>
-      <details class="talk-box f-team" ${talk.length ? '' : ''}><summary><span class="orb sm">${icon('note')}</span>Team notes for this step${talk.length ? ` (${talk.length})` : ''}${meeting ? ' · saved to today\'s meeting too' : ''}</summary>
-        <div class="list">${talk.map(n => `<div class="li" style="border-radius:22px"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:400">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}</div>
-        <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm" data-act="addTalk">${icon('plus')}Add note</button></div>
+  const wrap = step('wrap');
+  return `<div class="page-head"><div class="lead"><span class="small muted">${s ? esc(s.code) + ' · ' + esc(trimTo(s.text, 90)) : 'New plan'}</span><h1>${esc(planTitle(p))}</h1></div>
+    ${planDone(p) ? '' : `<a class="btn big" href="#plan-${p.id}-${n.key}">Continue: ${esc(n.label)}${icon('arrow')}</a>`}</div>
+    <div class="stack">${groups}<section class="plan-q"><h3><span class="n ${stepState(p, 'wrap') === 100 ? 'done' : ''}">${stepState(p, 'wrap') === 100 ? icon('done') : icon('goal')}</span>Finish</h3>${task(wrap)}</section></div>
+    <div class="row" style="margin-top:18px"><button class="btn sm ghost" data-act="renamePlan">Rename plan</button><button class="btn sm danger" data-act="deletePlan">Delete plan</button></div>`;
+}
+ACT.renamePlan = async () => {
+  const p = planById(route().a);
+  const fd = await ask(`<h2>Rename plan</h2><div class="field"><label for="pn">Plan name</label><input id="pn" name="t" type="text" value="${esc(planTitle(p))}"></div><div class="row end"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn">Save</button></div>`);
+  if (fd) { p.title = String(fd.get('t')).trim(); save(); render(); }
+};
+ACT.deletePlan = async () => {
+  if (!await ask(`<h2>Delete this plan?</h2><p class="muted">Its assessment, scores and notes go with it. Version history keeps earlier saves.</p><div class="row end"><button type="button" class="btn ghost" data-cancel>Keep it</button><button class="btn danger">Delete plan</button></div>`)) return;
+  S.plans = S.plans.filter(x => x.id !== route().a); if (!planById(S.activePlanId)) S.activePlanId = S.plans[0]?.id || null; save(); go('plans');
+};
+
+/* One question per screen. ctx 'plan' walks the steps in order; ctx 'assess' returns to Assessments & Results. */
+function stepScreen(p, st, ctx) {
+  const idx = STEPS.indexOf(st), prev = STEPS[idx - 1], next = STEPS[idx + 1], fam = FAMILIES[st.fam];
+  const done = stepState(p, st.key) === 100, talk = p.talk[st.key] || [], meeting = runningMeeting();
+  const dots = STEPS.map((x, i) => `<a href="#plan-${p.id}-${x.key}" class="${x.key === st.key ? 'cur' : stepState(p, x.key) === 100 ? 'on' : ''}" title="Step ${i + 1}: ${esc(x.label)}" aria-label="Step ${i + 1}: ${esc(x.label)}"></a>`).join('');
+  const top = ctx === 'plan'
+    ? `<div class="q-top"><span>Question ${fam.n} · Step ${idx + 1} of ${STEPS.length}</span><span class="q-dots">${dots}</span></div>`
+    : `<div class="q-top"><span>${esc(trimTo(planTitle(p), 60))}</span></div>`;
+  const back = ctx === 'plan' ? `#plan-${p.id}` : '#assess';
+  const main = ctx === 'plan'
+    ? `<button class="btn big" data-act="saveNext" data-step="${st.key}">${next ? 'Save and continue' : 'Finish'}${icon('arrow')}</button>`
+    : `<button class="btn big" data-act="saveBack" data-step="${st.key}">Save${icon('done')}</button>`;
+  return `<div class="focus">${top}
+    <section class="q-card" aria-labelledby="stepTitle">
+      <h1 class="ask" id="stepTitle">${esc(st.q)}</h1>
+      <p class="hint">${esc(st.what)}</p>
+      <div>${termChip(st.term, st.fam)}</div>
+      <div class="st-body">${(STEP_VIEWS[st.key] || (() => ''))(p)}</div>
+      <details class="talk-box"><summary>${icon('note')}Team notes${talk.length ? ` (${talk.length})` : ''}${meeting ? ' · also saved to today\'s meeting' : ''}</summary>
+        <div class="list" style="margin-bottom:10px">${talk.map(n => `<div class="li"><span class="avatar">${esc(initials(memberName(n.by)))}</span><span><b style="font-weight:600">${esc(n.text)}</b><span class="sub">${esc(memberName(n.by))} · ${esc(fmtDate(n.at))}</span></span><button class="icon-btn" aria-label="Delete note" data-act="delTalk" data-id="${n.id}">${icon('trash')}</button></div>`).join('')}</div>
+        <div class="row"><input type="text" id="talkInput" placeholder="What did the team say or decide?" style="flex:1;min-width:200px"><button class="btn sm soft" data-act="addTalk">Add note</button></div>
       </details>
-      <div class="st-foot">
-        ${prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}Back</a>` : ''}
+      <div class="q-foot">
+        ${ctx === 'plan' && prev ? `<a class="btn ghost" href="#plan-${p.id}-${prev.key}">${icon('back')}Back</a>` : ''}
         <span class="spacer"></span>
-        <a class="link-quiet" href="#home">Finish later</a>
-        <button class="btn big" data-act="saveNext" data-step="${st.key}">${next ? (done ? 'Next step' : 'Save and continue') : (done ? 'Back to home' : 'Finish this plan')}${icon('arrow')}</button>
+        <a class="link-quiet" href="${back}">${ctx === 'plan' ? 'Back to plan' : 'Back to Assessments & Results'}</a>
+        ${main}
       </div>
-      ${done ? `<p class="small muted done-note">${icon('done')}This step is done. <button type="button" class="linkish" data-act="undoStep" data-step="${st.key}">Mark it not done</button></p>` : ''}
+      ${done ? `<p class="done-note">${icon('done')}Done. <button type="button" class="linkish" data-act="undoStep" data-step="${st.key}">Mark not done</button></p>` : ''}
     </section></div>`;
 }
+const markDone = (p, key) => { if (!p.steps[key]?.done) p.steps[key] = { ...(p.steps[key] || {}), done: true, at: new Date().toISOString() }; save(); };
 ACT.saveNext = b => {
-  const p = planById(route().a), key = b.dataset.step;
-  if (!p.steps[key]?.done) p.steps[key] = { ...(p.steps[key] || {}), done: true, at: new Date().toISOString() };
-  save();
+  const p = planById(route().a), key = b.dataset.step; markDone(p, key);
   const next = STEPS[STEPS.indexOf(step(key)) + 1];
-  if (next) { toast('Saved. Step ' + (STEPS.indexOf(next) + 1) + ': ' + next.label); go(`plan-${p.id}-${next.key}`); }
-  else { toast('Plan finished. Well done!'); go('home'); }
+  if (next) { toast('Saved'); go(`plan-${p.id}-${next.key}`); } else { toast('Plan finished. Well done!'); go(`plan-${p.id}`); }
 };
+ACT.saveBack = b => { const p = planById(route().a); markDone(p, b.dataset.step); toast('Saved'); go('assess'); };
 ACT.undoStep = b => { const p = planById(route().a); p.steps[b.dataset.step] = { done: false }; save(); render(); };
-ACT.allSteps = () => {
-  const p = planById(route().a), cur = step(route().b) || nextStep(p);
-  let html = '';
-  for (const [f, info] of Object.entries(FAMILIES)) {
-    html += `<div class="fam-label f-${f}">${icon(f)}Question ${info.n} · ${info.word}</div>`;
-    for (const s of STEPS.filter(s => s.fam === f)) html += `<a class="step-link f-${f}" href="#plan-${p.id}-${s.key}" data-close ${s.key === cur.key ? 'aria-current="step"' : ''}>${tokHTML(stepState(p, s.key), s.icon)}<span>${STEPS.indexOf(s) + 1}. ${esc(s.label)}</span></a>`;
-  }
-  ask(`<div class="row"><h2 class="spacer">All steps</h2><button type="button" class="icon-btn" data-cancel aria-label="Close">${icon('close')}</button></div><div class="steps-dialog">${html}</div>`,
-    { onOpen: d => $$('[data-close]', d).forEach(a => a.addEventListener('click', () => d.close())) });
-};
 ACT.addTalk = () => {
   const input = $('#talkInput'), text = input.value.trim(); if (!text) { input.focus(); return; }
   const r = route(), p = planById(r.a), key = (step(r.b) || nextStep(p)).key;
@@ -108,7 +122,7 @@ ACT.toggleStd = b => {
   const p = planById(route().a), id = b.dataset.id;
   p.standardIds = p.standardIds.includes(id) ? p.standardIds.filter(x => x !== id) : [id];
   APP.pickSkill = false;
-  save(); render(); if (p.standardIds.length) toast('Skill chosen. When you\'re ready, press Save and continue.');
+  save(); render(); if (p.standardIds.length) toast('Skill chosen.');
 };
 ACT.pickSkill = () => { APP.pickSkill = true; render(); setTimeout(() => $('#stdSearch')?.focus(), 30); };
 ACT.toggleWhy = b => { const p = planById(route().a), v = b.dataset.v; p.why = p.why.includes(v) ? p.why.filter(x => x !== v) : [...p.why, v]; save(); render(); };
@@ -157,7 +171,7 @@ STEP_VIEWS.gotit = p => {
 };
 ACT.setGotIt = b => { const p = planById(route().a); p.gotIt = Number(b.dataset.v); save(); render(); };
 ACT.setScoreAs = b => { const p = planById(route().a); p.scoreAs = b.dataset.v; save(); render(); };
-const gotItPoints = p => { const m = maxPoints(p); return m ? `That's ${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the team check${p.scoreAs === 'letter' ? `, a ${letterGrade(Number(p.gotIt) || 0)} or better` : ''}.` : 'Once the team check has points, Launchpad shows how many points that is.'; };
+const gotItPoints = p => { const m = maxPoints(p); return m ? `That's ${Math.ceil((m * p.gotIt) / 100)} of ${m} points on the common assessment${p.scoreAs === 'letter' ? `, a ${letterGrade(Number(p.gotIt) || 0)} or better` : ''}.` : 'Once the common assessment has points, Launchpad shows how many points that is.'; };
 LIVE.gotit = () => { const el = $('#gotItPoints'); if (el) el.textContent = gotItPoints(planById(route().a)); };
 
 /* ------------------------------------------------------------ 4 the check */
@@ -193,14 +207,14 @@ STEP_VIEWS.goal = p => `${zava('A good goal is a stretch but reachable. If you g
   <div class="field"><span class="lbl">Our team goal</span><p class="goal-sentence" id="goalSentence">${goalSentence(p)}</p></div>`;
 function goalSentence(p) {
   const d = p.goal.date ? fmtDate(p.goal.date, { month: 'long', day: 'numeric' }) : '<mark>a date</mark>';
-  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will score <mark>${esc(p.gotIt)}% or higher</mark> on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our team check'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
+  return `By ${p.goal.date ? `<mark>${esc(d)}</mark>` : d}, <mark>${esc(p.goal.target || '?')}%</mark> of our students will score <mark>${esc(p.gotIt)}% or higher</mark> on ${p.check.name ? `the <mark>${esc(p.check.name)}</mark>` : 'our common assessment'}${p.goal.baseline !== '' && p.goal.baseline != null ? `, up from <mark>${esc(p.goal.baseline)}%</mark>` : ''}.`;
 }
 LIVE.goal = () => { const el = $('#goalSentence'); if (el) el.innerHTML = goalSentence(planById(route().a)); };
 
 /* --------------------------------------------------------------- 6 scores */
 STEP_VIEWS.scores = p => scoresView(p, 'first');
 function scoresView(p, kind) {
-  if (!p.check.items.length) return `<div class="empty">${icon('check')}<b>Build the team check first</b><span>Scores are entered for each question on the check.</span><a class="btn fam f-check" href="#plan-${p.id}-build">Build the team check</a></div>`;
+  if (!p.check.items.length) return `<div class="empty">${icon('check')}<b>Build the common assessment first</b><span>Scores are entered for each question on the check.</span><a class="btn fam f-check" href="#plan-${p.id}-build">Build the common assessment</a></div>`;
   const me = member(ME);
   const entry = S.members.map(m => { const st = stats(p, { kind, teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${esc(m.name)} · ${st.n ? plural(st.n, 'student') : 'not yet'}</span>`; }).join('');
   if (!me) return `<div class="teacher-dots">${entry}</div><div class="empty">${icon('person')}<b>Which teacher are you?</b><span>You enter scores for your own classes only.</span><button class="btn" data-act="whoAmI">Choose your name</button></div>`;

@@ -13,7 +13,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 SRC, DIST = HERE / 'src', HERE / 'dist'
-SCRIPTS = ['core.js', 'views-home.js', 'views-plan.js', 'views-team.js']
+SCRIPTS = ['core.js', 'ui.js', 'views-plan.js', 'views-team.js']
 
 
 def main() -> None:

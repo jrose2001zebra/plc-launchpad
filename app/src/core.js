@@ -122,8 +122,8 @@ const WORDS = [
   ['learn', 'Big standard · one skill inside it', 'Broad standard · specific indicator', 'The state groups skills under a big standard. You can pick the whole thing, or just one skill inside it, which is usually easier to teach and check.', 'B2.0 is the big standard on sketching. B2.1 is one skill inside it.'],
   ['learn', '"I can" statement', 'Learning target', 'The skill rewritten in words a student understands, usually starting with "I can". Each one should be something a short check can see.', '"I can sketch the front, top and side views of a simple object."'],
   ['learn', 'Why this skill made the cut', 'Endurance · leverage · readiness', 'Three tests for a must-learn skill: it lasts beyond this year (endurance), it is used in other subjects (leverage), and students need it for what comes next (readiness).', 'Measuring is used in math and science too, so it has leverage.'],
-  ['check', 'Proficiency score', 'Proficiency', 'The percentage on the team check that shows a student has learned the skill. A student at or above it is proficient. The team agrees on it before anyone sees results.', '75% on the team check, or 6 of 8 points.'],
-  ['check', 'Team check', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
+  ['check', 'Proficiency score', 'Proficiency', 'The percentage on the common assessment that shows a student has learned the skill. A student at or above it is proficient. The team agrees on it before anyone sees results.', '75% on the common assessment, or 6 of 8 points.'],
+  ['check', 'Common assessment', 'Common formative assessment (CFA)', '"Common" means every teacher gives the same check. "Formative" means it happens during learning, while there is still time to help.', 'A 4-question exit ticket every 9th-grade class takes on Thursday.'],
   ['check', 'SMART goal (team goal)', 'SMART goal', 'A clear target: how many students will show the skill, on which check, by what date. SMART stands for specific, measurable, attainable, results-oriented and time-bound.', 'By Dec 3, 80% of our students will score 75% or higher on the sketching check.'],
   ['check', 'Where students started', 'Baseline', 'How students did before the teaching, so the team can see growth.', '40% of students were proficient on the pre-check.'],
   ['check', 'Scoring practice together', 'Calibration', 'Teachers score the same few pieces of student work, then talk until they score them the same way.', 'Everyone scores three sketches, then compares.'],
@@ -147,15 +147,15 @@ function termChip(name, fam) {
   const w = term(name); if (!w) return '';
   const id = 'def-' + Math.random().toString(36).slice(2, 8);
   return `<span class="f-${fam || w[0]}" style="display:grid;gap:8px;justify-items:start">
-    <button type="button" class="term" aria-expanded="false" aria-controls="${id}" data-act="toggleTerm"><span class="tag">PLC term</span>${esc(w[2])}</button>
+    <button type="button" class="term" aria-expanded="false" aria-controls="${id}" data-act="toggleTerm"><span class="tag">PLC term</span>What does "${esc(w[2])}" mean?</button>
     <span class="def" id="${id}" hidden><b>${esc(w[2])}</b><span>${esc(w[3])}</span>${w[4] ? `<span class="example"><i>Example:</i> ${esc(w[4])}</span>` : ''}
       <span class="row"><button type="button" class="btn sm" data-act="say" data-text="${esc(w[2] + '. ' + w[3] + (w[4] ? ' For example: ' + w[4] : ''))}">${icon('listen')}Hear it</button>
-      <a class="btn sm ghost" href="#words">${icon('glossary')}All PLC words</a></span></span></span>`;
+      <a class="btn sm ghost" href="#help">${icon('glossary')}All PLC words</a></span></span></span>`;
 }
 
 /* Zava's help is folded away until someone asks for it, so each step shows only what to do. */
 function zava(text, example, fam = 'learn') {
-  return `<details class="zava f-${fam}"><summary><span class="z" aria-hidden="true">${icon('guide')}</span><span>Need help? Tips${example ? ' and an example' : ''} from Zava, your plan guide</span></summary>
+  return `<details class="zava f-${fam}"><summary><span class="z" aria-hidden="true">${icon('guide')}</span><span>Need a tip${example ? ' or an example' : ''}?</span></summary>
     <div class="say"><span>${text}</span>${example ? `<div class="example"><i>Example:</i> ${example}</div>` : ''}
     <span><button type="button" class="btn sm soft" data-act="say" data-text="${esc(String(text).replace(/<[^>]+>/g, ''))}">${icon('listen')}Listen</button></span></div></details>`;
 }
@@ -175,11 +175,11 @@ const STEPS = [
   { key: 'targets', fam: 'learn', label: 'Write "I can" statements', icon: 'target', minutes: 15,
     q: 'What will students say they can do?', what: 'Rewrite the skill in student words. Most plans need one to three "I can" statements.', term: 'Learning target' },
   { key: 'gotit', fam: 'learn', label: 'Set the proficiency score', icon: 'score', minutes: 10,
-    q: 'What score shows a student is proficient?', what: 'Agree on the percentage a student needs on the team check. Decide it before anyone sees results.', term: 'Proficiency' },
-  { key: 'build', fam: 'check', label: 'Build the team check', icon: 'check', minutes: 25,
-    q: 'What will be on the team check?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
+    q: 'What score shows a student is proficient?', what: 'Agree on the percentage a student needs on the common assessment. Decide it before anyone sees results.', term: 'Proficiency' },
+  { key: 'build', fam: 'check', label: 'Build the common assessment', icon: 'check', minutes: 25,
+    q: 'What will be on the common assessment?', what: 'Write a short check every teacher gives the same way. Tie each question to an "I can" statement.', term: 'Common formative assessment (CFA)' },
   { key: 'goal', fam: 'check', label: 'Set our SMART goal', icon: 'goal', minutes: 10,
-    q: 'What is our SMART goal?', what: 'Say what share of students will be proficient on the team check, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
+    q: 'What is our SMART goal?', what: 'Say what share of students will be proficient on the common assessment, and by when. Launchpad writes the goal sentence for you.', term: 'SMART goal' },
   { key: 'scores', fam: 'check', label: 'Enter scores', icon: 'score', minutes: 15,
     q: 'How did your students do?', what: 'Each teacher enters their own classes. Your team only ever sees totals.', term: 'Evidence of learning' },
   { key: 'results', fam: 'check', label: 'Look at results together', icon: 'results', minutes: 20,

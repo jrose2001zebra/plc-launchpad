@@ -5,8 +5,8 @@ function viewMeetings() {
   const running = runningMeeting();
   const past = S.meetings.filter(m => m.endedAt).sort((a, b) => (a.date < b.date ? 1 : -1));
   const todos = openTodos();
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team time</span><h1>Your weekly 45 minutes</h1>
-    <p>Start team time when you sit down together. Launchpad builds the agenda from where you stopped, keeps your notes and to-dos, and remembers where you ended.</p></div>
+  return `<div class="page-head"><div class="lead"><h1>Meetings</h1>
+    <p>Start a meeting when your team sits down together. Launchpad builds the agenda from where you stopped and keeps your notes and to-dos.</p></div>
     ${running ? `<a class="btn fam f-team lead-orb" href="#meeting-${running.id}"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('clock')}</span>Back to today's meeting</a>`
       : `<button class="btn fam f-team lead-orb" data-act="startMeeting"><span class="orb" style="background:var(--paper);color:var(--team)">${icon('play')}</span>Start team time</button>`}</div>
     <div class="meet-layout"><div class="stack">
@@ -132,18 +132,25 @@ ACT.endMeeting = async () => {
   save(); toast('Saved. Next week starts where you stopped.'); go('home');
 };
 
-/* ================================================================ RESULTS */
-function viewResults() {
-  const withScores = S.plans.filter(p => p.scores.length);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Results</span><h1>How our students are doing</h1>
-    <p>Totals for each plan's team check. Each teacher's own classes are visible only to them.</p></div></div>
-    ${privacyNote(`Team results stay hidden until at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored, so no one class can be singled out.`)}
-    <div class="stack" style="margin-top:16px">${withScores.length ? withScores.map(p => {
-      const team = stats(p), mine = ME ? stats(p, { teacherId: ME }) : null;
-      return `<div class="stack"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3 class="spacer">${esc(planTitle(p))}</h3><a class="btn sm fam f-check" href="#plan-${p.id}-results">Open results step</a><a class="btn sm ghost" href="#plan-${p.id}-scores">Enter scores</a></div>
-        <div class="teacher-dots">${S.members.map(m => { const st = stats(p, { teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${st.n ? 'Scores in' : 'Waiting'}</span>`; }).join('')}</div>
-        ${resultsPanel(p, team, mine)}</div>`;
-    }).join('') : `<div class="empty">${icon('results')}<b>No scores yet</b><span>Scores are entered in step 6 of each plan.</span></div>`}</div>`;
+/* ===================================================== ASSESSMENTS & RESULTS */
+function viewAssess(r) {
+  if (r.a && r.b && planById(r.a) && ['build', 'scores', 'results'].includes(r.b)) return stepScreen(planById(r.a), step(r.b), 'assess');
+  const invites = invitationsFor(ME);
+  const cards = S.plans.map(p => {
+    const ready = p.check.items.length > 0, team = stats(p);
+    const status = !ready ? 'Not built yet' : `${plural(p.check.items.length, 'question')} · ${maxPoints(p)} points${p.check.date ? ' · given ' + esc(fmtDate(p.check.date)) : ''}`;
+    return `<section class="card"><div class="card-head"><span class="orb">${icon('check')}</span><div class="grow"><h3>${esc(p.check.name || 'Common assessment')}</h3><span class="small muted">${esc(trimTo(planTitle(p), 70))}</span></div></div>
+      <p class="small muted">${status}</p>
+      ${ready ? `<div class="teacher-dots">${S.members.map(m => { const st = stats(p, { teacherId: m.id }); return `<span class="tdot ${st.n ? 'in' : ''}"><i>${esc(initials(m.name))}</i>${st.n ? 'Scores in' : 'Waiting'}</span>`; }).join('')}</div>` : ''}
+      ${ready && teamUnlocked(team) ? `<p><b>${team.pct}% proficient</b> <span class="muted small">(${esc(p.gotIt)}% or higher) · goal ${esc(p.goal.target || '?')}%</span></p>` : ''}
+      <div class="row">${ready ? `<a class="btn" href="#assess-${p.id}-scores">Enter scores</a><a class="btn ghost" href="#assess-${p.id}-results">Team results</a><a class="btn ghost" href="#assess-${p.id}-build">Edit assessment</a>`
+        : `<a class="btn" href="#assess-${p.id}-build">Build the assessment</a>`}</div></section>`;
+  }).join('');
+  return `<div class="page-head"><div class="lead"><h1>Assessments &amp; Results</h1><p>Each plan has one common assessment. Build it, enter your scores, then look at the results together.</p></div></div>
+    ${invites.length ? `<div class="stack" style="margin-bottom:18px">${invites.slice(0, 1).map(inviteCard).join('')}</div>` : ''}
+    ${S.plans.length ? `<div class="grid2">${cards}</div>` : `<div class="empty"><b>No plans yet</b><span>Each plan gets one common assessment.</span><button class="btn" data-act="newPlan">Build your first plan</button></div>`}
+    <a class="li" href="#worked" style="margin-top:18px"><span class="orb">${icon('practice')}</span><span><b>What worked for us</b><span class="sub">Teaching strategies your teammates shared${S.strategies.length ? ' · ' + S.strategies.length : ''}</span></span>${icon('arrow')}</a>
+    <div style="margin-top:14px">${privacyNote(`Team results stay hidden until at least ${PRIVACY_MIN_STUDENTS} students from ${PRIVACY_MIN_TEACHERS} teachers are scored. Each teacher's own classes are visible only to them.`)}</div>`;
 }
 
 /* ============================================================ WHAT WORKED */
@@ -170,7 +177,7 @@ function stratCard(s) {
 function viewWorked() {
   const invites = invitationsFor(ME);
   const byPlan = S.plans.map(p => [p, S.strategies.filter(s => s.planId === p.id)]).filter(([, l]) => l.length);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">What worked for us</span><h1>Teaching moves our team shares</h1>
+  return `<div class="page-head"><div class="lead"><h1>What worked for us</h1>
     <p>When a teacher's students do better than the team on a skill, Launchpad invites them to share what they did. Sharing is always a choice, and you decide whether your name shows.</p></div>${termChip('Shared instructional practice', 'reteach')}</div>
     ${invites.length ? `<div class="stack" style="margin-bottom:26px">${invites.map(inviteCard).join('')}</div>` : ''}
     ${byPlan.length ? byPlan.map(([p, list]) => `<div class="stack" style="margin-bottom:26px"><div class="row"><span class="orb sm f-learn">${icon('plan')}</span><h3>${esc(planTitle(p))}</h3></div><div class="grid2">${list.map(stratCard).join('')}</div></div>`).join('')
@@ -202,8 +209,8 @@ ACT.unshare = async b => {
 function viewTeam() {
   const roles = ['Teacher', 'Team lead', 'Coach', 'Administrator'];
   const cats = Object.entries(APP.catalogs);
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">Team</span><h1>Our team</h1><p>Who's on the team, how you work together, and which standards you use.</p></div>
-    <a class="btn ghost" href="#words">${icon('glossary')}PLC words</a></div>
+  return `<div class="page-head"><div class="lead"><h1>Team settings</h1><p>Who's on the team, how you work together, and which standards you use.</p></div>
+    </div>
     <div class="grid2" style="align-items:start">
       <div class="stack">
         <div class="card f-team"><div class="card-head"><span class="orb sm">${icon('team')}</span><h3 class="grow">Team details</h3></div>
@@ -245,7 +252,7 @@ ACT.resetDemo = async () => {
 
 /* ================================================================ PLC WORDS */
 function viewWords() {
-  return `<div class="page-head"><div class="lead"><span class="eyebrow">PLC words</span><h1>Plain words, real terms</h1>
+  return `<div class="page-head"><div class="lead"><h1>Help and PLC words</h1>
     <p>Launchpad uses everyday words on every screen, with the PLC term right beside them. Here they all are in one place.</p></div></div>
     ${Object.entries({ ...FAMILIES, team: { n: '', word: 'Team', q: 'How do we work together?' } }).map(([f, info]) => `<div class="stack" style="margin-bottom:28px">
       <div class="row f-${f}"><span class="orb">${icon(f)}</span><h2 style="font-size:1.4rem">${info.n ? info.n + ' · ' : ''}${info.word}</h2><span class="muted">${esc(info.q)}</span></div>
