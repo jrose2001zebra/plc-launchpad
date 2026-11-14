@@ -1,0 +1,132 @@
+<title>Launchpad Home Sketch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: three quiet phone-and-laptop sized sketches side by side. Lots of white space, one accent each. */
+:root{--bg:#F6F7F9;--card:#FFFFFF;--ink:#1F2733;--soft:#6B7380;--line:#E3E6EB;--a:#3E7BFA;--b:#2BA37E;--c:#E08A3C;
+  --font:"Nunito","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#13161B;--card:#1C2027;--ink:#E9ECF1;--soft:#9AA3B0;--line:#2C323C;--a:#7FA6FF;--b:#5CCAA5;--c:#F0AA6A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#13161B;--card:#1C2027;--ink:#E9ECF1;--soft:#9AA3B0;--line:#2C323C;--a:#7FA6FF;--b:#5CCAA5;--c:#F0AA6A;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:40px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin:0 0 8px;letter-spacing:-.01em}
+.lede{color:var(--soft);max-width:56ch;margin:0 0 34px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.opt{display:grid;gap:14px;align-content:start}
+.opt h2{font-size:1.25rem;margin:0;display:flex;gap:10px;align-items:center}
+.opt h2 b{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--k);font-size:1rem}
+.opt p{margin:0;color:var(--soft);font-size:.95rem}
+.screen{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px 22px;min-height:400px;display:flex;flex-direction:column;gap:16px}
+.k-a{--k:var(--a)}.k-b{--k:var(--b)}.k-c{--k:var(--c)}
+.hello{font-size:.9rem;color:var(--soft)}
+.big{font-size:1.45rem;font-weight:800;line-height:1.25}
+.box{border:1.5px solid var(--line);border-radius:14px;padding:14px;color:var(--soft);min-height:80px}
+.btn{align-self:flex-start;background:var(--k);color:#fff;border-radius:999px;padding:11px 22px;font-weight:700}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--k)}
+.q{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.q:last-child{border-bottom:0}
+.q .tick{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.q .tick.on{background:var(--k);border-color:var(--k);color:#fff;font-size:.8rem}
+.q span{flex:1}.q small{color:var(--soft)}
+.agenda{display:grid;gap:10px}
+.item{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:14px;padding:12px 14px}
+.item .min{font-weight:800;color:var(--k);min-width:46px}
+.spacer{flex:1}
+.why{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;font-size:.92rem}
+.why b{display:block;margin-bottom:4px}
+.removed{margin-top:40px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 24px}
+.removed h3{margin:0 0 10px}
+.removed ul{margin:0;padding-left:20px;color:var(--soft);display:grid;gap:4px}
+.home{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:clamp(22px,4vw,40px);display:grid;gap:22px;margin-bottom:46px}
+.home .hi{font-size:clamp(1.5rem,3.2vw,2.1rem);font-weight:800;margin:0}
+.home .sub{color:var(--soft);margin:-14px 0 0}
+.doors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.door{border:1.5px solid var(--line);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:10px;min-height:190px;background:color-mix(in srgb,var(--k) 6%,var(--card))}
+.door .ic{width:46px;height:46px;border-radius:50%;background:color-mix(in srgb,var(--k) 18%,var(--card));color:var(--k);display:grid;place-items:center;font-size:1.3rem;font-weight:800}
+.door b{font-size:1.2rem}
+.door small{color:var(--soft)}
+.door .go{margin-top:auto;color:var(--k);font-weight:800}
+.more{display:flex;flex-wrap:wrap;gap:10px}
+.more span{border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:700;font-size:.92rem}
+.label{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:800;margin:0 0 14px}
+@media (max-width:900px){.doors{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<div class="wrap">
+  <h1>The launchpad homepage</h1>
+  <p class="lede">The homepage asks one question: what are we here to do today? Each big door leads into the simple screen that fits it.</p>
+
+  <p class="label">Homepage</p>
+  <section class="home">
+    <p class="hi">Welcome back, Engineering 9 team</p>
+    <p class="sub">What are we doing today?</p>
+    <div class="doors">
+      <div class="door k-a"><span class="ic">+</span><b>Build a new plan</b><small>We'll walk you through it, one question at a time.</small><span class="go">Start →</span></div>
+      <div class="door k-b"><span class="ic">✓</span><b>Pick up where we left off</b><small>Sketching plan · next up: plan reteaching</small><span class="go">Continue →</span></div>
+      <div class="door k-c"><span class="ic">◷</span><b>Start a meeting</b><small>45 minutes · agenda ready · take notes as you go</small><span class="go">Start meeting →</span></div>
+    </div>
+    <div class="more"><span>Enter scores</span><span>See results</span><span>What worked for us</span><span>Past meetings</span><span>Our team</span><span>Help</span></div>
+  </section>
+
+  <p class="label">Where each door goes</p>
+  <div class="grid">
+    <section class="opt k-a">
+      <h2><b>A</b>Build a new plan</h2>
+      <div class="screen">
+        <div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+        <span class="hello">Question 3 of 6</span>
+        <div class="big">What do we want every student to learn?</div>
+        <div class="box">Type it the way you'd say it to a student…</div>
+        <span class="spacer"></span>
+        <span class="btn">Next</span>
+      </div>
+      <div class="why"><b>Feels like</b>a short, friendly form. No menus. You answer, press Next, and the plan builds itself.</div>
+    </section>
+
+    <section class="opt k-b">
+      <h2><b>B</b>Pick up where we left off</h2>
+      <div class="screen">
+        <span class="hello">Engineering 9 team</span>
+        <div class="big">Our plan</div>
+        <div>
+          <div class="q"><span class="tick on">✓</span><span>What must students learn?</span></div>
+          <div class="q"><span class="tick on">✓</span><span>How will we know?</span></div>
+          <div class="q"><span class="tick"></span><span>What if they don't learn it?<br><small>Next up</small></span></div>
+          <div class="q"><span class="tick"></span><span>What if they already know it?</span></div>
+        </div>
+        <span class="spacer"></span>
+        <span class="btn">Keep going</span>
+      </div>
+      <div class="why"><b>Feels like</b>a to-do list. The four PLC questions, checked off one by one. Tap one to fill it in.</div>
+    </section>
+
+    <section class="opt k-c">
+      <h2><b>C</b>Start a meeting</h2>
+      <div class="screen">
+        <span class="hello">Thursday · 45 minutes</span>
+        <div class="big">This week's meeting</div>
+        <div class="agenda">
+          <div class="item"><span class="min">10 min</span><span>Look at last week's check</span></div>
+          <div class="item"><span class="min">25 min</span><span>Plan reteaching</span></div>
+          <div class="item"><span class="min">10 min</span><span>Next steps</span></div>
+        </div>
+        <span class="spacer"></span>
+        <span class="btn">Start meeting</span>
+      </div>
+      <div class="why"><b>Feels like</b>your weekly agenda. The plan grows a little each meeting, and you always know what today is for.</div>
+    </section>
+  </div>
+
+  <div class="removed">
+    <h3>What stays off these screens</h3>
+    <ul>
+      <li>Menus with six choices</li>
+      <li>PLC term chips, tips and "hear it" buttons (they'd move to a single Help button)</li>
+      <li>Charts, rings and color-coding</li>
+      <li>Invitations, to-dos and other plans (they'd appear only when needed)</li>
+    </ul>
+  </div>
+</div>
