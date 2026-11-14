@@ -7,23 +7,28 @@ Created by John Rose.
 
 | Path | What it is |
 |---|---|
-| `app/` | **PLC Launchpad 1.0**, the rebuilt app. Source in `app/src`; `python3 app/build.py` makes one self-contained page in `app/dist`. |
-| `apps-script/` | Runs the app on Google Apps Script for your school: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files. |
-| `design/design-system.html` | The design language: color families, icons, plain-language word list. Every screen follows it. |
-| `legacy/v0.509.html` | The previous app, kept for reference. |
-| `prototype/concept-orbit.html` | The first design concept. |
+| `PLC-Launchpad-R03.html` | **The current app (R03).** One self-contained file: open it in a browser. See [r03/README.md](r03/README.md) for what changed from v0.509. |
+| `apps-script/` | Runs the app on Google Apps Script for your school: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files, built from R03. |
+| `r03/` | How R03 was made from v0.509, and the R03 code and styles. |
+| `legacy/v0.509.html` | The previous app (v0.509), kept unchanged. |
+| `research/` | Research on how PLC teams build plans, templates, practice, tools and privacy. |
+| `app/`, `design/`, `prototype/` | Earlier design experiments (Launchpad 1.0 and 2.0, design language, homepage sketches). Not the current app. |
 
-## How the app is organized
+## How the app is organized (R03)
 
-The homepage is a launchpad with four doors:
+Teams work unit by unit in **cycles**. Each cycle takes one essential standard through five steps:
 
-- **Plans:** continue the current plan, build a new one, or see all plans. A plan opens as a checklist of
-  DuFour's four questions; each item opens one question on its own screen with **Save and continue**.
-- **Meetings:** start this week's 45-minute meeting (agenda, notes, decisions, to-dos, where you stopped),
-  past meetings and to-dos.
-- **Assessments & Results:** enter scores, build or edit each plan's common assessment, team results,
-  and **What worked for us**. Team totals stay hidden until 5 students from 3 teachers are scored; a teacher
-  whose students beat the team on a skill is invited to share what they did, and chooses whether to.
-- **Team settings:** members, norms and standards.
+1. **Plan**: standard, learning targets, student group, SMART goal wording.
+2. **Build check**: the common assessment, scoring and proficiency rule (Google Forms under Advanced).
+3. **Teach**: the team's shared activities for each target.
+4. **Respond**: scorebook, team and teacher views, support, follow-ups and extension.
+5. **Close**: keep, refine, or replace, then start the next cycle.
 
-Help and PLC words are one link below the doors.
+**Our Home** shows where the team is, the next meeting (its agenda is built from the current step),
+activities, results and follow-ups. Year setup (team, norms, standards, sharing, backups) lives under
+**Our Team** and **Our Standards**.
+
+## Hosting
+
+The app saves in the browser on its own, or online for the whole team when deployed on Google Apps
+Script, limited to your school's Google domain. See [apps-script/SETUP.md](apps-script/SETUP.md).
