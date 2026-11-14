@@ -52,29 +52,43 @@ h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin:0 0 8px;letter-spac
 .more span{border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:700;font-size:.92rem}
 .label{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:800;margin:0 0 14px}
 @media (max-width:900px){.doors{grid-template-columns:minmax(0,1fr)}}
+.k-r{--k:#8A63C6}.k-s{--k:#6B7380}
+.doors.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.door .acts{display:grid;gap:8px;margin-top:4px}
+.door .act{border-radius:12px;padding:8px 10px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:.92rem}
+.door .act small{display:block;font-weight:400;color:var(--soft);font-size:.82rem}
+.door .act.main{background:var(--k);color:#fff;border-color:var(--k)}
+.door .act.main small{color:rgba(255,255,255,.85)}
+@media (max-width:1000px){.doors.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.doors.four{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 </style>
 
 <div class="wrap">
   <h1>The launchpad homepage</h1>
-  <p class="lede">The homepage asks one question: what are we here to do today? Each big door leads into the simple screen that fits it.</p>
+  <p class="lede">Four doors, one for each kind of work. Everything that belongs together sits behind the same door, and the most likely next action is right on the door itself.</p>
 
   <p class="label">Homepage</p>
   <section class="home">
     <p class="hi">Welcome back, Engineering 9 team</p>
     <p class="sub">What are we doing today?</p>
-    <div class="doors">
-      <div class="door k-a"><span class="ic">+</span><b>Build a new plan</b><small>We'll walk you through it, one question at a time.</small><span class="go">Start →</span></div>
-      <div class="door k-b"><span class="ic">✓</span><b>Pick up where we left off</b><small>Sketching plan · next up: plan reteaching</small><span class="go">Continue →</span></div>
-      <div class="door k-c"><span class="ic">◷</span><b>Start a meeting</b><small>45 minutes · agenda ready · take notes as you go</small><span class="go">Start meeting →</span></div>
+    <div class="doors four">
+      <div class="door k-a"><span class="ic">✎</span><b>Plans</b>
+        <span class="acts"><span class="act main">Continue: Sketching plan<small>Next up: plan reteaching</small></span><span class="act">+ Build a new plan</span><span class="act">All our plans</span></span></div>
+      <div class="door k-c"><span class="ic">◷</span><b>Meetings</b>
+        <span class="acts"><span class="act main">Start this week's meeting<small>45 minutes · agenda ready</small></span><span class="act">Past meetings and notes</span><span class="act">To-dos (2)</span></span></div>
+      <div class="door k-r"><span class="ic">▥</span><b>Results</b>
+        <span class="acts"><span class="act main">Enter scores<small>Sketching check · 3 of 4 teachers done</small></span><span class="act">See team results</span><span class="act">What worked for us</span></span></div>
+      <div class="door k-s"><span class="ic">⚙</span><b>Team settings</b>
+        <span class="acts"><span class="act">Our team members</span><span class="act">Our norms</span><span class="act">Standards we use</span></span></div>
     </div>
-    <div class="more"><span>Enter scores</span><span>See results</span><span>What worked for us</span><span>Past meetings</span><span>Our team</span><span>Help</span></div>
+    <div class="more"><span>Help and PLC words</span></div>
   </section>
 
   <p class="label">Where each door goes</p>
   <div class="grid">
     <section class="opt k-a">
-      <h2><b>A</b>Build a new plan</h2>
+      <h2><b>A</b>Plans → Build a new plan</h2>
       <div class="screen">
         <div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
         <span class="hello">Question 3 of 6</span>
@@ -87,7 +101,7 @@ h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin:0 0 8px;letter-spac
     </section>
 
     <section class="opt k-b">
-      <h2><b>B</b>Pick up where we left off</h2>
+      <h2><b>B</b>Plans → Continue</h2>
       <div class="screen">
         <span class="hello">Engineering 9 team</span>
         <div class="big">Our plan</div>
@@ -104,7 +118,7 @@ h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin:0 0 8px;letter-spac
     </section>
 
     <section class="opt k-c">
-      <h2><b>C</b>Start a meeting</h2>
+      <h2><b>C</b>Meetings → Start</h2>
       <div class="screen">
         <span class="hello">Thursday · 45 minutes</span>
         <div class="big">This week's meeting</div>
