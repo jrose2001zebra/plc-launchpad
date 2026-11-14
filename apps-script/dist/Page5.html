@@ -1,0 +1,383 @@
+s]'))return;
+  const c=state.cycles.find(x=>x.id===locationParts[2]);if(c){c.close.notes=event.target.value;save()}
+});
+/* Typing in a baseline field means the team set it by hand; stop filling it in automatically. */
+document.addEventListener('input',event=>{if(event.target.matches('[data-cycle^="baseline"]')){const c=activeCycle();if(c){c.baselineManual=true;delete c.baselineAuto}}},true);
+
+/* ---------- sidebar: Our Home, Our Cycles, Our Activities, Our Standards, Our Meetings, Our Team ---------- */
+function updateProductNavigation(page){
+  const c=r03ActiveCycle();
+  const active=page==='home'?'home':page==='cycles'?'cycles':page==='activities'||page==='cycle'&&locationParts[3]==='teach'?'activities':['setup','connections','standard'].includes(page)?'standards':page==='meetings'?'meetings':['team','settings'].includes(page)?'team':page==='glossary'?'glossary':'cycles';
+  const entries=[['home','Our Home','home',[]],['cycles','Our Cycles','layers',['cycles']],['activities','Our Activities','activity',c?['cycle',r03Sid(c),c.id,'teach']:['activities']],['standards','Our Standards','book',['setup']],['meetings','Our Meetings','calendar',['meetings']],['team','Our Team','team',['settings','roster']]];
+  $('productNavigation').innerHTML=entries.map(([id,label,icon,route])=>'<a href="'+urlFor(...route)+'" class="product-nav-link '+(active===id?'active':'')+'" '+(active===id?'aria-current="page"':'')+' title="'+label+'">'+productIcon(icon)+'<span>'+label+'</span>'+(id==='activities'?'<span class="r03-new">NEW</span>':'')+'</a>').join('')+
+    '<a href="'+urlFor('glossary')+'" class="r03-glossary-link'+(active==='glossary'?' active':'')+'">'+productIcon('book')+'<span>PLC Glossary</span></a>';
+}
+
+/* ---------- one-time page set-up ---------- */
+(function r03Setup(){
+  /* The Forms panel moves around the page (right column, guided step), so the disclosure goes inside it. */
+  const dq=document.querySelector('section.digital-quiz');
+  if(dq&&!dq.querySelector(':scope>details.r03-advanced')){const d=document.createElement('details');d.className='r03-advanced';d.innerHTML='<summary>'+productIcon('quiz')+'Advanced: connect Google Forms</summary>';d.append(...dq.childNodes);dq.append(d)}
+  const use=$('useAssessment');if(use)use.hidden=true;
+  for(const [field,text] of [['assessment','Fills in from our common check in Build check.'],['proficiency','Fills in from our common check’s scoring rule.'],['baselineStatus','No need to enter this now: the baseline fills in from our first results.']]){
+    const label=document.querySelector('[data-cycle="'+field+'"]')?.closest('label');
+    if(label&&!label.querySelector('.r03-hint'))label.insertAdjacentHTML('beforeend','<small class="r03-hint">'+text+'</small>');
+  }
+})();
+
+window.addEventListener('hashchange',draw);
+const clearCycleAssist=bindLearningAssist(document.querySelector('[data-cycle="learning"]'),$('cycleAssist'),$('cycleSuggestions'),()=>assistContext(activeCycle()));
+initializeProductShell();
+initializeDirectorySelectors();
+initializePageDesigns();
+initializeSaveProtection();
+draw();
+function openDemoShare(){
+  $('demoMessage').textContent='';$('demoBackup').hidden=true;
+  const shared=cloudDemo;$('demoShareTitle').textContent=shared?'Your Workspace Link':'Share Workspace';
+  $('demoShare').querySelector('p').textContent=shared?'Use this permanent link to reopen the same workspace on another computer. Anyone with this link can view and edit this workspace.':'Save your workspace online to create a permanent link. Anyone with the link can view and edit it.';
+  $('makeDemo').hidden=shared;$('viewDemo').hidden=shared;$('demoLinkArea').hidden=!shared;
+  if(shared)$('demoLinkArea').append($('demoClose'));else $('demoShare').append($('demoClose'));
+  if(shared){const url=courseUrl(subject);$('demoUrl').value=url.href;$('viewDemo').href=url.href;}
+  $('demoShare').showModal();
+}
+$('demoClose').onclick=()=>$('demoShare').close();
+$('demoBackup').onclick=()=>$('export').click();
+$('makeDemo').onclick=async()=>{
+  $('makeDemo').disabled=true;$('demoLinkArea').hidden=true;
+  try{
+    if(cloudDemo){
+      if(cloudDirty)await saveCloud();
+      if(cloudDirty||cloudConflict)throw Error();
+      const url=courseUrl(subject);
+      $('demoUrl').value=url.href;$('viewDemo').href=url.href;
+    }else{
+      const id=crypto.randomUUID(),url=new URL(window.__PLC.execUrl);url.searchParams.set('shared',id);
+      const response=await fetch('/api/demo/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject,catalogId,state})});
+      if(!response.ok)throw Error();
+      rememberOnlineWorkspace(id);
+      $('demoUrl').value=url.href;$('viewDemo').href=url.href;
+    }
+    $('demoLinkArea').hidden=false;
+    $('demoMessage').textContent=cloudDemo?'This is your permanent workspace link.':'Saved online. Open saved workspace to continue working with automatic online saving.';
+  }catch{$('demoMessage').textContent='Could not save online. Your work is still available here. Try again or download a backup.'}
+  finally{$('makeDemo').disabled=false}
+};
+$('copyDemo').onclick=async()=>{
+  try{await navigator.clipboard.writeText($('demoUrl').value);$('demoMessage').textContent='Workspace link copied.'}
+  catch{$('demoUrl').select();$('demoMessage').textContent='Link selected. Use Copy on your device.'}
+};
+const welcome=$('launchWelcome');
+$('enterLaunchpad').onclick=()=>{
+  $('launchCover').hidden=true;
+  $('launchBrief').hidden=false;
+  $('briefSample').hidden=true;
+  welcome.setAttribute('aria-labelledby','briefTitle');
+  welcome.scrollTop=0;
+  $('briefTitle').focus();
+};
+$('briefWorkspace').onclick=()=>welcome.close();
+$('briefSample').onclick=()=>{welcome.close();openMeasurementExample()};
+welcome.addEventListener('close',()=>{try{sessionStorage.setItem('plcWelcomeSeen','1')}catch{}});
+let showWelcome=true;
+try{showWelcome=!sessionStorage.getItem('plcWelcomeSeen')}catch{}
+function openSplash(){
+  $('launchCover').hidden=false;
+  $('launchBrief').hidden=true;
+  welcome.setAttribute('aria-labelledby','launchTitle');
+  welcome.showModal();
+  welcome.scrollTop=0;
+  $('enterLaunchpad').focus();
+}
+$('openSplash').onclick=openSplash;
+const helpText={
+ course:['Course name','Enter the course this PLC teaches.','Introduction to Engineering Design'],
+ team:['PLC team name','Give the collaborating teacher group a shared name.','Grade 9 Engineering PLC'],
+ plcTeamName:['PLC team name','Give the collaborating teacher group a shared name.','Grade 9 Engineering PLC'],
+ level:['Grade / proficiency level','Enter the student grade or course proficiency level.','Grade 9'],
+ assessmentThreshold:['Minimum points for proficiency','Enter the total score an individual student must earn. This is separate from the team’s percentage goal.','For a 10-point quiz, enter 8. For a 3-point follow-up, enter 2.'],
+ assessmentCriteria:['Additional criteria','Optional: describe a separate requirement that a teacher must confirm for every student. Leave blank when the point score is sufficient.','For a demonstration: “Uses safety glasses throughout the task.” This requires a Yes/No check per student.'],
+ teacherFormUrl:['Google Form edit link','Open the quiz in Google Forms. Copy the editor URL and paste it here. Lock it after checking the preview.','https://docs.google.com/forms/d/FORM_ID/edit'],
+ schoolReport:['Results connection','Paste the deployed connection URL created by automatic-results setup for this assessment.','https://script.google.com/macros/s/DEPLOYMENT_ID/exec'],
+ quizTeachers:['Participating teachers','Use one school email per line. For an existing teacher quiz, place its edit URL after that email.','teacher@example.org https://docs.google.com/forms/d/FORM_ID/edit'],
+ followupSkill:['Skill for follow-up','Select the specific skill students need to practice and demonstrate again.','Read sixteenth inches'],
+ followupCount:['Number of follow-up tasks','Choose how many new questions or tasks will check this skill.','3 new ruler measurements'],
+ followupMinimum:['Follow-up proficiency','Enter how many points are needed on this new check.','2 points out of 3'],
+ collectionName:['Results name','Use a clear name for this administration of the assessment.','Ruler Measurement Check · First administration'],
+ collectionDate:['Assessment date','Choose when students completed this assessment.','The date the class took the quiz.'],
+ scorebookNotes:['Assessment notes','Record context that will help the team interpret these scores.','Two students were absent and will complete the check on Friday.'],
+ customGoal:['Written SMART goal','Write one sentence naming the students, learning, proficiency target, assessment, and deadline.','By December 18, at least 80% of ninth-grade engineering students will score at least 8 of 10 on the Ruler Measurement Check.'],
+ answerDraft:['What students should learn','Describe what each student will know or be able to do.','Read a ruler and measure lengths to the nearest 1/16 inch.'],
+ search:['Search standards','Search by a standard code or a topic.','B7.4 or measurement'],
+ pathway:['Standards pathway','Choose the standards pathway that matches your course.','Engineering Design'],
+ resultsSet:['Choose assessment results','Open the original assessment results or one of its connected follow-up result sets.','Select “Follow-up · Read sixteenth inches” to review the targeted check.'],
+ resultsClassFilter:['Classroom filter','Choose the classroom whose evidence you want to review.','All classrooms'],
+ viewTeacher:['Teacher view','Choose whose individual classroom results to view.','Select a teacher listed in the scorebook.'],
+ stageCycle:['Learning target','Choose the learning target you want to work on.','Accurate ruler measurement'],
+ stageAssessment:['Common assessment','Choose the assessment connected to this learning target.','Ruler Measurement Check'],
+ subjectChoice:['Subject','Choose a subject, then its PLC team.','Math'],plcTeamChoice:['PLC Team','Choose the team whose plans and results you want to open.','Algebra I']
+};
+const cycleHelp={
+ title:['cycle name','Give this part of the team’s work a short, recognizable name.','Accurate ruler measurement'],
+ group:['Student group','Identify the students covered by this goal.','Ninth-grade Introduction to Engineering Design students'],
+ learning:['What students should learn','Describe the observable skill or understanding.','Measure lengths to the nearest 1/16 inch.'],
+ context:['Unit / lesson / project','List the teaching locations where this learning appears, one per line.','Measurement unit\nRuler practice\nKeychain project'],
+ assessment:['Assessment','Name the common tool the team will use to check learning.','Ruler Measurement Check'],
+ proficiency:['Student proficiency','Describe the individual student’s passing requirement in points or observable performance.','Score at least 8 of 10 points on the common ruler quiz.'],
+ baselineStatus:['Baseline evidence','Choose whether you already have evidence of students’ starting performance.','Not yet assessed'],
+ baseline:['Baseline percentage','Enter the percentage of students who currently meet the agreed proficiency requirement.','60 means 60% of students currently meet proficiency.'],
+ baselineDate:['Baseline date','Choose when the starting evidence was collected.','The date the initial skill check was given.'],
+ baselineEvidence:['Baseline source','Identify the evidence behind the starting percentage.','Initial ruler check scored with our common answer key.'],
+ target:['Team goal percentage','Enter the percentage of students you want to meet proficiency. This is separate from the points each student must earn.','80 means at least 80% of students should meet the 8/10 passing requirement.'],
+ deadline:['Goal deadline','Choose when the team expects to reach its SMART goal.','The final day of the measurement unit.'],
+ scope:['Where must the proficiency goal be met?','Combined students: the team percentage meets the goal. Every classroom: each classroom must meet it. Discuss this choice together.',''],
+ strategies:['Instructional strategies','Describe the teaching approach the team plans to try.','Use hands-on ruler stations and have students explain how they locate each mark.'],
+ responsibilities:['Team responsibilities','Record who will do what and when.','Each teacher uses the ruler stations this week and brings scored work to Friday’s meeting.']
+};
+const planHelp={
+ support:['Support plan','Describe the specific help for students who have not met proficiency.','Practice finding adjacent sixteenth-inch marks, then measure three new lengths.'],
+ extension:['Extension plan','Describe meaningful additional learning for students ready to go further.','Check a fabricated part against a drawing and explain whether its dimensions meet tolerance.'],
+ missing:['Missing evidence','Plan how to collect evidence from students who were absent or did not finish.','Offer a short make-up demonstration during class on Friday.'],
+ owner:['Action owner','Name who will carry out each agreed action.','Each classroom teacher runs the support station; the coordinator prepares the new check.'],
+ start:['Support date','Choose when students will receive the planned support or extension.','The next lesson after the team reviews the first results.'],
+ check:['Follow-up evidence','Describe what students will do to demonstrate their learning again.','Independently measure three unfamiliar lengths to the nearest sixteenth.'],
+ review:['Next check date','Choose when the team will check progress or review the new evidence.','After students have received support and completed the next skill check.'],
+ reflection:['Team decision','Record what the evidence suggests and the action the team agrees to take.','Most students are ready to move on. Provide another small-group check for students still needing help.'],
+ followup:['Linked follow-up results','Choose the results from the focused assessment used after support.','Follow-up · Read sixteenth inches']
+};
+function meetingFieldHelp(field){
+ const math=/algebra|integrated|calculus/.test(subject),history=subject==='history';
+ const topic=math?'Solving linear equations':history?'Analyzing historical sources':'Reading a ruler to the nearest sixteenth inch';
+ const evidence=math?'Students solved numerical equations accurately, but 8 students struggled when a coefficient was represented by a letter.':history?'Students identified the author’s claim, but 7 students did not support their interpretation with evidence from the source.':'Students read eighth-inch marks accurately, but 8 students confused adjacent sixteenth-inch marks.';
+ const action=math?'Use worked examples with letter coefficients, then have students explain each step before solving independently.':history?'Model how to select a relevant quotation and explain how it supports an interpretation.':'Use ruler stations to practice identifying adjacent sixteenth-inch marks, then measure unfamiliar objects independently.';
+ if(field.id==='teamNorms')return ['Team Norms','Write the agreements your team will follow in meetings. Include how you will prepare, participate, use evidence, and finish with clear next steps. Put each agreement on a separate line.','Bring scored student work.\nStart and finish on time.\nGive every member time to contribute.\nUse evidence when discussing learning.\nEnd with an agreed action, owner, and check date.'];
+ const meeting={
+ notes:['Additional meeting notes','Record information about the whole meeting here, such as announcements or items to bring next time. Put topic-specific discussion and decisions under their agenda items.','Bring three student work samples to our next meeting.']
+ };
+ const agenda={
+ due:['Follow-up Date','Choose the day your team will revisit this agenda item. The responsible person can report what was done, what they learned, and whether another step is needed.','If the team agrees to try a new teaching strategy this week, choose the day you’ll meet again to review the student work.'],
+ planId:['Related cycle','Choose the saved cycle this topic concerns. Leave this blank for general team business. The Open Cycle link opens the selected plan.','Choose the plan titled “'+topic+'”.'],
+ notes:['Topic Discussion Notes','Record what the team noticed in the evidence and the ideas members discussed. Include the skill, relevant counts, and examples of student work. Save the agreed action in Decision / next action. ',evidence],
+ decision:['Decision / next action','State the teaching action the team agreed to take and how students will demonstrate progress afterward. Use Responsible person and Follow-up date to record who will act and when.',action+' Check the same skill again with a short independent task.'],
+ };
+ return meeting[field.dataset.meetingField]||agenda[field.dataset.agendaField];
+}
+function fieldUsage(field){
+ if(field.id==='assessmentSourceUrl')return 'Saved with this assessment and opened by Open Assessment. Linking does not import questions or scores.';
+ if(field.hasAttribute('data-graphic-alt'))return 'Used as the image’s alternative text in the question preview and printed HTML. Google Forms exports include the graphic itself.';
+ if(field.id==='organizerName')return 'Saved when you continue. Names this plan on Our Cycles, its plan page, and the SMART Goal Builder.';
+ if(field.id==='organizerLearning')return 'Saved when you continue. Appears in Our Essential Standard and feeds automatic SMART goal wording. Custom goal wording remains unchanged.';
+ if(field.id==='organizerStandard')return 'Saved when you continue. Links this cycle to the chosen essential standard and makes it available in the SMART goal and assessment editors.';
+ const snapshot=' Previously saved result sets retain their scoring and goal snapshots.';
+ const ids={
+ course:'Shown in workspace course details and copied into new cycles. Together with Grade / Proficiency Level, it prefills the student group for a new plan. Existing plan wording is not automatically rewritten.',
+ level:'Combined with the course name to prefill the student group when a new cycle is created.',
+ team:'Shown as the team name in the workspace.',plcTeamName:'Shown as the team name in the workspace.',
+ answerDraft:'Updates the learning statement in Our Essential Standard and the SMART Goal Builder. It also feeds the automatic SMART goal and draft assessment skills that are linked to the plan. Custom goal wording and custom skills are not automatically rewritten.'+snapshot,
+ customGoal:'Shown as the plan’s written SMART goal instead of the automatic wording. Later changes to the goal inputs do not rewrite this custom sentence.',
+ assessmentThreshold:'Used to decide whether each student meets proficiency, which feeds classroom and team percentages, Needs Support, and Met Overall Proficiency.'+snapshot,
+ assessmentCriteria:'Adds a per-student confirmation in the scorebook. That confirmation is included when determining proficiency and whether evidence is complete.'+snapshot,
+ teacherFormUrl:'Opens the editable Google Form from this assessment and supports its linked quiz preview. Pasting a link alone does not import student scores.',
+ schoolReport:'Connects this assessment to its automatic-results service and connected results link.',
+ quizTeachers:'Used by automatic quiz-results setup to create or connect each teacher’s quiz. Member emails prefill this field when no assessment-specific setup has been saved.',
+ followupSkill:'Chooses the skill for a new focused follow-up assessment and its connection to the original results.',
+ followupCount:'Determines the number of tasks in the new follow-up assessment.',followupMinimum:'Sets the proficiency threshold on the new follow-up assessment.',
+ collectionName:'Labels this assessment administration in saved results and result-set choices. It is separate from the common assessment’s title.',
+ collectionDate:'Stored with this administration of the assessment and displayed with its saved results.',
+ scorebookNotes:'Saved with this result set to provide context when the team reviews its evidence.',
+ resultsSet:'Selects which saved administration or follow-up result set is displayed for analysis.',
+ resultsClassFilter:'Filters the displayed classroom evidence in Results and Analysis.',viewTeacher:'Selects whose classroom evidence is displayed in the teacher view.',
+ search:'Filters the standards list; it does not change your selected standards.',pathway:'Filters the standards catalog to the selected pathway.',
+ stageCycle:'Opens the selected cycle and its connected work.',stageAssessment:'Opens the selected assessment within the current cycle.',
+ teamNorms:'Displayed in Team Norms and included in the meeting agenda’s norms section.'
+ };
+ if(field.closest('.resource-dialog'))return ({kind:'Determines whether the resource opens a website or uploaded files.',title:'Displayed as the resource title in Our Plan Resources.',url:'Used as the destination when a team member opens the resource.',file:'Saved with the resource and linked from Our Plan Resources. The first filename can prefill an empty resource title.',purpose:'Displayed as the resource’s category in Our Plan Resources.',assessmentId:'Connects the resource to the selected common assessment and displays that assessment’s name on the resource. It does not add assessment questions.',description:'Displayed beneath the resource title in Our Plan Resources.',directions:'Displayed as Directions for Use beneath this resource.',timeframe:'Displayed as Suggested Timeframe for Use on the resource; it does not schedule a reminder.',timeNeeded:'Displayed as Time Needed on the resource; it is an estimate, not a running timer.',addedBy:'Names the contributor on the resource. Choices come from the saved PLC member names.'})[field.name];
+ if(field.closest('.directory-dialog'))return ({name:'Used in the Subject or PLC Team selector and the Settings directory.',catalog:'Controls which state standards catalogs are available to this subject or PLC team.',emails:'Used for coordinator or team-lead directory permissions. These are sign-in emails, separate from member contact details.'})[field.name];
+ const direct=ids[field.dataset.workspaceSetting||field.id];if(direct)return direct;
+ if(field.dataset.memberField)return ({name:'Displayed on the member card and used in meeting attendance, Responsible Person choices, and the resource Added By list. Existing saved attendance keeps its recorded names.',email:'Displayed as the member’s contact link and used to prefill automatic Google Forms quiz-results setup when that assessment has no saved teacher setup.',role:'Displayed on the member card as the member’s team role. Directory-management permissions are assigned separately in Settings.',periods:'Displayed on this member’s contact card. These checkboxes do not create scorebook rows or change existing assessment results.'})[field.dataset.memberField];
+ if(field.dataset.cycle)return ({title:'Displayed on cycle cards, the plan page, breadcrumbs, and Related Cycle choices in meeting agendas.',group:'Inserted into the automatically generated SMART goal. Custom written goal wording is preserved.',learning:ids.answerDraft,context:'Stored as the plan’s unit, lesson, or project context for the team’s planning.',assessment:'Inserted into the automatic SMART goal. Saving the goal links a matching common assessment, creates a draft if needed, or renames an eligible linked draft. Assessments with results or form links are not automatically renamed.',proficiency:'Records the plan’s description of individual proficiency. Actual student scoring uses the common assessment’s points threshold and criteria.',baselineStatus:'Controls whether baseline fields are shown and whether the automatic goal describes growth from a starting percentage.',baseline:'Used in the automatic growth-goal wording when a known baseline is below the target.',baselineDate:'Records the date of the plan’s baseline evidence.',baselineEvidence:'Records the source supporting the plan’s baseline percentage.',target:'Sets the Team Goal percentage ring and automatic SMART goal; results compare proficiency percentages with this goal.'+snapshot,deadline:'Inserted into the automatic SMART goal and displayed as the goal’s deadline.',scope:'Determines whether the goal is evaluated across combined students or separately in every classroom. It also affects automatic goal wording.'+snapshot,strategies:'Saved as the cycle’s intended teaching strategies.',responsibilities:'Saved as the cycle’s team responsibilities.'})[field.dataset.cycle];
+ if(field.dataset.assessment)return ({title:'Names the assessment in Common Assessments and linked assessment choices. A result administration has its own name; saved result snapshots retain their recorded assessment details.',format:'Records the type of assessment in the assessment builder and preview.',checkpoint:'Identifies this assessment’s purpose, such as a common check or follow-up.',date:'Records the planned date for this assessment; a saved administration has its own Assessment Date.',instructions:'Shown in the assessment preview and used in quiz creation. Review an existing connected Google Form separately after changing directions.'})[field.dataset.assessment];
+ if(field.dataset.itemField)return ({prompt:'Shown as the assessment question in previews and quiz creation.',answer:'Used as the teacher-facing answer or scoring guide.',maxPoints:'Contributes to total assessment points and student scoring calculations.'+snapshot,standardId:'Connects this question’s evidence to an essential standard in Standard Connections and results.',learningTarget:'Groups questions by skill in Results and Analysis. Draft skills linked to the cycle or standard note update from their source; custom skills do not.'+snapshot})[field.dataset.itemField];
+ if(field.hasAttribute('data-choice-id'))return 'Shown as an answer choice in the assessment preview and quiz creation.';
+ if(field.hasAttribute('data-correct-id'))return 'Used as the answer key for multiple-choice scoring and quiz creation.';
+ if(field.hasAttribute('data-result-score'))return 'Feeds this student’s total, skill analysis, proficiency status, and classroom and team results. A blank score represents missing evidence.';
+ if(field.dataset.resultField)return ({teacher:'Groups evidence by teacher and classroom in Results and Analysis.',section:'Groups evidence by class period within a teacher’s results.',student:'Identifies the student’s evidence in this result set.',criteria:'Included with points when determining whether this student meets proficiency.'})[field.dataset.resultField];
+ if(field.dataset.plan)return field.dataset.plan==='followup'?'Connects this response plan to the selected follow-up result set for reviewing progress.':'Saved in the response plan for this result set and shown when the team returns to its support, extension, and follow-up decisions.';
+ if(field.hasAttribute('data-discussion-notes'))return 'Saved with this result set as the team’s discussion observations.';
+ if(field.hasAttribute('data-note'))return 'Can prefill an empty learning statement when a plan is linked to this standard. Draft assessment skills linked to the standard note also use it. Custom skills and saved scoring snapshots retain their own wording.';
+ if(field.hasAttribute('data-location'))return 'Can prefill an empty Unit / Lesson / Project field when a cycle is linked to this standard.';
+ if(field.hasAttribute('data-cycle-standard'))return 'Connects this cycle to the selected essential standards, their planning notes, and Standard Connections.';
+ if(field.hasAttribute('data-agenda-owner'))return 'Sets the responsible person for this agenda item. Choices come from saved PLC team members.';
+ if(field.hasAttribute('data-table-agenda'))return 'Marks this topic to be carried into the next meeting when the next agenda is created.';
+ if(field.hasAttribute('data-meeting-attendee'))return 'Records attendance on this meeting’s saved agenda.';
+ if(field.dataset.agendaField)return ({planId:'Connects this agenda item to a cycle and enables Open Cycle.',owner:'Saved as the responsible person for this agenda item.',due:'Shown as the agenda item’s Follow-up Date; it does not by itself schedule a reminder.',topic:'Labels this topic in the meeting agenda.',notes:'Saved as this topic’s discussion notes on the meeting agenda.',decision:'Saved as this topic’s agreed decision or next action on the meeting agenda.'})[field.dataset.agendaField];
+ if(field.dataset.meetingField)return 'Saved on this meeting’s agenda. The meeting title, date, time, and location also identify the meeting in the meeting list and Next Meeting card when it is selected as the upcoming meeting.';
+ return '';
+}
+function showFieldHelp(info,field){
+ $('entryHelpTitle').textContent=info[0];
+ const usage=fieldUsage(field);
+ $('entryHelpMeaning').textContent=info[1]+(usage?'\n\nWhere this is used\n'+usage:'');
+ $('entryHelpExample').textContent=info[2];$('entryHelpDialog').showModal();
+}
+function entryHelp(field){
+ if(field.id==='assessmentSourceUrl')return ['Assessment resource link','Link to the worksheet, webpage, or document your team will use.','https://example.org/measurement-task'];
+ if(field.hasAttribute('data-graphic-alt'))return ['Image description','Describe the graphic so students using assistive technology can understand it.','A ruler with a wood strip aligned at zero.'];
+ if(field.id==='organizerName')return cycleHelp.title;
+ if(field.id==='organizerLearning')return cycleHelp.learning;
+ if(field.id==='organizerStandard')return ['Essential standard','Choose the essential standard this plan will focus on.','B7.4 for a measurement plan.'];
+ if(field.hasAttribute('data-meeting-attendee'))return ['Meeting attendance','Check the members attending this meeting.','Uncheck a member who is absent.'];
+ if(field.hasAttribute('data-table-agenda'))return ['Table until next meeting','Mark this topic to carry forward to the next meeting.','Continue a discussion when more evidence is available.'];
+ if(field.id==='teamNorms'||field.dataset.meetingField||field.dataset.agendaField)return meetingFieldHelp(field)||['Meeting information','Enter the information for this meeting or agenda item.',''];
+ if(field.closest('.directory-dialog'))return fieldUsage(field)?[field.name==='catalog'?'Standards catalogs':field.name==='emails'?'Sign-in emails':'Name','Enter the information for this directory entry.','']:null;
+ if(field.hasAttribute('data-cycle-standard'))return ['Linked essential standards','Select the standards connected to this cycle.','Select the standard your assessment will check.'];
+ if(field.hasAttribute('data-agenda-owner'))return ['Responsible person','Choose who will carry out the agreed action.','A member of your PLC team'];
+ if(field.dataset.workspaceSetting&&helpText[field.dataset.workspaceSetting])return helpText[field.dataset.workspaceSetting];
+ if(helpText[field.id])return helpText[field.id];
+ if(field.dataset.cycle)return cycleHelp[field.dataset.cycle];
+ if(field.dataset.plan)return planHelp[field.dataset.plan];
+ if(field.hasAttribute('data-discussion-notes'))return ['Observations','Optional: capture what the team noticed or discussed. Describe evidence without assuming what caused the results.','Students located eighth-inch marks accurately but often skipped one sixteenth-inch mark. Compare their work after the ruler stations.'];
+ if(field.dataset.memberField)return {
+  name:['Teacher name','Enter the member’s preferred full name.','Jordan Taylor'],email:['School email','Enter this member’s school email. It will prefill quiz-results setup.','teacher@example.org'],role:['Team role','Select either role or both. Leave both unchecked for a team member. Directory-management permissions are assigned in Settings.','PLC Team Lead'],periods:['Class periods','Select each class period this teacher teaches, from 0 through 8.','1, 3, 5']
+ }[field.dataset.memberField];
+ if(field.dataset.assessment)return {
+  title:['Assessment name','Use a short title teachers will recognize.','Ruler Measurement Check'],format:['Assessment format','Choose how students will demonstrate learning.','Short quiz for a multiple-choice test; skill demonstration for a hands-on task.'],checkpoint:['Assessment purpose','Choose where this check belongs in the learning process.','Follow-up / reassessment for a focused check after support.'],date:['Planned assessment date','Choose when you plan to administer this check.','The final lesson of the measurement unit.'],instructions:['Student directions','Explain what students should do, what materials they need, and how to respond.','Read the pictured ruler. Select one answer for each item. Each small division is 1/16 inch.']
+ }[field.dataset.assessment];
+ if(field.dataset.itemField)return {
+  prompt:['Question / task','Write what students need to answer or demonstrate. The heading supplies the question number.','What is the length of the wood strip shown on the ruler?'],answer:['Answer / scoring guide','Describe the correct response and how points are awarded.','Correct answer: B, 2 inches. Award 1 point for B and 0 otherwise.'],maxPoints:['Maximum points','Enter the total points available for this question or task.','1 point for a multiple-choice question.'],standardId:['Linked standard','Choose the essential standard this question provides evidence for.','B7.4 for measuring objects.'],learningTarget:['Skill assessed','Write the specific skill this question measures. Questions with the same skill label are grouped in results. From cycle and From standard note targets update with their source while the assessment is a draft. Editing this field makes it Custom. Use plan target reconnects it. Review the question and scoring after a target changes. Assessments with results retain their recorded target.','Read sixteenth-inch marks. Use this same label on each question measuring that skill.']
+ }[field.dataset.itemField];
+ if(field.hasAttribute('data-choice-id'))return ['Answer choice','Type the answer exactly as students should see it. Use different, plausible choices.','2 1/8 in'];
+ if(field.hasAttribute('data-correct-id'))return ['Correct answer','Choose the letter of the one correct multiple-choice response.','B, when choice B gives the correct measurement.'];
+ if(field.hasAttribute('data-result-score'))return ['Student score','Enter points earned, within the question’s allowed range. Leave blank when no evidence has been collected.','For a 1-point question: 1 = correct, 0 = incorrect, blank = not assessed.'];
+ if(field.dataset.resultField)return {
+ teacher:['Teacher','Use the same teacher name for all of that teacher’s students.','Jordan Taylor'],section:['Class section','Identify the student’s class period or section consistently.','Period 3'],student:['Student identifier','Enter the student identifier used consistently for this class. Use the same student identifier across assessments.','STU-103'],criteria:['Additional criteria','Confirm whether the separate requirement was actually observed.','Choose Yes only when you have checked the stated requirement.']
+ }[field.dataset.resultField];
+ if(field.hasAttribute('data-location'))return cycleHelp.context;
+ if(field.hasAttribute('data-note'))return ['What do we want each student to learn?', 'This note is optional. When you create a cycle from this standard, it fills in “What do we want each student to learn?” in the SMART Goal Builder. For an existing plan linked to this standard, choose “Use Linked Learning Targets” to bring the note into that field. A linked common assessment question can also use this note for “Skill assessed.”', cycleHelp.learning[2]];
+ if(field.type==='checkbox')return ['Select a standard','Select the standard your team will prioritize for this course or learning target.','Choose B7.4 when the team is focusing on measurement.'];
+ if(field.closest('[data-edit-practice],.invitation-reply,.strategy-fields'))return ['Teaching practice','Describe a teaching move another teacher could try and an example of what you observed.','I used 3-D printed strips to compare eighths and sixteenths. Students explained each mark before measuring independently.'];
+ if(field.type==='date')return ['Date','Choose the calendar date for the event described by this field.','The day students will complete the check or the team will review the evidence.'];
+ return ['Field guidance','Enter information that matches this field’s label.',field.getAttribute('placeholder')||'Use a clear, specific description of your team’s work.'];
+}
+function addEntryHelp(){
+ for(const field of document.querySelectorAll('input,textarea,select')){
+  if(field.closest('.essential-experience,.zava-coach,.r03-quiet'))continue;
+  if(field.closest('.plan-guide')&&!field.closest('.guided-embedded'))continue;
+  if(field.closest('.plan-folder-dialog,.resource-dialog')||['planSearch','planGrouping','planLayoutChoice'].includes(field.id)||field.closest('#subjectBar')||field.dataset.entryHelpAttached||field.type==='hidden'||field.type==='file'||field.readOnly&&field.id!=='teacherFormUrl'||field.closest('#entryHelpDialog'))continue;
+  const info=entryHelp(field);if(!info)continue;
+  field.dataset.entryHelpAttached='true';
+  const button=document.createElement('button');button.type='button';button.className='entry-info';
+  button.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M10 9v5"/><circle class="info-dot" cx="10" cy="6" r=".8"/></svg>';
+  if(['planId','due'].includes(field.dataset.agendaField)){
+    button.classList.add('agenda-info');
+    button.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 9v5M10 6v.2"/></svg>';
+  }
+  button.setAttribute('aria-label','Help: '+info[0]);button.title='Example: '+info[0];
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();showFieldHelp(info,field);};
+  if(field.id==='answerDraft'){ $('teamQuestion').append(button);continue }
+  if(field.closest('.member-period-choices,.member-role-choices')||field.hasAttribute('data-cycle-standard')||field.name==='catalog'){const legend=field.closest('fieldset')?.querySelector('legend');if(legend){if(!legend.querySelector('.entry-info'))legend.append(button);continue}}
+  const cell=field.closest('td');
+  if(cell){const table=cell.closest('table'),header=table?.tHead?.rows[0]?.cells[cell.cellIndex];if(header){if(!header.querySelector('.entry-info'))header.append(button);continue;}}
+  const label=field.closest('label')||field.id&&document.querySelector('label[for="'+CSS.escape(field.id)+'"]');
+  if(label){if(label.querySelector('.entry-info'))continue;const direct=[...label.children].find(child=>child===field||child.contains(field));if(direct)label.insertBefore(button,direct);else label.append(button);}
+  else field.insertAdjacentElement('afterend',button);
+ }
+}
+function headingTitleCase(text){
+ const words=[...text.matchAll(/[\p{L}][\p{L}\p{N}’'\-]*/gu)],small=new Set(['a','an','and','as','at','but','by','for','from','in','into','nor','of','on','or','per','the','to','via','vs','with']);let index=0;
+ return text.replace(/[\p{L}][\p{L}\p{N}’'\-]*/gu,word=>{const n=index++,lower=word.toLowerCase();if(small.has(lower)&&n>0&&n<words.length-1)return lower;if(word===word.toUpperCase()||/[a-z][A-Z]/.test(word))return word;return word.charAt(0).toUpperCase()+word.slice(1)});
+}
+function addEditPencils(){
+ for(const control of document.querySelectorAll('button,a.route-link,summary')){
+  const text=control.textContent.trim(),existing=control.getAttribute('aria-label')||'';
+  if(!/^(?:edit\b|open editable quiz\b)/i.test(text||existing))continue;
+  if(control.querySelector('input,select,textarea'))continue;
+  let label=existing||text;
+  if(control.id==='editTeamAnswer')label='Edit Essential Standard';
+  else if(/^edit goal$/i.test(label))label='Edit SMART Goal';
+  else if(/^edit$/i.test(label)){
+   const context=control.closest('.own-practice,.dashboard-card,.contact-edit,section');
+   const name=context?.querySelector('h3,h2,strong')?.textContent.trim();
+   label=name?'Edit '+name.replace(/^Our /,''):'Edit';
+  }
+  if(control.getAttribute('aria-label')!==label)control.setAttribute('aria-label',label);
+  if(control.title!==label)control.title=label;
+  if(!control.classList.contains('plc-pencil-only')){
+   control.classList.add('plc-edit-action','plc-pencil-only');
+   control.replaceChildren();control.innerHTML=productIcon('edit','edit-pencil');
+  }
+ }
+}
+function styleColoredHeaderEdits(){
+ const headerSelector='.dashboard-card-title,.workspace-section-header,.section-head,.panel-top,.team-norms-header,.meeting-panel-header,.standard-page-heading,header,summary';
+ const lighten=(_,r,g,b)=>'rgb('+[r,g,b].map(v=>Math.round(Number(v)*.7+255*.3)).join(', ')+')';
+ const isTint=color=>{const rgb=color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);if(!rgb)return false;const values=rgb.slice(1).map(Number);return Math.max(...values)-Math.min(...values)>8&&Math.min(...values)<245};
+ for(const button of document.querySelectorAll('.plc-pencil-only,.plan-rename-button,.plc-add-icon-only')){
+  const header=button.parentElement.closest(headerSelector);if(!header)continue;
+  const style=getComputedStyle(header),fill=style.backgroundImage!=='none'?style.backgroundImage:style.backgroundColor;
+  if(!isTint(fill))continue;
+  const chip=header.querySelector('.dashboard-icon-chip,.section-icon-chip,.workspace-section-icon');
+  const chipColor=chip?getComputedStyle(chip).backgroundColor:'';
+  const accent=getComputedStyle(button).getPropertyValue('--action-accent').trim();
+  const border=isTint(chipColor)?chipColor:accent||style.color;
+  button.classList.add('plc-colored-header-edit');
+  button.style.setProperty('background',fill.replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g,lighten),'important');
+  button.style.setProperty('border','1px solid '+border,'important');
+  const iconColor=border;
+  button.style.setProperty('color',iconColor,'important');
+  button.style.setProperty('--header-action-ink',iconColor);
+ }
+}
+function standardizeTrashButtons(){
+ for(const button of document.querySelectorAll('button,a.route-link')){
+  const label=(button.textContent.trim()||button.getAttribute('aria-label')||button.title||'').trim();
+  if(!/^(?:delete|remove|trash|permanently delete|empty trash)\b/i.test(label)&&!button.querySelector('.trash-icon'))continue;
+  button.classList.add('plc-trash-action');
+  if(!button.querySelector('.trash-icon')){
+   button.querySelectorAll('svg').forEach(icon=>icon.remove());
+   button.insertAdjacentHTML('afterbegin',productIcon('trash'));
+  }
+  if(!button.title)button.title=label||'Delete';
+ }
+}
+function sizeIconOnlyButtons(){
+ for(const control of document.querySelectorAll('button,a.route-link,a.workspace-icon-action,summary.plc-pencil-only')){
+  if(control.matches('.logo,#openSplash'))continue;
+  const icon=control.querySelector('svg');
+  const walker=document.createTreeWalker(control,NodeFilter.SHOW_TEXT,{acceptNode:node=>node.parentElement.closest('svg,[hidden],.sr-only,.visually-hidden')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  let text='',node;while(node=walker.nextNode())text+=node.nodeValue;
+  control.classList.toggle('plc-icon-control',!!icon&&!text.trim());
+ }
+}
+function formatPageTitles(){
+ addEditPencils();styleColoredHeaderEdits();standardizeTrashButtons();sizeIconOnlyButtons();
+ const selectors='h1,h2,h3,h4,h5,h6,thead th,.product-nav-link>span,#trail a,#trail strong,.plan-group>summary,.progress-key>summary,#catalogBrowser>summary,.optional-scoring>summary,.saved-goal>summary,.standard-plan-next>strong,.metric>small:first-child,.connection-component>summary,button:not(.entry-info):not(.logo),a.route-link,#viewDemo';
+ for(const heading of document.querySelectorAll(selectors)){
+  if(heading.closest('[data-studio-choice],.studio-preview,.essential-experience,.zava-coach,.r03-quiet'))continue;
+  const walker=document.createTreeWalker(heading,NodeFilter.SHOW_TEXT,{acceptNode:node=>node.parentElement.closest('svg,input,textarea,select,.entry-info')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  let hasText=false,node;
+  while(node=walker.nextNode()){
+   if(/[\p{L}\p{N}]/u.test(node.nodeValue))hasText=true;
+   const next=headingTitleCase(node.nodeValue);if(next!==node.nodeValue)node.nodeValue=next;
+  }
+  if(heading.matches('button,a.route-link,#viewDemo'))heading.classList.toggle('text-action',hasText&&!heading.hasAttribute('data-source-type')&&!heading.hasAttribute('data-studio-choice'));
+ }
+ document.title=headingTitleCase(document.title);
+}
+
+$('closeEntryHelp').onclick=()=>$('entryHelpDialog').close();
+addEntryHelp();formatPageTitles();
+let helpQueued=false;
+new MutationObserver(()=>{if(helpQueued)return;helpQueued=true;queueMicrotask(()=>{helpQueued=false;addEntryHelp();formatPageTitles()})}).observe(document.body,{childList:true,subtree:true});
+
+if(loadError)alert(loadError);
+if(showWelcome&&!inDemo&&!cloudDemo&&!query.get('manage'))openSplash();
+if(inDemo)$('saveState').textContent='Workspace · saved in this browser';
+if(cloudDemo){$('saveState').textContent=cloudConflict?'Not saved online · review conflict below':cloudDirty||cloudSaving?'Saving workspace…':'✓ Workspace saved online'}
+document.documentElement.classList.remove('workspace-loading');
+})().catch(()=>{
+  document.body.innerHTML='<main><h1>Workspace could not be opened</h1><p>Reload to try again.</p><button type="button" onclick="plcReload()">Retry</button></main>';
+  document.documentElement.classList.remove('workspace-loading');
+});
+
+</script></body></html>

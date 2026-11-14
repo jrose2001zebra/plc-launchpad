@@ -30,10 +30,10 @@ Create each one in the editor with exactly the same name.
 |---|---|
 | `Code.gs` | Replace everything in the existing `Code.gs` |
 | `appsscript.json` | Replace everything in the existing `appsscript.json` |
-| `Index.html`, `Head.html`, `Bridge.html`, `Page1.html` | **+** next to Files → **HTML** → type the name without `.html` (for example `Page1`) → paste |
+| `Index.html`, `Head.html`, `Bridge.html`, `Page1.html` … `Page5.html`, `QuizConnector.html` | **+** next to Files → **HTML** → type the name without `.html` (for example `Page1`) → paste |
 
 To copy a file from GitHub, open it, choose **Raw**, then select all and copy.
-`Page1.html` is large, so give the paste a few seconds. Save with Ctrl+S (Cmd+S on a Mac).
+`Head.html` and the `Page` files are large, so give the paste a few seconds. Save with Ctrl+S (Cmd+S on a Mac).
 
 **Faster, if you're comfortable with a terminal:** install [clasp](https://github.com/google/clasp), then from this repository run
 
@@ -90,8 +90,7 @@ set **Version** to **New version**, and click **Deploy**. The link stays the sam
 ## How the data is kept
 
 - One file per team in `workspaces`, saved a moment after each change.
-  If two people save at the same moment, Launchpad keeps the first save, shows it, and puts the
-  other version in Version history so nothing is lost.
+  If two people save at the same moment, Launchpad shows both versions and asks which to keep.
 - A history copy at most every 10 minutes while a team is working, in `history`.
   The last 200 per team are kept, and **Settings → Version History** in Launchpad restores them.
 - Uploaded resources in `uploads`, viewable by anyone in your domain who has the link.
@@ -101,12 +100,14 @@ Student IDs and scores stay inside your school's Google Drive.
 
 ## For developers
 
-The app's source is in `app/src`. `apps-script/build.py` builds the app, then builds `dist/` from it
-and from the files in `apps-script/`:
+`PLC-Launchpad-R03.html` at the repository root is the app. `apps-script/build.py` builds `dist/`
+from it and from the files in `apps-script/`:
 
 ```
 python3 apps-script/build.py
 ```
 
-`Bridge.html` connects the app to the server: it routes the app's `/api/...` requests through
-`google.script.run` and opens team links at the top level.
+The build adapts a copy of the page for Apps Script: it reads the address from the server, routes
+`/api/...` requests through `google.script.run`, and opens links at the top level. Each edit must
+match a set number of times, so if an app change moves one of those lines, the build stops and says
+which one.

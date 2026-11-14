@@ -1,0 +1,155 @@
+// This project belongs to the PLC coordinator. Keep the project and its score workbook private.
+function props_(){ return PropertiesService.getScriptProperties(); }
+function setupQuiz(){
+  const owner=Session.getEffectiveUser().getEmail().toLowerCase();
+  if(Session.getActiveUser().getEmail().toLowerCase()!==owner || !owner || !PLC.team.length)throw Error('A coordinator and at least one teacher are required.');
+  const lock=LockService.getScriptLock();lock.waitLock(30000);
+  try{
+    const p=props_(), config=Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,JSON.stringify(PLC)));
+    if(p.getProperty('config') && p.getProperty('config')!==config)throw Error('Use a new script project for a different assessment or team.');
+    if(!p.getProperty('book')){
+      const book=SpreadsheetApp.create('PLC scores · '+PLC.title);
+      p.setProperties({book:book.getId(),owner:owner,config:config});
+    }
+    const book=SpreadsheetApp.openById(p.getProperty('book'));
+    if(!book.getSheetByName('criteria'))book.insertSheet('criteria').appendRow(['Response','Decision']);
+    PLC.team.forEach((teacher,n)=>{
+      const key='teacher'+n;
+      let id=p.getProperty(key);
+      const existing=PLC.sources?.[teacher];
+      if(existing&&!id){id=existing;p.setProperty(key,id)}
+      if(!id){
+        const created=FormApp.create(PLC.title+' · '+teacher,false);
+        id=created.getId();p.setProperty(key,id);
+      }
+      const form=FormApp.openById(id);
+      if(existing&&!p.getProperty(key+'Map')){
+        if(!form.isQuiz())throw Error('Enable quiz mode for '+teacher);
+        const items=form.getItems();
+        const unique=title=>{
+          const matches=items.filter(i=>i.getTitle()===title);
+          if(matches.length!==1)throw Error('Expected exactly one question named '+title+' in '+teacher+' quiz.');
+          return matches[0];
+        };
+        const student=unique('Student ID'),period=unique('Class period'), scores=PLC.items.map(q=>unique(q.prompt));
+        if(!student.asTextItem().isRequired()||!period.asTextItem().isRequired())throw Error('Use required short answers for Student ID and Class period.');
+        if(new Set([student,period,...scores].map(i=>i.getId())).size!==scores.length+2)throw Error('Each assessment question needs its own matching form item.');
+        scores.forEach((i,index)=>{if(points_(i)!==PLC.items[index].points)throw Error('Point mismatch: '+i.getTitle())});
+        p.setProperty(key+'Map',JSON.stringify({student:student.getId(),period:period.getId(),scores:scores.map(i=>i.getId())}));
+      }
+      if(!p.getProperty(key+'Map')){
+        form.setIsQuiz(true).setDescription(PLC.instructions);
+        // Setup can be retried. Only rebuild an unfinished, unpublished quiz.
+        if(form.getResponses().length)throw Error('Incomplete setup on a form with responses. Review before continuing.');
+        form.getItems().reverse().forEach(i=>form.deleteItem(i));
+        const student=form.addTextItem().setTitle('Student ID').setRequired(true);
+        const period=form.addTextItem().setTitle('Class period').setRequired(true);
+        const scores=PLC.items.map(q=>{
+          if(q.image)form.addImageItem().setTitle('Measurement diagram').setImage(Utilities.newBlob(Utilities.base64Decode(q.image),'image/png','ruler.png'));
+          if(q.choices){const item=form.addMultipleChoiceItem().setTitle(q.prompt).setPoints(q.points).setRequired(true);item.setChoices(q.choices.map((value,i)=>item.createChoice(value,i===q.correctChoice)));return item.getId()}
+          return form.addParagraphTextItem().setTitle(q.prompt).setPoints(q.points).setRequired(true).getId();
+        });
+        p.setProperty(key+'Map',JSON.stringify({student:student.getId(),period:period.getId(),scores}));
+      }
+      if(!existing&&teacher!==owner)form.addEditor(teacher);
+      if(!book.getSheetByName(key))book.insertSheet(key);
+      console.log(teacher+' · Edit / publish quiz: '+form.getEditUrl());
+    });
+    if(!ScriptApp.getProjectTriggers().some(t=>t.getHandlerFunction()==='syncScores'))ScriptApp.newTrigger('syncScores').timeBased().everyMinutes(10).create();
+  }finally{lock.releaseLock()}
+  syncScores();
+}
+function points_(item){
+  const methods={TEXT:'asTextItem',PARAGRAPH_TEXT:'asParagraphTextItem',MULTIPLE_CHOICE:'asMultipleChoiceItem',LIST:'asListItem',CHECKBOX:'asCheckboxItem',SCALE:'asScaleItem'};
+  const cast=methods[String(item.getType())];
+  if(!cast)throw Error('Unsupported scored question type: '+item.getType());
+  return item[cast]().getPoints();
+}
+function syncScores(){
+  if(Session.getEffectiveUser().getEmail().toLowerCase()!==props_().getProperty('owner'))throw Error('Coordinator required.');
+  const lock=LockService.getScriptLock();
+  if(!lock.tryLock(1000))return;
+  try{
+    const p=props_(),book=SpreadsheetApp.openById(p.getProperty('book')),errors=[];
+    PLC.team.forEach((teacher,n)=>{
+      const key='teacher'+n;
+      try{
+        const form=FormApp.openById(p.getProperty(key)),map=JSON.parse(p.getProperty(key+'Map'));
+        const byId=new Map(form.getItems().map(i=>[i.getId(),i]));
+        PLC.items.forEach((q,i)=>{
+          const item=byId.get(map.scores[i]);
+          if(!item||item.getTitle()!==q.prompt||points_(item)!==q.points)throw Error('Question or points changed. Restore the agreed quiz to resume sync.');
+        });
+        if(!byId.has(map.student)||!byId.has(map.period))throw Error('Student ID or period field missing.');
+        const rows=form.getResponses().map(response=>{
+          const answers=new Map(response.getItemResponses().map(a=>[a.getItem().getId(),a.getResponse()]));
+          const grades=new Map(response.getGradableItemResponses().map(a=>[a.getItem().getId(),a.getScore()]));
+          return JSON.stringify({id:response.getId(),time:response.getTimestamp().getTime(),student:String(answers.get(map.student)||'').trim(),period:String(answers.get(map.period)||'').trim(),scores:map.scores.map(id=>grades.has(id)&&answers.has(id)&&Number.isFinite(grades.get(id))?grades.get(id):null)});
+        });
+        const sheet=book.getSheetByName(key),values=['Response snapshot',...rows];
+        while(values.length<sheet.getLastRow())values.push('');
+        if(values.length>sheet.getMaxRows())sheet.insertRowsAfter(sheet.getMaxRows(),values.length-sheet.getMaxRows());
+        sheet.getRange(1,1,values.length,1).setValues(values.map(v=>[v]));
+        p.setProperty(key+'Updated',new Date().toISOString());p.deleteProperty(key+'Error');
+      }catch(e){p.setProperty(key+'Error',String(e.message));errors.push(teacher)}
+    });
+    if(errors.length)throw Error('Sync needs attention for: '+errors.join(', '));
+  }finally{lock.releaseLock()}
+}
+function reportData_(){
+  const email=Session.getActiveUser().getEmail().toLowerCase(),p=props_();
+  const own=PLC.team.indexOf(email);
+  if(!email||(own<0&&email!==p.getProperty('owner')))throw Error('Sign in with an enrolled school account.');
+  const book=SpreadsheetApp.openById(p.getProperty('book'));
+  const decisions=new Map(book.getSheetByName('criteria').getDataRange().getValues().slice(1));
+  const all=[],mine=[],updates=[],unavailable=[];
+  PLC.team.forEach((teacher,n)=>{
+    const key='teacher'+n;
+    if(p.getProperty(key+'Error')||!p.getProperty(key+'Updated')){unavailable.push(n);return}
+    updates.push(p.getProperty(key+'Updated'));
+    const sheet=book.getSheetByName(key),latest=new Map();
+    sheet.getDataRange().getValues().slice(1).forEach(([cell])=>{
+      if(!cell)return;
+      const row=JSON.parse(cell),id=row.student||row.id;
+      if(!latest.has(id)||row.time>=latest.get(id).time)latest.set(id,row);
+    });
+    latest.forEach(row=>{
+      const ready=!!row.student&&!!row.period&&row.scores.every(Number.isFinite);
+      const total=row.scores.reduce((a,b)=>a+(b||0),0);
+      const decision=decisions.get(n+'|'+row.id+'|'+row.time);
+      const status=!ready?'Awaiting evidence':total<PLC.threshold?'Needs support':PLC.criteria&&decision!=='yes'?(decision==='no'?'Needs support':'Teacher criterion pending'):'Met proficiency';
+      all.push({teacher:n,status,scores:row.scores});
+      if(n===own)mine.push({id:row.id,student:row.student,period:row.period,status,scores:row.scores});
+    });
+  });
+  const assessed=all.filter(r=>['Met proficiency','Needs support'].includes(r.status));
+  const share=!unavailable.length&&assessed.length>=5&&new Set(assessed.map(r=>r.teacher)).size>=3;
+  const skillNames=[...new Set(PLC.items.map(q=>q.skill))];
+  const skills=share?skillNames.map(skill=>{
+    let earned=0,possible=0,students=0;const teachers=new Set();
+    all.forEach(r=>{let scored=false;PLC.items.forEach((q,i)=>{if(q.skill===skill&&Number.isFinite(r.scores[i])){earned+=r.scores[i];possible+=q.points;scored=true}});if(scored){students++;teachers.add(r.teacher)}});
+    return {skill,rate:students>=5&&teachers.size>=3&&possible?Math.round(100*earned/possible)+'%':'Awaiting team evidence'};
+  }):[];
+  return {mine,skills,summary:share?assessed.filter(r=>r.status==='Met proficiency').length+' of '+assessed.length+' assessed met proficiency.':'Team totals are available after five assessed students across three teachers and a successful sync for each class.',updated:updates.sort()[0]||'',issue:unavailable.includes(own)?'Your quiz needs a sync check. Contact your coordinator.':'',edit:own<0?'':FormApp.openById(p.getProperty('teacher'+own)).getEditUrl()};
+}
+function recordCriterion(responseId,decision){
+  const teacher=PLC.team.indexOf(Session.getActiveUser().getEmail().toLowerCase());
+  if(teacher<0||!PLC.criteria||!['yes','no'].includes(decision))throw Error('Teacher access required.');
+  const lock=LockService.getScriptLock();lock.waitLock(20000);
+  try{
+    const book=SpreadsheetApp.openById(props_().getProperty('book'));
+    const cells=book.getSheetByName('teacher'+teacher).getDataRange().getValues();
+    const row=cells.slice(1).filter(([v])=>v).map(([v])=>JSON.parse(v)).find(r=>r.id===responseId);
+    if(!row)throw Error('Response unavailable.');
+    book.getSheetByName('criteria').appendRow([teacher+'|'+row.id+'|'+row.time,decision]);
+  }finally{lock.releaseLock()}
+  return 'Saved. Reopen the results to see the updated decision.';
+}
+function escape_(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function doGet(){
+  try{
+    const data=reportData_();
+    const html='<meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:16px/1.5 system-ui;color:#183734;max-width:850px;margin:30px auto;padding:0 18px}h2{background:#dfefe3;padding:8px}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left}</style><h1>'+escape_(PLC.title)+'</h1><h2>PLC team results</h2><p>'+escape_(data.summary)+'</p>'+data.skills.map(s=>'<p>'+escape_(s.skill)+' · '+s.rate+'</p>').join('')+'<h2>My student results</h2><p>'+escape_(PLC.criteria)+' '+escape_(data.issue)+'</p><table><tr><th>Student ID</th><th>Period</th><th>Result</th><th>Points by question</th></tr>'+data.mine.map(r=>'<tr><td>'+escape_(r.student)+'</td><td>'+escape_(r.period)+'</td><td>'+escape_(r.status)+'</td><td>'+r.scores.map(v=>v===null?'—':v).join(' / ')+'</td>'+(PLC.criteria?'<td><select aria-label="Additional criterion" data-response="'+escape_(r.id)+'" onchange="saveDecision(this)"><option value="">Confirm criterion</option><option value="yes">Met</option><option value="no">Needs support</option></select></td>':'')+'</tr>').join('')+'</table><p id="notice"></p><script>function saveDecision(el){if(!el.value)return;el.disabled=true;google.script.run.withSuccessHandler(text=>{document.getElementById("notice").textContent=text;el.disabled=false}).withFailureHandler(()=>{document.getElementById("notice").textContent="Could not save. Try again.";el.disabled=false}).recordCriterion(el.dataset.response,el.value)}</script><p>'+(data.edit?'<a target="_blank" href="'+escape_(data.edit)+'">Open my quiz in Google Forms</a>':'')+'</p><small>Oldest successful class sync: '+escape_(data.updated||'pending')+' · Refresh to see the latest sync.</small>';
+    return HtmlService.createHtmlOutput(html).setTitle('PLC Launchpad · Quiz results');
+  }catch(e){return HtmlService.createHtmlOutput('Results unavailable. Use your enrolled school account or contact your PLC coordinator.')}
+}
