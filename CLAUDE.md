@@ -13,5 +13,7 @@ John is not a programmer: report progress as percentages and results in plain En
    - `node checks/r03import.cjs`: a v0.509 workspace opens and imports with nothing lost; old terms absent.
    Update the file name inside the checks when the revision changes.
 5. Rebuild Apps Script: `python3 apps-script/build.py` (edit the source file name in it when the revision changes).
-6. Update `HANDOFF.md`: History, Known gaps, and **Open questions for John**. Put questions there, not only in chat.
+6. Update `HANDOFF.md`: History and Known gaps. New questions for John go on the questions page
+   (https://claude.ai/artifact/9ZHeYuKNNLY4myM1n7hzgV, next number after the last) and in HANDOFF's list; end the
+   report with: 🔴 N questions waiting (#a–b): link. When John says "Answered", read them with ArtifactData.
 7. Commit and push to the working branch.

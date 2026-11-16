@@ -39,9 +39,12 @@ Read this first in a new session, then `CLAUDE.md`.
 - Restructure, don't rewrite: keep every feature and the existing look (navy sidebar, rocket logo, Inter, existing icons,
   card styles, color families).
 - Simple and welcoming over complete; one clear next step; plain words with the PLC term taught alongside.
-- Questions go in the list below, not only in chat. John answers them here or in chat; move answered ones into History.
+- Questions go on the questions page, like the Onshape project: https://claude.ai/artifact/9ZHeYuKNNLY4myM1n7hzgV
+  (`questions/questions.html`, db collection `questions`, docs `q1`, `q2`… with `n`, `topic`, `text`, lettered `options`,
+  `answer`, `note`). John taps an answer and replies "Answered"; read the answers with ArtifactData, act on them, record
+  them in History. Report as: 🔴 N questions waiting (#a–b): link.
 
-## Open questions for John
+## Open questions for John (also on the questions page)
 1. Zava's guided flow keeps its own five-part bar (Choose Standard · Define Learning · SMART Goal · Prepare Assessment ·
    Review) inside the cycle's Plan and Build check steps, under the new five-step bar. Hide it, relabel it to match the
    cycle steps, or keep it?

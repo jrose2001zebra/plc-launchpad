@@ -1,0 +1,79 @@
+<title>PLC Launchpad Questions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<style>
+/* One column of question cards; tap a choice to answer, it saves for Claude. Same page as the Onshape project's. */
+:root{--bg:#f5f6f8;--card:#ffffff;--fg:#1d2330;--muted:#5d6675;--line:#d9dde4;--red:#d21f2b;--pick:#1f6feb;--pickbg:#e8f0fe;--done:#1a7f37;--font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1e232b;--fg:#e8ebf0;--muted:#9aa3b2;--line:#323844;--red:#ff5c66;--pick:#6ea8ff;--pickbg:#1f2c44;--done:#4ac26b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171c;--card:#1e232b;--fg:#e8ebf0;--muted:#9aa3b2;--line:#323844;--red:#ff5c66;--pick:#6ea8ff;--pickbg:#1f2c44;--done:#4ac26b;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px}
+main{max-width:680px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-size:24px;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.q h2{font-size:17px;margin:0;color:var(--red);font-weight:700;line-height:1.35}
+.q h2 .n{margin-right:6px}
+.q.answered h2{color:var(--fg)}
+.tag{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{font:inherit;text-align:left;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;min-height:44px}
+.opts button:focus-visible{outline:3px solid var(--pick);outline-offset:2px}
+.opts button[aria-pressed="true"]{border-color:var(--pick);background:var(--pickbg);font-weight:600}
+textarea{font:inherit;width:100%;box-sizing:border-box;min-height:44px;padding:10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--fg)}
+.saved{font-size:13px;color:var(--done);min-height:1em}
+.empty{color:var(--muted)}
+#list{display:flex;flex-direction:column;gap:14px}
+details{display:flex;flex-direction:column;gap:14px}
+details>summary{cursor:pointer;color:var(--muted);font-weight:600;padding-block:8px}
+details>.q{margin-top:12px}
+</style>
+<main>
+  <h1>PLC Launchpad · Questions for John</h1>
+  <p class="sub">Tap an answer. It saves on its own and Claude reads it. Red questions still need an answer.</p>
+  <div id="list"><p class="empty" id="status">Loading questions…</p></div>
+</main>
+<script>
+(async()=>{
+  const list=document.getElementById('list'), status=document.getElementById('status');
+  const timer=setTimeout(()=>{status.textContent='Questions could not load. Reopen the page to try again.'},10000);
+  const db=await claude.use('db');
+  if(!db){clearTimeout(timer);status.textContent='Sign in to claude.ai to answer the questions.';return}
+  function render(docs){
+    clearTimeout(timer);
+    if(!docs.length){list.innerHTML='<p class="empty">No questions right now.</p>';return}
+    docs.sort((a,b)=>a.data.n-b.data.n);
+    list.textContent='';
+    const open=docs.filter(d=>!d.data.answer), done=docs.filter(d=>d.data.answer);
+    const head=document.createElement('p');head.className='sub';
+    head.textContent=open.length?open.length+(open.length===1?' question needs':' questions need')+' an answer.':'All caught up. No questions right now.';
+    list.append(head);
+    const place=(arr,into)=>{for(const {id,data:q} of arr){
+      const el=document.createElement('section');el.className='q'+(q.answer?' answered':'');
+      const tag=document.createElement('div');tag.className='tag';tag.textContent=q.topic||'';
+      const h=document.createElement('h2');const n=document.createElement('span');n.className='n';n.textContent=q.n+'.';h.append(n,(q.answer?'':'🔴 ')+q.text);
+      const opts=document.createElement('div');opts.className='opts';
+      for(const o of q.options||[]){
+        const b=document.createElement('button');b.type='button';b.id=id+'-'+o.k;
+        b.setAttribute('aria-pressed',String(q.answer===o.k));b.textContent='('+o.k+') '+o.label;
+        b.addEventListener('click',()=>save(id,{answer:q.answer===o.k?null:o.k},el));
+        opts.append(b);
+      }
+      const note=document.createElement('textarea');note.id=id+'-note';note.placeholder='Anything to add? (optional)';note.value=q.note||'';
+      note.addEventListener('change',()=>save(id,{note:note.value},el));
+      const ok=document.createElement('div');ok.className='saved';
+      el.append(tag,h,opts,note,ok);into.append(el);
+    }};
+    place(open,list);
+    if(done.length){
+      const det=document.createElement('details');det.id='answered';
+      const sum=document.createElement('summary');sum.textContent='Answered ('+done.length+')';
+      det.append(sum);list.append(det);place(done,det);
+    }
+  }
+  async function save(id,patch,el){
+    const ok=el.querySelector('.saved');ok.textContent='Saving…';
+    try{await db.doc('questions/'+id).update(patch);ok.textContent='Saved'}catch(e){ok.textContent='Could not save. Try again.'}
+  }
+  db.collection('questions').onSnapshot(s=>render(s.docs.map(d=>({id:d.id,data:d.data()}))),()=>{clearTimeout(timer);status.textContent='Questions could not load. Reopen the page to try again.'});
+})();
+</script>
