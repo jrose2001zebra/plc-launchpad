@@ -55,6 +55,7 @@ Read this first in a new session, then `CLAUDE.md`.
   count and numbers.
 
 ## Open questions for John (also on the questions page)
-6. After looking at R04: anything to change on Our Home or the Teach step? (asked again; R03 not reviewed yet)
-7. Zava's voice makes the Apps Script version 24 page files to paste. Paste them all, use clasp (copies them in one
-   command), or leave the voice out of the school-site version?
+6. After looking at R04: anything to change on Our Home or the Teach step? (John hasn't looked yet, 2026-11-18)
+7. School site (Apps Script): Zava's voice makes it 24 pieces to paste instead of 5. Decide later, leave the voice off
+   at first, use clasp, or paste all 24? (Reworded 2026-11-18: John asked what page files are; it only matters on the
+   day the school site is set up, not for the file version.)
