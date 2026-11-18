@@ -51,6 +51,8 @@ Read this first in a new session, then `CLAUDE.md`.
   (`questions/questions.html`, db collection `questions`, docs `q1`, `q2`… with `n`, `topic`, `text`, lettered `options`,
   `answer`, `note`). John taps an answer and replies "Answered"; read the answers with ArtifactData, act on them, record
   them in History. Report as: 🔴 N questions waiting (#a–b): link.
+- When new questions are added, also send John a push notification (he said yes, 2026-11-18): one line with the
+  count and numbers.
 
 ## Open questions for John (also on the questions page)
 6. After looking at R04: anything to change on Our Home or the Teach step? (asked again; R03 not reviewed yet)

@@ -19,4 +19,5 @@ John is not a programmer: report progress as percentages and results in plain En
 7. Update `HANDOFF.md`: History and Known gaps. New questions for John go on the questions page
    (https://claude.ai/artifact/9ZHeYuKNNLY4myM1n7hzgV, next number after the last) and in HANDOFF's list; end the
    report with: 🔴 N questions waiting (#a–b): link. When John says "Answered", read them with ArtifactData.
+   When new questions are added, also send a push notification (John asked for it).
 8. Commit and push to the working branch.
