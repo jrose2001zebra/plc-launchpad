@@ -7,14 +7,15 @@ Created by John Rose.
 
 | Path | What it is |
 |---|---|
-| `PLC-Launchpad-R03.html` | **The current app (R03).** One self-contained file: open it in a browser. See [r03/README.md](r03/README.md) for what changed from v0.509. |
-| `apps-script/` | Runs the app on Google Apps Script for your school: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files, built from R03. |
+| `PLC-Launchpad-R04.html` | **The current app (R04).** One self-contained file: open it in a browser. See [r03/README.md](r03/README.md) for the R03 restructure and `HANDOFF.md` for later revisions. |
+| `narration/zava/`, `tools/` | Zava's voice clips (John's Zava recipe) and the tools that record them and build them into the app. |
+| `apps-script/` | Runs the app on Google Apps Script for your school: server (`Code.gs`), bridge, build script and [setup guide](apps-script/SETUP.md). `apps-script/dist/` holds the ready-to-paste files, built from the current app file. |
 | `r03/` | How R03 was made from v0.509, and the R03 code and styles. |
 | `legacy/v0.509.html` | The previous app (v0.509), kept unchanged. |
 | `research/` | Research on how PLC teams build plans, templates, practice, tools and privacy. |
 | `app/`, `design/`, `prototype/` | Earlier design experiments (Launchpad 1.0 and 2.0, design language, homepage sketches). Not the current app. |
 
-## How the app is organized (R03)
+## How the app is organized
 
 Teams work unit by unit in **cycles**. Each cycle takes one essential standard through five steps:
 

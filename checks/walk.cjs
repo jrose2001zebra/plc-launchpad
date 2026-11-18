@@ -5,7 +5,7 @@ const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1360,height:950}});let p=await ctx.newPage();
 const errs=[];p.on('pageerror',e=>errs.push('pageerror: '+e.message+' @ '+(e.stack||'').split('\n').slice(1,3).join(' ')));p.on('requestfailed',r=>errs.push('failed: '+r.url().slice(0,90)));p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text())});
 p.on('dialog',d=>d.accept());
-await p.goto(ROOT+'PLC-Launchpad-R03.html');await p.waitForTimeout(1200);
+await p.goto(ROOT+'PLC-Launchpad-R04.html');await p.waitForTimeout(1200);
 await p.evaluate(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
 const state=async(tag)=>{await p.waitForTimeout(500);const info=await p.evaluate(()=>{const vis=e=>e.offsetParent!==null;return {hash:location.hash,h:[...document.querySelectorAll('#workspaceBody h1,#workspaceBody h2')].filter(vis).slice(0,3).map(e=>e.textContent.trim().slice(0,70)),btns:[...document.querySelectorAll('#workspaceBody button,#workspaceBody a.route-link,#workspaceBody a.r03-btn')].filter(vis).map(e=>e.textContent.trim().slice(0,40)).filter(Boolean).slice(0,14),inputs:[...document.querySelectorAll('#workspaceBody input:not([type=hidden]),#workspaceBody textarea,#workspaceBody select')].filter(vis).length}});console.log('\n##',tag,JSON.stringify(info));};
 await p.click('a.r03-btn.blue');await state('after start');
@@ -30,7 +30,7 @@ for(let k=0;k<30;k++){
 const ids=await p.evaluate(()=>{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k.includes('plc-launchpad')||k.includes(':'+'r03'))continue;try{const s=JSON.parse(localStorage.getItem(k));if(s&&s.cycles&&s.cycles.length){const c=s.cycles[0];return {key:k,schema:s.schemaVersion,cid:c.id,sid:c.standardIds[0],aid:(c.assessments[0]||{}).id,acts:Array.isArray(c.activities),title:c.title}}}catch{}}return null});
 console.log('\nSTATE',JSON.stringify(ids));
 
-const U=ROOT+'PLC-Launchpad-R03.html';
+const U=ROOT+'PLC-Launchpad-R04.html';
 const T1='I can read an inch ruler to the nearest 1/8 inch.',T2='I can read an inch ruler to the nearest 1/16 inch.';
 const raw=await p.evaluate(k=>localStorage.getItem(k),ids.key);
 const st=JSON.parse(raw);{const c=st.cycles[0],a=c.assessments[0];c.learning=T1+'\n'+T2;
@@ -74,6 +74,13 @@ await p.click('[data-r03-act="close-cycle"]');await p.waitForTimeout(400);
 await p.click('[data-r03-act="next-cycle"]');await p.waitForTimeout(1200);await state('after next cycle');
 const fin=await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));return s.cycles.map(c=>({title:c.title,acts:c.activities.length,closed:!!c.close.closedAt,next:!!c.close.nextCycleId,learning:c.learning.split('\n').length}))},ids.key);
 console.log('CYCLES',JSON.stringify(fin));
+// R04: Plan step opens Zava's guided questions; Zava's bars name the cycle steps; Zava's voice is built in
+await p.goto(U+'#/engineering/cycle/'+ids.sid+'/'+ids.cid+'/plan');await p.waitForTimeout(1200);
+console.log('PLAN STEP OPENS',await p.evaluate(()=>location.hash.split('/').slice(0,3).join('/')+'/…/'+location.hash.split('/').pop()));
+console.log('ZAVA BAR',await p.evaluate(()=>[...document.querySelectorAll('#workspaceBody button,#workspaceBody a')].map(b=>b.textContent.trim()).filter(t=>/^\d?(Plan|Build check) ·/i.test(t)).join(' | ')));
+const audioReq=[];p.on('request',r=>{if(/audio\/zava/.test(r.url()))audioReq.push(r.url())});
+await p.evaluate(()=>{const b=document.getElementById('zavaListen');b&&b.click()});await p.waitForTimeout(800);
+console.log('ZAVA VOICE',JSON.stringify(await p.evaluate(()=>{const a=[...document.querySelectorAll('audio')];return {listen:document.getElementById('zavaListen')?.textContent,status:document.getElementById('zavaAudioStatus')?.textContent}})),'missing-file requests:',audioReq.length);
 const c1=await p.evaluate(k=>{const s=JSON.parse(localStorage.getItem(k));const c=s.cycles[0];return {baseline:c.baseline,status:c.baselineStatus,evidence:c.baselineEvidence,assessment:c.assessment,proficiency:c.proficiency}},ids.key);
 console.log('AUTO-FILLED GOAL FIELDS',JSON.stringify(c1));
 await p.goto(U+'#/engineering/assessment/'+ids.sid+'/'+ids.cid+'/'+ids.aid+'/tools');await p.waitForTimeout(900);

@@ -1,0 +1,247 @@
+{
+ "title": {
+  "line": "Let's build one plan together. Give it a short name that tells your team what students will learn. You can save and pause after any question.",
+  "hash": "a27566aa9510",
+  "seconds": 8.78
+ },
+ "learning": {
+  "line": "Start with the essential standard you chose. What should students be able to do? Use an action you can observe, such as measure, compare, explain, or solve. Describe the learning, rather than the activity.",
+  "hash": "1de059158be4",
+  "seconds": 13.13
+ },
+ "context": {
+  "line": "Where will students practice this learning? Name the unit, lesson, or project. This is optional; you can leave it blank and continue.",
+  "hash": "1f48fe4003a4",
+  "seconds": 9.24
+ },
+ "group": {
+  "line": "Who is this plan for? Name the course and the classes or students included. This group becomes part of your SMART goal, so make it specific enough that the team knows whose results to collect.",
+  "hash": "de0afad23db8",
+  "seconds": 11.9
+ },
+ "proficiency": {
+  "line": "Describe work that would convince your team a student has learned the skill. What must be correct? What quality or accuracy will you look for? Later, you will agree on the points that represent this level of work.",
+  "hash": "32d0660950db",
+  "seconds": 12.7
+ },
+ "target": {
+  "line": "Set a realistic goal for the percentage of students who will meet your success criteria. This is a team goal. It is different from the score one student needs to earn on the assessment.",
+  "hash": "9211e578cba9",
+  "seconds": 10.58
+ },
+ "deadline": {
+  "line": "Choose the date by which students should reach the goal. Allow time to teach, assess, and respond to what students need. This date will appear in your SMART goal.",
+  "hash": "f9d2a1b5d60b",
+  "seconds": 9.89
+ },
+ "scope": {
+  "line": "Decide how your team will apply the target. Combined means all included students are counted together. Every classroom means each classroom is expected to reach that percentage. Agree on this before looking at results.",
+  "hash": "87278f3b93c2",
+  "seconds": 13.82
+ },
+ "baselineStatus": {
+  "line": "Do you already have evidence of what students can do? If not, choose not yet assessed. Do not guess a starting percentage. You can still create your plan.",
+  "hash": "3ebb62075e7a",
+  "seconds": 9.19
+ },
+ "baseline": {
+  "line": "Enter the percentage of students who met your success criteria on the baseline assessment. Use actual results for the same student group. Do not enter an average assignment score.",
+  "hash": "4741d11fbda5",
+  "seconds": 10.94
+ },
+ "baselineDate": {
+  "line": "Choose the date your starting evidence was collected. This helps the team compare its starting point with later learning.",
+  "hash": "8d5bbb791494",
+  "seconds": 6.62
+ },
+ "baselineEvidence": {
+  "line": "Name the evidence you used to determine the starting percentage. A short assessment name or description is enough, as long as another team member can identify it.",
+  "hash": "0eb280139830",
+  "seconds": 9.79
+ },
+ "assessment": {
+  "line": "Name the common assessment your team will use. The assessment should let students demonstrate the learning you already described. Your plan and assessment will stay connected.",
+  "hash": "f89d4eca0932",
+  "seconds": 10.34
+ },
+ "assessments": {
+  "line": "Now prepare the evidence your team will collect. Open an assessment to finish its directions, questions or tasks, and scoring agreement. One well-aligned assessment is enough to begin.",
+  "hash": "152c376cbd80",
+  "seconds": 12.43
+ },
+ "review": {
+  "line": "Read your complete SMART goal aloud as a team. Check the students, learning, proficiency description, percentage, and deadline. Your earlier answers built this sentence. Finish any listed requirements before moving on to results.",
+  "hash": "7757991a63c5",
+  "seconds": 15.58
+ },
+ "a-intent": {
+  "line": "How will students show their learning? They can answer questions, demonstrate a skill, create something, or use an assessment you already have. Choose the approach that gives your team useful evidence of the essential standard.",
+  "hash": "78c1e94b1205",
+  "seconds": 13.27
+ },
+ "a-title": {
+  "line": "Give the assessment a short, recognizable name. It should help your team connect this evidence to the learning in your plan.",
+  "hash": "396752743eae",
+  "seconds": 7.03
+ },
+ "a-instructions": {
+  "line": "Write directions students can follow without extra explanation. Tell them what to do, what to submit or demonstrate, and any tools or conditions. Keep the language direct.",
+  "hash": "ad38da2dee42",
+  "seconds": 11.83
+ },
+ "a-source": {
+  "line": "Bring the resource your team will use. You can upload a document or picture, add a webpage link, or connect a Google Forms quiz. A link supplies the assessment; your team still needs to agree on how it will be scored.",
+  "hash": "27f34d2cdf15",
+  "seconds": 13.61
+ },
+ "a-forms": {
+  "line": "Follow the Google Forms connection steps shown here. Check the quiz and the teacher link before continuing. Your team still needs a shared scoring agreement in this plan.",
+  "hash": "4e767d0ddcfa",
+  "seconds": 10.46
+ },
+ "a-items": {
+  "line": "Decide what your team will score. Add individual questions, observations, or rubric criteria. If you already have an assessment, one overall score can keep entry simple. Choose the detail your team needs to understand the learning.",
+  "hash": "0029d3945b4e",
+  "seconds": 14.88
+ },
+ "a-item-prompt": {
+  "line": "Write one question, task, or observable criterion. It should directly reveal the learning in your plan. Ask students to show or explain something you can judge, and include the conditions they need.",
+  "hash": "b3966c251dcc",
+  "seconds": 12.26
+ },
+ "a-item-graphic": {
+  "line": "Would an image help students understand the task? Add a clear picture or graphic if it contributes to the question. You can skip this when words are enough.",
+  "hash": "bdfb177cdb99",
+  "seconds": 9.6
+ },
+ "a-item-choices": {
+  "line": "Answer choices are optional. For a multiple-choice question, write clear alternatives and identify the correct answer. For a performance task or written response, continue without choices.",
+  "hash": "504d04fbe336",
+  "seconds": 12.77
+ },
+ "a-item-answer": {
+  "line": "Agree on how to score the response before students take the assessment. Describe the correct answer or successful performance and how points will be awarded. Another teacher should be able to use the same guidance.",
+  "hash": "a114daeffbc4",
+  "seconds": 13.58
+ },
+ "a-item-maxPoints": {
+  "line": "How many points are available? For an overall score, enter the total for the entire assessment. For a question or criterion, enter the points available for just that item. Use your scoring guide to decide.",
+  "hash": "e14b2c853425",
+  "seconds": 14.02
+ },
+ "a-item-standardId": {
+  "line": "Connect this item to the essential standard it measures. In a plan with one standard, keep that same connection. This makes the evidence traceable to your team's learning priority.",
+  "hash": "581bf40ce39b",
+  "seconds": 11.47
+ },
+ "a-item-learningTarget": {
+  "line": "Name the specific skill this item checks. The plan's learning is already available as a starting point. Keep it if it fits, or make it more specific. This wording helps the team interpret results by skill.",
+  "hash": "e56116dfd290",
+  "seconds": 12.89
+ },
+ "a-threshold": {
+  "line": "How many points demonstrate proficiency? Use the success criteria your team agreed on, and enter a point threshold no higher than the total available. This is the score for an individual student, not the team percentage goal.",
+  "hash": "118985adcf7e",
+  "seconds": 14.69
+ },
+ "a-criteria": {
+  "line": "Do students need to meet a requirement beyond the point total? Add it only if it is essential. Your team will need a separate yes or no decision for each student. Otherwise, leave this blank.",
+  "hash": "60cd307542de",
+  "seconds": 11.78
+ },
+ "a-date": {
+  "line": "Choose when students will take the assessment, if your team knows the date. This is optional. Check that it fits the goal deadline and leaves time to respond.",
+  "hash": "6aad2c0e4aaa",
+  "seconds": 9.5
+ },
+ "a-review": {
+  "line": "Check the assessment and scoring agreement together. Read the directions as a student and the scoring guide as a teacher. Resolve any listed gaps, then return to your plan.",
+  "hash": "0fdfd0b3b773",
+  "seconds": 11.35
+ },
+ "results": {
+  "line": "Choose the assessment and start a results check. Record actual evidence after students complete the work. The check preserves the scoring agreement used at that time.",
+  "hash": "85009c119db4",
+  "seconds": 10.46
+ },
+ "row-list": {
+  "line": "Choose your teacher name and class or period before adding students. Enter one student at a time. Check for an existing entry so the same student is not counted twice.",
+  "hash": "c70d4b24be73",
+  "seconds": 11.45
+ },
+ "row-student": {
+  "line": "Enter the student name or identifier your team uses. Check that you have the correct teacher and class. This entry will hold that student's assessment evidence.",
+  "hash": "cca86fd39222",
+  "seconds": 9.89
+ },
+ "row-score": {
+  "line": "Enter the points this student actually earned. Leave the score blank if evidence is missing. A missing score is different from a zero, which means the work was assessed and earned no points.",
+  "hash": "098d94702c6d",
+  "seconds": 12.34
+ },
+ "row-criteria": {
+  "line": "If your team added an extra proficiency requirement, confirm whether this student met it. Choose not yet confirmed if the evidence is incomplete.",
+  "hash": "c15457124d75",
+  "seconds": 9.19
+ },
+ "review-results": {
+  "line": "Look at what the evidence says about learning. Which skills need support? Which are secure? Notice missing evidence before drawing conclusions. Use the team patterns to plan instruction.",
+  "hash": "9fcc95d45595",
+  "seconds": 12.17
+ },
+ "support": {
+  "line": "Choose a specific response for the learning need. Say what the team will teach or model, who needs that support, and how students will practice. Connect the response to the evidence you saw.",
+  "hash": "78d01459827d",
+  "seconds": 11.81
+ },
+ "extension": {
+  "line": "Plan meaningful next learning for students who are already proficient. Deepen or transfer the skill rather than simply assigning more of the same work.",
+  "hash": "d0c380ab30f2",
+  "seconds": 9.72
+ },
+ "missing": {
+  "line": "How will you collect evidence that is still missing? State how students will get another opportunity and how the team will arrange it. Missing evidence does not prove a lack of learning.",
+  "hash": "827508b0e558",
+  "seconds": 11.02
+ },
+ "owner": {
+  "line": "Name who will carry out the response. Make the responsibility clear enough that the team knows what each person will do before the next meeting.",
+  "hash": "ba52acf1fa2e",
+  "seconds": 8.35
+ },
+ "start-date": {
+  "line": "Choose when the instructional response will begin. Make the date realistic for the people responsible.",
+  "hash": "1a49287aaac3",
+  "seconds": 6.29
+ },
+ "check": {
+  "line": "Describe the new evidence that will show whether the response helped. Keep it connected to the same skill and success criteria so the comparison is meaningful.",
+  "hash": "51cfedb0789d",
+  "seconds": 9.96
+ },
+ "review-date": {
+  "line": "Choose when the team will review the new evidence. Allow time for the response and the follow-up check to happen first.",
+  "hash": "8b6e25b92889",
+  "seconds": 6.91
+ },
+ "followup": {
+  "line": "Link the later results that show what happened after your response. If they are not entered yet, create a follow-up results check. Use actual evidence rather than an estimate of improvement.",
+  "hash": "89d539c0d316",
+  "seconds": 11.76
+ },
+ "reflection": {
+  "line": "What changed, and what will your team do next? Compare the later evidence with the starting evidence. State what helped, what remains uncertain, and the next action.",
+  "hash": "1adfafe80ae3",
+  "seconds": 10.44
+ },
+ "finish-use": {
+  "line": "Your plan now holds the learning priority, shared assessment, evidence, response, and follow-up. Review what your team learned and decide whether to continue this focus or begin another essential standard.",
+  "hash": "f45b1be2eb41",
+  "seconds": 13.54
+ },
+ "choose-standard": {
+  "line": "Let's choose one essential standard to begin. Use the subject and team menus to open the right course catalog. Then choose an area, or search for a skill or standard code. Open a section to read its standards. A broad standard describes a larger area of learning; a specific indicator gives you a more focused skill. Ask your team: Will students use this learning again? Will they need it for what comes next? Can we teach and check it together? Select one standard to review it on the right. Choosing a different one replaces this selection. When you are ready, choose Use this standard and continue. I will help you build a plan around it, one question at a time. Your other essential standards will stay saved.",
+  "hash": "2d5e683dcb78",
+  "seconds": 45.31
+ }
+}

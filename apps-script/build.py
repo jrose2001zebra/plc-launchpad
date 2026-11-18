@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build the Apps Script project from PLC-Launchpad-R03.html (the current app).
+"""Build the Apps Script project from PLC-Launchpad-R04.html (the current app).
 
     python3 apps-script/build.py
 
 Writes apps-script/dist/: the files to put in the Apps Script project (by hand or with clasp).
-PLC-Launchpad-R03.html stays the single source of the app; this script only adapts a copy of it:
+PLC-Launchpad-R04.html stays the single source of the app; this script only adapts a copy of it:
   * each edit below must match the expected number of times, or the build stops, so an app
     change that moves one of these lines is caught instead of silently breaking the page;
   * the page is split into Page1.html, Page2.html, ... so no single Apps Script file is huge.
@@ -53,7 +53,7 @@ def adapt(html: str) -> str:
     for find, replace, expected in EDITS:
         found = html.count(find)
         if found != expected:
-            sys.exit(f'build stopped: expected {expected} of {find[:70]!r} in PLC-Launchpad-R03.html, found {found}')
+            sys.exit(f'build stopped: expected {expected} of {find[:70]!r} in PLC-Launchpad-R04.html, found {found}')
         html = html.replace(find, replace)
     # Drop the hosting provider's injected script at the end of the page (not part of the app).
     html, dropped = re.subn(r'<script>\(function\(\)\{function c\(\)\{var b=a\.contentDocument.*?</script>', '', html, flags=re.S)
@@ -65,7 +65,7 @@ def adapt(html: str) -> str:
 
 
 def main() -> None:
-    html = adapt((ROOT / 'PLC-Launchpad-R03.html').read_text(encoding='utf-8'))
+    html = adapt((ROOT / 'PLC-Launchpad-R04.html').read_text(encoding='utf-8'))
     head_end = html.index('<script')  # everything before the first script: styles and markup
     head, rest = html[:head_end], html[head_end:]
     chunks = [rest[i:i + CHUNK] for i in range(0, len(rest), CHUNK)]

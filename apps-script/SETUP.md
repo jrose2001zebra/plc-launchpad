@@ -30,7 +30,7 @@ Create each one in the editor with exactly the same name.
 |---|---|
 | `Code.gs` | Replace everything in the existing `Code.gs` |
 | `appsscript.json` | Replace everything in the existing `appsscript.json` |
-| `Index.html`, `Head.html`, `Bridge.html`, `Page1.html` … `Page5.html`, `QuizConnector.html` | **+** next to Files → **HTML** → type the name without `.html` (for example `Page1`) → paste |
+| `Index.html`, `Head.html`, `Bridge.html`, `Page1.html` … `Page24.html`, `QuizConnector.html` | **+** next to Files → **HTML** → type the name without `.html` (for example `Page1`) → paste |
 
 To copy a file from GitHub, open it, choose **Raw**, then select all and copy.
 `Head.html` and the `Page` files are large, so give the paste a few seconds. Save with Ctrl+S (Cmd+S on a Mac).
@@ -100,7 +100,7 @@ Student IDs and scores stay inside your school's Google Drive.
 
 ## For developers
 
-`PLC-Launchpad-R03.html` at the repository root is the app. `apps-script/build.py` builds `dist/`
+`PLC-Launchpad-R04.html` at the repository root is the app. `apps-script/build.py` builds `dist/`
 from it and from the files in `apps-script/`:
 
 ```

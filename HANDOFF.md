@@ -1,13 +1,16 @@
-# Handoff: where the PLC Launchpad work stands (2026-11-16)
+# Handoff: where the PLC Launchpad work stands (2026-11-18)
 
 Read this first in a new session, then `CLAUDE.md`.
 
 ## Repository layout
-- `PLC-Launchpad-R03.html`: **the current app**, one self-contained file. The revision (R03) shows in the sidebar footer.
+- `PLC-Launchpad-R04.html`: **the current app**, one self-contained file (6 MB with Zava's voice). The revision shows in
+  the sidebar footer.
+- `narration/zava/`: Zava's 49 clips (`manifest.json` has each line); `tools/make_zava_clips.py` records them with
+  John's Zava recipe, `tools/embed_zava_clips.py` builds them into the app.
 - `r03/`: how R03 was made from v0.509 (`make_r03.py`, `r03.js`, `r03.css`) and what changed (`r03/README.md`).
   From R04 on, edit the R-file directly and rename it to the new revision.
 - `legacy/v0.509.html`: John's last ChatGPT-built version, unchanged (source of every feature).
-- `checks/`: the test route (see `CLAUDE.md`). Screenshots go to `checks/out/` (not committed).
+- `checks/`: the test route, `walk.cjs` and `import.cjs` (see `CLAUDE.md`). Screenshots go to `checks/out/` (not committed).
 - `apps-script/`: Google Apps Script hosting. `Code.gs` server, `Bridge.html`, `build.py`, `SETUP.md`; `dist/` holds the
   ready-to-paste files, built from the current R-file. Not yet deployed by John.
 - `research/`: PLC research report and notes (how teams build plans, ~40 templates, practice, tools, privacy).
@@ -15,7 +18,8 @@ Read this first in a new session, then `CLAUDE.md`.
   preferred restructuring his own v0.509 instead; kept for reference only.
 
 ## Branches
-- `claude/loving-goldberg-mm0mxu`: all work so far, including R03. No `main` branch yet (open question below).
+- `main`: the current version (created from R04 on John's answer, 2026-11-18).
+- `claude/loving-goldberg-mm0mxu`: the working branch; pushed to `main` when John approves a delivery.
 
 ## History
 - Early sessions: orbit prototype, research, Apps Script server, Launchpad 1.0 and 2.0 rebuilds. John found the rebuilds
@@ -26,11 +30,15 @@ Read this first in a new session, then `CLAUDE.md`.
   Build check and the first results); meetings get an agenda from the cycle's current step; Google Forms behind
   "Advanced: connect Google Forms"; schemaVersion 6 (`activities`, `close` per cycle, v1–v5 migrate on load). All six
   acceptance checks pass (`checks/`). Apps Script `dist/` rebuilt from R03.
+- John's answers (2026-11-18, questions 1–6): relabel Zava's bar to the cycle steps; regenerate Zava's voice with his
+  recipe; Plan opens Zava's guided questions; create `main`; keep the 1.0/2.0 experiments; hadn't reviewed R03 yet.
+- R04 (2026-11-18): Zava's bars read "Plan · Standard / Learning / SMART goal, Build check · Assessment / Review" and,
+  in the assessment builder, "Build check · Approach / Questions / Scoring / Ready"; the Plan step opens Zava's guided
+  questions (where the team left off, or Review once Plan is complete); Zava's 49 clips regenerated with John's
+  recipe and built in (3.5 MB), so Listen to Zava works offline. All checks pass. `main` created from R04.
 
 ## Known gaps
-- Zava's narration clips (`/audio/zava-*.mp3`) lived on the old ChatGPT host and are not in the file, so Listen to Zava
-  is silent offline. The Onshape project has John's Zava voice recipe (`docs/narration/ZAVA.md`,
-  `tools/make_narration.py` in onshape-source) that could regenerate them.
+- With Zava's voice built in, the Apps Script version is 24 page files to paste (question 7).
 - The Worked/Tweak control on activity cards is taller than the mockup's pill (v0.509's global select styles).
 - Creating a Google Forms quiz was not tested (needs a real Google account); its controls are present and wired.
 
@@ -45,12 +53,6 @@ Read this first in a new session, then `CLAUDE.md`.
   them in History. Report as: 🔴 N questions waiting (#a–b): link.
 
 ## Open questions for John (also on the questions page)
-1. Zava's guided flow keeps its own five-part bar (Choose Standard · Define Learning · SMART Goal · Prepare Assessment ·
-   Review) inside the cycle's Plan and Build check steps, under the new five-step bar. Hide it, relabel it to match the
-   cycle steps, or keep it?
-2. Zava's voice: can you upload the `zava-*.mp3` clips from the old site, or should we regenerate them with your Zava
-   recipe from the Onshape project?
-3. The Plan step opens the SMART goal builder for an existing cycle. Should it open Zava's guided questions instead?
-4. Should we create a `main` branch from R03 so the repository has a clear "current" line?
-5. The Launchpad 1.0/2.0 experiments (`app/`, `design/`, `prototype/`): keep for reference or delete?
-6. Once you have looked at R03: anything to change on Our Home or the Teach step before R04?
+6. After looking at R04: anything to change on Our Home or the Teach step? (asked again; R03 not reviewed yet)
+7. Zava's voice makes the Apps Script version 24 page files to paste. Paste them all, use clasp (copies them in one
+   command), or leave the voice out of the school-site version?

@@ -20,18 +20,18 @@ await ctx.close();
 // 2a. R03 opens the same browser data
 ctx=await b.newContext();p=await ctx.newPage();p.on('pageerror',e=>errs.push('r03: '+e.message));
 await p.addInitScript(v=>{if(!sessionStorage.getItem('i')){localStorage.setItem('plc-launchpad:v1',v);sessionStorage.setItem('i','1')}},JSON.stringify(v5));
-await p.goto(ROOT+'PLC-Launchpad-R03.html#/engineering/cycles');await p.waitForTimeout(1500);
+await p.goto(ROOT+'PLC-Launchpad-R04.html#/engineering/cycles');await p.waitForTimeout(1500);
 await p.evaluate(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
-await p.goto(ROOT+'PLC-Launchpad-R03.html#/engineering/settings');await p.waitForTimeout(800);
+await p.goto(ROOT+'PLC-Launchpad-R04.html#/engineering/settings');await p.waitForTimeout(800);
 let s6=JSON.parse(await p.evaluate(()=>localStorage.getItem('plc-launchpad:v1')));
 console.log('R03 after opening :',JSON.stringify(summary(s6)),'| meeting kept:',JSON.stringify(s6.meetings[0].agenda[0].decision),'| activities arrays:',s6.cycles.every(c=>Array.isArray(c.activities)));
-await p.goto(ROOT+'PLC-Launchpad-R03.html#/engineering/cycles');await p.waitForTimeout(800);
+await p.goto(ROOT+'PLC-Launchpad-R04.html#/engineering/cycles');await p.waitForTimeout(800);
 await p.screenshot({path:OUT+'/cycles.png',fullPage:true});
 console.log('Our Cycles shows folder:',await p.evaluate(()=>document.body.innerText.includes('Fall units')));
 await ctx.close();
 // 2b. R03 imports the backup file through Import Backup File
 ctx=await b.newContext();p=await ctx.newPage();p.on('pageerror',e=>errs.push('r03 import: '+e.message));
-await p.goto(ROOT+'PLC-Launchpad-R03.html#/engineering/settings');await p.waitForTimeout(1500);
+await p.goto(ROOT+'PLC-Launchpad-R04.html#/engineering/settings');await p.waitForTimeout(1500);
 await p.evaluate(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
 await p.setInputFiles('#file',OUT+'/v0509-backup.json');await p.waitForTimeout(600);
 await p.evaluate(()=>{const d=[...document.querySelectorAll('dialog[open]')].pop();const b=d&&[...d.querySelectorAll('button')].find(b=>/restore/i.test(b.textContent));b&&b.click()});await p.waitForTimeout(1000);
@@ -40,6 +40,6 @@ console.log('R03 after import  :',JSON.stringify(summary(s6)));
 console.log('toast:',await p.evaluate(()=>[...document.querySelectorAll('.toast,[role=status]')].map(e=>e.textContent.trim()).filter(Boolean).slice(-1)[0]));
 // 3. old words gone from what users see on main pages
 const pages=['','cycles','settings','meetings','glossary','setup'];let bad=[];
-for(const h of pages){await p.goto(ROOT+'PLC-Launchpad-R03.html#/engineering/'+h);await p.waitForTimeout(500);const t=await p.evaluate(()=>document.body.innerText);const m=t.match(/PLC plans?|learning cycles?/gi);if(m)bad.push(h+':'+m.join(','))}
+for(const h of pages){await p.goto(ROOT+'PLC-Launchpad-R04.html#/engineering/'+h);await p.waitForTimeout(500);const t=await p.evaluate(()=>document.body.innerText);const m=t.match(/PLC plans?|learning cycles?/gi);if(m)bad.push(h+':'+m.join(','))}
 console.log('old words on pages:',bad.length?bad:'none');
 console.log('ERRORS',JSON.stringify(errs));await b.close();})();
