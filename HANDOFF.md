@@ -38,7 +38,8 @@ Read this first in a new session, then `CLAUDE.md`.
   recipe and built in (3.5 MB), so Listen to Zava works offline. All checks pass. `main` created from R04.
 
 ## Known gaps
-- With Zava's voice built in, the Apps Script version is 24 page files to paste (question 7).
+- With Zava's voice built in, the Apps Script version is 24 pieces to paste. John's answer (question 7, 2026-11-23):
+  decide later, when he is ready to set up the school site. Options then: voice off at first (5 pieces), clasp, or paste all 24.
 - The Worked/Tweak control on activity cards is taller than the mockup's pill (v0.509's global select styles).
 - Creating a Google Forms quiz was not tested (needs a real Google account); its controls are present and wired.
 
@@ -56,6 +57,3 @@ Read this first in a new session, then `CLAUDE.md`.
 
 ## Open questions for John (also on the questions page)
 6. After looking at R04: anything to change on Our Home or the Teach step? (John hasn't looked yet, 2026-11-18)
-7. School site (Apps Script): Zava's voice makes it 24 pieces to paste instead of 5. Decide later, leave the voice off
-   at first, use clasp, or paste all 24? (Reworded 2026-11-18: John asked what page files are; it only matters on the
-   day the school site is set up, not for the file version.)
