@@ -36,6 +36,7 @@ Read this first in a new session, then `CLAUDE.md`.
   in the assessment builder, "Build check · Approach / Questions / Scoring / Ready"; the Plan step opens Zava's guided
   questions (where the team left off, or Review once Plan is complete); Zava's 49 clips regenerated with John's
   recipe and built in (3.5 MB), so Listen to Zava works offline. All checks pass. `main` created from R04.
+- John reviewed R04 (question 6, 2026-11-23): looks good, keep going.
 
 ## Known gaps
 - With Zava's voice built in, the Apps Script version is 24 pieces to paste. John's answer (question 7, 2026-11-23):
@@ -56,4 +57,4 @@ Read this first in a new session, then `CLAUDE.md`.
   count and numbers.
 
 ## Open questions for John (also on the questions page)
-6. After looking at R04: anything to change on Our Home or the Teach step? (John hasn't looked yet, 2026-11-18)
+None right now (2026-11-24). Next question number: 8.
